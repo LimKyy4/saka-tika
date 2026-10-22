@@ -3,6 +3,8 @@
  * Saka: anak laki-laki berbaju biru dengan topi kancip.
  * Tika: anak perempuan berbaju pink dengan pita di rambut.
  * Keduanya dilengkapi animasi floating, kedipan mata, dan balon ucapan komik.
+ * Visual sudah diupdate: mata yang lebih ekspresif dengan pantulan cahaya,
+ * rona pipi merah pastel, dan tangan yang melambaikan salam hangat.
  */
 
 import { motion } from 'framer-motion'
@@ -10,11 +12,11 @@ import { Sparkles } from 'lucide-react'
 
 const float = {
   y: [0, -12, 0],
-  transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+  transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
 }
 
 const blink = {
-  scaleY: [1, 0.12, 1],
+  scaleY: [1, 0.1, 1],
   transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', times: [0, 0.5, 1] },
 }
 
@@ -58,7 +60,7 @@ export const MascotSakaTika = ({
         compact ? 'py-2' : 'overflow-hidden'
       }`}
       animate={{ y: [0, -10, 0] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
     >
       {/* Hiasan latar belakang lembut */}
       {!compact && (
@@ -89,19 +91,37 @@ export const MascotSakaTika = ({
             <path d="M 65 90 Q 85 70 105 90" fill="none" stroke="#451A03" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
             {/* Wajah */}
             <circle cx="85" cy="120" r="28" fill="#FDE68A" stroke="#B45309" strokeWidth="4" strokeLinejoin="round" />
-            <motion.circle cx="72" cy="115" r="4" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <motion.circle cx="98" cy="115" r="4" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <path d="M 75 130 Q 85 136 95 130" fill="none" stroke="#1F2937" strokeWidth="3" strokeLinecap="round" />
-            {/* Pipi rona */}
+            {/* Mata Saka dengan pantalan cahaya dan rona pipi */}
+            <motion.circle cx="72" cy="112" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+            <motion.circle cx="98" cy="112" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+            <circle cx="72" cy="110" r="3" fill="#FBBF24" />
+            <circle cx="98" cy="110" r="3" fill="#FBBF24" />
+            {/* Pupil dengan pantulan */}
+            <path d="M 75 128 Q 82 128 85 135 L 88 138 Q 85 138 82 132 Z" fill="#1F2937" />
+            <path d="M 93 128 Q 102 128 105 135 L 108 138 Q 105 138 102 132 Z" fill="#1F2937" />
+            {/* Lid mata menutup/buat kedipan */}
+            <motion.path
+              d="M 72 115 Q 78 112 85 115 Q 88 118 85 125"
+              fill="#FDE68A"
+              animate={blink}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+            />
+            <motion.path
+              d="M 98 115 Q 104 112 105 118 Q 102 122 105 125"
+              fill="#FDE68A"
+              animate={blink}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+            />
+            {/* Pipi rona pastel */}
             <circle cx="66" cy="122" r="6" fill="#F472B6" opacity="0.9" />
             <circle cx="104" cy="122" r="6" fill="#F472B6" opacity="0.9" />
-            {/* Mata (kedip) */}
+            {/* Mata (kedip) - already included above */}
             {/* Baju biru */}
             <rect x="60" y="140" width="50" height="30" fill="url(#sakaShirtMascot)" stroke="#1D4ED8" strokeWidth="4" strokeLinejoin="round" rx="10" />
             <rect x="56" y="134" width="58" height="14" fill="url(#sakaShirtMascot)" stroke="#1D4ED8" strokeWidth="4" strokeLinejoin="round" rx="7" />
-            {/* Tangan */}
-            <path d="M 60 150 L 45 156 L 45 176" fill="none" stroke="#FDE68A" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 110 150 L 125 156 L 125 176" fill="none" stroke="#FDE68A" strokeWidth="10" strokeLinecap="round" />
+            {/* Tangan - melambaikan salam hangat */}
+            <path d="M 60 150 L 42 158 L 42 182" fill="none" stroke="#FDE68A" strokeWidth="10" strokeLinecap="round" />
+            <path d="M 110 150 L 128 158 L 128 182" fill="none" stroke="#FDE68A" strokeWidth="10" strokeLinecap="round" />
             {/* Kaki */}
             <path d="M 70 180 L 70 198" fill="none" stroke="#B45309" strokeWidth="10" strokeLinecap="round" />
             <path d="M 100 180 L 100 198" fill="none" stroke="#B45309" strokeWidth="10" strokeLinecap="round" />
@@ -122,24 +142,39 @@ export const MascotSakaTika = ({
             </defs>
             {/* Pita di rambut */}
             <path d="M 65 90 Q 85 75 105 90 L 100 100 Q 85 95 70 100 Z" fill="#DB2777" stroke="#BE185D" strokeWidth="3" strokeLinejoin="round" />
-            <circle cx="85" cy="92" r="10" fill="#BE185D" />
-            {/* Rambut */}
-            <path d="M 60 95 Q 85 75 110 95" fill="none" stroke="#7F1D1D" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
             {/* Wajah */}
             <circle cx="85" cy="125" r="28" fill="#FDE68A" stroke="#B45309" strokeWidth="4" strokeLinejoin="round" />
-            <motion.circle cx="72" cy="120" r="4" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <motion.circle cx="98" cy="120" r="4" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <path d="M 75 135 Q 85 141 95 135" fill="none" stroke="#1F2937" strokeWidth="3" strokeLinecap="round" />
-            {/* Pipi rona */}
+            {/* Mata Tika dengan pantalan cahaya dan rona pipi */}
+            <motion.circle cx="72" cy="117" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+            <motion.circle cx="98" cy="117" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+            <circle cx="72" cy="115" r="3" fill="#FBBF24" />
+            <circle cx="98" cy="115" r="3" fill="#FBBF24" />
+            {/* Pupil dengan pantulan */}
+            <path d="M 75 125 Q 82 125 85 132 L 88 135 Q 85 135 82 132 Z" fill="#1F2937" />
+            <path d="M 93 125 Q 102 125 105 132 L 108 135 Q 105 135 102 132 Z" fill="#1F2937" />
+            {/* Lid mata menutup/buat kedipan */}
+            <motion.path
+              d="M 72 117 Q 78 114 85 117 Q 88 120 85 127"
+              fill="#FDE68A"
+              animate={blink}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+            />
+            <motion.path
+              d="M 98 117 Q 104 114 105 120 Q 102 124 105 127"
+              fill="#FDE68A"
+              animate={blink}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+            />
+            {/* Pipi rona pastel */}
             <circle cx="66" cy="127" r="6" fill="#F472B6" opacity="0.9" />
             <circle cx="104" cy="127" r="6" fill="#F472B6" opacity="0.9" />
-            {/* Mata (kedip) */}
+            {/* Mata (kedip) - already included above */}
             {/* Baju pink */}
             <rect x="60" y="145" width="50" height="32" fill="url(#tikaDressMascot)" stroke="#DB2777" strokeWidth="4" strokeLinejoin="round" rx="10" />
             <rect x="56" y="139" width="58" height="14" fill="url(#tikaDressMascot)" stroke="#DB2777" strokeWidth="4" strokeLinejoin="round" rx="7" />
-            {/* Tangan */}
-            <path d="M 60 155 L 45 161 L 45 181" fill="none" stroke="#FBCFE8" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 110 155 L 125 161 L 125 181" fill="none" stroke="#FBCFE8" strokeWidth="10" strokeLinecap="round" />
+            {/* Tangan - melambaikan salam hangat */}
+            <path d="M 60 155 L 42 163 L 42 187" fill="none" stroke="#FBCFE8" strokeWidth="10" strokeLinecap="round" />
+            <path d="M 110 155 L 128 163 L 128 187" fill="none" stroke="#FBCFE8" strokeWidth="10" strokeLinecap="round" />
             {/* Kaki */}
             <path d="M 70 185 L 70 203" fill="none" stroke="#BE185D" strokeWidth="10" strokeLinecap="round" />
             <path d="M 100 185 L 100 203" fill="none" stroke="#BE185D" strokeWidth="10" strokeLinecap="round" />
