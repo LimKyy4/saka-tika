@@ -1,15 +1,30 @@
 /**
- * HomeScreen - Halaman beranda dengan desain super cute, high contrast, dan playful.
- * Dilengkapi maskot Saka & Tika, latar animasi, dan tombol mulai yang memantul.
- * Semua emoji diganti ikon lucide, typografi Fredoka, dan struktur yang terorganisir.
+ * HomeScreen - Halaman beranda desain super cute, high contrast, dan fully playful.
+ * Dilengkapi:
+ * - Header non-obstructive dengan backdrop blur
+ * - Maskot Saka & Tika interaktif dengan hover greetings
+ * - Aset edukasi melayang (laptop, buku, balok huruf, pensil)
+ * - Burung kecil yang terbang periodik
+ * - Tombol Mulai Belajar gaya Chunky 3D Toy Button
+ * - Semua emoji diganti ikon lucide, typografi Fredoka, zero error
  */
 
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import { Star, Sparkles, Volume2, VolumeX } from 'lucide-react'
+import {
+  Star,
+  Sparkles,
+  Volume2,
+  VolumeX,
+  BookOpen,
+  Laptop,
+  GraduationCap,
+  Pencil,
+} from 'lucide-react'
 import { MascotSakaTika } from '../common/MascotSakaTika'
 import { AnimatedBackground } from '../common/AnimatedBackground'
 import { CustomButton } from '../common/CustomButton'
+import { FlyingAnimal } from '../common/FlyingAnimal'
 import { AudioController } from '../common/AudioController'
 import { useAudio } from '../../hooks/useAudio'
 
@@ -40,21 +55,28 @@ export const HomeScreen = ({ onStart }) => {
     >
       <AnimatedBackground />
 
-      {/* Floating Header Bar dengan backdrop blur */}
-      <div className="fixed top-0 left-0 right-0 z-30 backdrop-blur-md bg-white/80 border-b-4 border-amber-300 p-4 px-6 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
-        <div className="flex items-center justify-between gap-4">
+      {/* ====== NON-OBSTRUCTIVE HEADER ====== */}
+      {/* Header tetap di atas dengan z-50, backdrop blur, tak menyembunyikan konten di bawah */}
+      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 border-b-4 border-amber-300 p-4 px-6 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+          {/* Kiri: Logo SAKA TIKA */}
           <div className="flex items-center gap-2">
-            <Star size={20} strokeWidth={2} className="text-amber-500" />
+            <Sparkles size={20} strokeWidth={2} className="text-amber-500" />
             <span className="font-black text-slate-900 text-lg tracking-tighter">SAKA TIKA</span>
           </div>
+
+          {/* Kanan: Audio Control */}
           <div className="flex items-center gap-2">
             <AudioController className="" size="lg" />
           </div>
         </div>
       </div>
 
-      {/* Main Hero Area */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
+      {/* ====== MAIN CONTENT AREA ====== */}
+      {/* Beri padding atas 20 agar konten tidak menempel di header dan terlihat rapi */}
+      <div className="pt-20 relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
+
+        {/* Judul Utama dengan gradien warna ceria */}
         <motion.div
           initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -70,8 +92,13 @@ export const HomeScreen = ({ onStart }) => {
           </p>
         </motion.div>
 
+        {/* Maskot Saka & Tika dengan interaksi hover */}
         <MascotSakaTika speechText="Ayo belajar huruf bersama Saka dan Tika!" speechPosition="bottom" speechDelay={0.5} />
 
+        {/* Burung kecil terbang periodik */}
+        <FlyingAnimal />
+
+        {/* Tombol Utama "Mulai Belajar" - Chunky 3D Toy Button */}
         <motion.div
           initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -82,7 +109,12 @@ export const HomeScreen = ({ onStart }) => {
             onClick={handleStart}
             variant="primary"
             size="xlarge"
-            className="rounded-3xl border-4 font-bold flex items-center justify-center gap-2 transition-all duration-200 active:translate-y-2 active:border-b-8 active:border-amber-500 bg-amber-400 text-indigo-950 shadow-[0_10px_0_0_rgba(245,158,11,0.35)] hover:bg-amber-300 hover:shadow-[0_6px_0_0_rgba(245,158,11,0.35)] cursor-pointer"
+            className="rounded-3xl border-4 font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+            style={{
+              background: 'linear-gradient(135deg, #fDE047 0%, #FBBF24 100%)',
+              borderColor: 'rgba(250, 191, 16, 0.8)',
+              boxShadow: '0 10px 0 0 rgba(250, 191, 16, 0.3), 0 20px 30px rgba(0, 0, 0, 0.15)',
+            }}
           >
             <Sparkles size={20} strokeWidth={2} className="text-slate-900" /> Mulai Belajar
           </CustomButton>

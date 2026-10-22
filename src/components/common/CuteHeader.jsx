@@ -1,10 +1,11 @@
 /**
  * CuteHeader - Header navigasi seru ala dunia anak.
  * Tampilkan judul, deskripsi, tombol navigasi, dan pengatur audio.
+ * Header non-obstructive dengan backdrop blur dan spacer konten.
  */
 
 import { motion } from 'framer-motion'
-import { ChevronLeft, Home } from 'lucide-react'
+import { ChevronLeft, Home, Sparkles, BookOpen } from 'lucide-react'
 import { useAudio } from '../../hooks/useAudio'
 import { AudioController } from './AudioController'
 
@@ -40,7 +41,7 @@ export const CuteHeader = ({
       initial={{ y: -12, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-      className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b-6 border-slate-100 shadow-[0_6px_0_0_rgba(0,0,0,0.05)] sticky top-0 z-30"
+      className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b-6 border-slate-100 shadow-[0_6px_0_0_rgba(0,0,0,0.05)] sticky top-0 z-50"
     >
       <div className="flex items-center gap-3">
         {showBack && onBack && makeNavButton(<ChevronLeft size={24} strokeWidth={2.5} />, 'Kembali', onBack)}

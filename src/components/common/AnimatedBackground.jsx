@@ -1,12 +1,14 @@
 /**
- * AnimatedBackground - Layered background bertingkat dunia anak:
+ * AnimatedBackground - Layered background bertingkat dunia anak yang kaya aset edukasi:
  * - Gradient langit biru pastel + kuning lembut
  * - Awan melayang horizontal
  * - Bukit hijau melengkung di bagian bawah
- * - Gelembung huruf A, B, C berwarna-warni yang melayang
+ * - Gelembung huruf A, B, C berwarna-warni
+ * - Aset edukasi terang-teras melayang: laptop, buku, balok huruf, pensil, bintang
  */
 
 import { motion } from 'framer-motion'
+import { Sparkles, BookOpen, Laptop, GraduationCap, Pencil, Sun, Cloud } from 'lucide-react'
 
 const cloudVariants = {
   left: {
@@ -82,6 +84,137 @@ export const AnimatedBackground = () => {
           }}
         />
       ))}
+
+      {/* Aset edukasi melayang - laptop */}
+      <motion.svg
+        key="laptop"
+        width="60"
+        height="40"
+        viewBox="0 0 60 40"
+        animate={{
+          x: [0, '110%', 0],
+          y: [30, 10, 30],
+          transition: {
+            duration: 10,
+            repeatType: 'repeat',
+            ease: 'easeInOut',
+            delay: 3,
+          },
+        }}
+        className="absolute text-slate-300 pointer-events-none"
+        style={{
+          left: '-60px',
+          top: '60%',
+        }}
+      >
+        <rect x="5" y="5" width="50" height="25" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
+        <rect x="15" y="10" width="20" height="10" fill="currentColor" />
+        <rect x="15" y="20" width="25" height="5" fill="currentColor" />
+      </motion.svg>
+
+      {/* Buku terbuka */}
+      <motion.svg
+        key="book"
+        width="50"
+        height="60"
+        viewBox="0 0 50 60"
+        animate={{
+          x: ['-50%', 50, '-50%'],
+          y: [20, 40, 20],
+          transition: {
+            duration: 12,
+            repeatType: 'repeat',
+            ease: 'easeInOut',
+            delay: 1,
+          },
+        }}
+        className="absolute text-slate-300 pointer-events-none"
+        style={{
+          left: '-50px',
+          top: '70%',
+        }}
+      >
+        <path d="M10 10 L40 10 L40 45 L10 45 Z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M10 10 Q25 5 40 10 Q45 15 45 25 Q45 35 40 40 Q25 45 10 45 Z" fill="currentColor" />
+        <path d="M10 25 Q20 20 35 25 Q40 30 40 40" stroke="currentColor" strokeWidth="1" fill="none" />
+      </motion.svg>
+
+      {/* Balok huruf A, B, C 3D pastel yang melayang */}
+      {[1, 2, 3].map((i) => (
+        <motion.div
+          key={i}
+          animate={{ x: [0, -30, 0], transition: { duration: 6, repeatType: 'repeat', ease: 'easeInOut', delay: i * 2 } }}
+          className="absolute rounded bg-amber-300/60 border border-amber-200 shadow-lg"
+          style={{
+            left: i * 30 + 15 + '%',
+            top: 50 + (i * 10) + '%',
+            width: 35 + i * 8,
+            height: 25 + i * 6,
+          }}
+        />
+      ))}
+
+      {/* Pensil melayang */}
+      <motion.svg
+        key="pencil"
+        width="50"
+        height="50"
+        viewBox="0 0 50 50"
+        animate={{
+          x: ['100%', -50, '100%'],
+          y: [10, 30, 10],
+          transition: {
+            duration: 9,
+            repeatType: 'repeat',
+            ease: 'easeInOut',
+            delay: 2.5,
+          },
+        }}
+        className="absolute text-indigo-400 pointer-events-none"
+        style={{
+          right: '-50px',
+          top: '55%',
+        }}
+      >
+        <path d="M5 5 L45 5 L40 15 L10 15 L5 5 Z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M25 5 Q25 -5 50 0 Q25 5 25 5 Z" fill="currentColor" />
+        <circle cx="25" cy="25" r="3" fill="currentColor" />
+      </motion.svg>
+
+      {/* Matahari di langit */}
+      <motion.svg
+        key="sun"
+        width="50"
+        height="50"
+        viewBox="0 0 50 50"
+        animate={{ x: [0, '100%', 0], transition: { duration: 15, repeatType: 'repeat', ease: 'easeInOut' } }}
+        className="absolute top-[10%] right-[-5%] text-yellow-300 pointer-events-none"
+        style={{ right: '-50px' }}
+      >
+        <circle cx="25" cy="25" r="20" fill="currentColor" />
+        <path d="M25 5 L25 15 M25 35 M5 25 L35 25 M10 15 L40 15 M10 35 L40 35" stroke="currentColor" strokeWidth="2" fill="none" />
+      </motion.svg>
+
+      {/* Awan kecil melayang di bagian atas */}
+      {[1, 2].map((i) => (
+        <motion.svg
+          key={`cloud-${i}`}
+          width="70"
+          height="40"
+          viewBox="0 0 70 40"
+          animate="{{ x: [-100, '120%'], transition: { duration: 18, repeatType: 'repeat', ease: 'linear', delay: i * 3 } }}"
+          className="absolute text-slate-200 pointer-events-none"
+          style={{
+            top: i === 0 ? '8%' : '12%',
+            left: i === 0 ? '-100%' : '110%',
+          }}
+        >
+          <path d="M10 20 Q20 5 40 20 Q50 35 30 35 T10 20" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </motion.svg>
+      ))}
+
+      {/* Kilauan bintang Sparkles */}
+      <Sparkles size={20} strokeWidth={2} className="absolute text-amber-500 animate-pulse" style={{ left: '5%', top: '70%' }} />
     </div>
   )
 }

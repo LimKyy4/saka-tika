@@ -5,6 +5,7 @@
  * Keduanya dilengkapi animasi floating, kedipan mata, dan balon ucapan komik.
  * Visual sudah diupdate: mata yang lebih ekspresif dengan pantulan cahaya,
  * rona pipi merah pastel, dan tangan yang melambaikan salam hangat.
+ * Ditambahkan interaksi hover per karakter dengan animasi greetings mandiri.
  */
 
 import { motion } from 'framer-motion'
@@ -54,6 +55,22 @@ export const MascotSakaTika = ({
   speechDelay = 0,
   compact = false,
 }) => {
+  /* State hover per karakter */
+  const [hoveredMascot, setHoveredMascot] = React.useState(null)
+
+  const handleSakaHover = (e) => {
+    setHoveredMascot('saka')
+    // Reset after animation completes
+    const timer = setTimeout(() => setHoveredMascot(null), 3000)
+    e.currentTarget._timer = timer
+  }
+
+  const handleTikaHover = (e) => {
+    setHoveredMascot('tika')
+    const timer = setTimeout(() => setHoveredMascot(null), 3000)
+    e.currentTarget._timer = timer
+  }
+
   return (
     <motion.div
       className={`relative flex w-full items-center justify-center ${
@@ -61,6 +78,10 @@ export const MascotSakaTika = ({
       }`}
       animate={{ y: [0, -10, 0] }}
       transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      onMouseLeave={(e) => {
+        if (e.currentTarget._timer) clearTimeout(e.currentTarget._timer)
+        setHoveredMascot(null)
+      }}
     >
       {/* Hiasan latar belakang lembut */}
       {!compact && (
@@ -76,7 +97,12 @@ export const MascotSakaTika = ({
         }`}
       >
         {/* Saka - anak laki-laki */}
-        <motion.div className="relative" animate={float}>
+        <motion.div
+          className="relative"
+          animate={float}
+          onMouseEnter={handleSakaHover}
+          onMouseLeave={(e) => e.currentTarget._timer && clearTimeout(e.currentTarget._timer)}
+        >
           <svg width="170" height="210" viewBox="0 0 170 210" fill="none" xmlns="http://www.w3.org/2000/svg" className={compact ? 'h-[92px] w-auto' : undefined}>
             <defs>
               <linearGradient id="sakaShirtMascot" x1="0" y1="0" x2="0" y2="1">
@@ -129,7 +155,14 @@ export const MascotSakaTika = ({
           <span className={`absolute -top-10 left-1/2 -translate-x-1/2 text-[11px] font-black text-slate-700 bg-white/95 px-3 py-1 rounded-full border-2 border-slate-200 shadow-lg ${compact ? 'hidden' : ''}`}>Saka</span>
         </motion.div>
 
-        {speechText && !compact && <SpeechBubble text={speechText} position={speechPosition} delay={speechDelay} />}
+        {/* Hover greeting for Saka */}
+        {hoveredMascot === 'saka' && (
+          <SpeechBubble
+            text="Halo! Aku Saka! Ayo belajar huruf bareng!"
+            position="bottom"
+            delay={0.3}
+          />
+        )}
 
         {/* Tika - anak perempuan */}
         <motion.div className="relative" animate={{ ...float, transition: { ...float.transition, delay: 0.5 } }}>
@@ -182,7 +215,17 @@ export const MascotSakaTika = ({
           <span className={`absolute -top-10 left-1/2 -translate-x-1/2 text-[11px] font-black text-slate-700 bg-white/95 px-3 py-1 rounded-full border-2 border-slate-200 shadow-lg ${compact ? 'hidden' : ''}`}>Tika</span>
         </motion.div>
 
-        {!compact && <Sparkles size={28} strokeWidth={2.5} className="text-amber-500 animate-pulse" />}
+        {/* Hover greeting for Tika */}
+        {hoveredMascot === 'tika' && (
+          <SpeechBubble
+            text="Hai! Aku Tika! Petualangan seru siap dimulai!"
+            position="bottom"
+            delay={0.3}
+          />
+        )}
+
+        {/* Default speech bubble between Saka and Tika */}
+        {!hoveredMascot && !compact && <SpeechBubble text="Ayo belajar huruf bersama Saka dan Tika!" speechPosition="bottom" speechDelay={0.5} />}
       </motion.div>
     </motion.div>
   )
