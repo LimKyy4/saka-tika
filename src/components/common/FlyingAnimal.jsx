@@ -3,6 +3,7 @@
  * Setiap 3-5 detik, satu bird terbang dari sisi ke sisi layar dengan gerakan sayap.
  */
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import { Feather, Sun, Cloud } from 'lucide-react'
 

@@ -7,6 +7,7 @@
  * - Aset edukasi terang-teras melayang: laptop, buku, balok huruf, pensil, bintang
  */
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, BookOpen, Laptop, GraduationCap, Pencil, Sun, Cloud } from 'lucide-react'
 

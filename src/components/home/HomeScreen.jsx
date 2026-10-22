@@ -9,6 +9,7 @@
  * - Semua emoji diganti ikon lucide, typografi Fredoka, zero error
  */
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import {

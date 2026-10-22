@@ -8,6 +8,7 @@
  * Ditambahkan interaksi hover per karakter dengan animasi greetings mandiri.
  */
 
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 
@@ -56,7 +57,7 @@ export const MascotSakaTika = ({
   compact = false,
 }) => {
   /* State hover per karakter */
-  const [hoveredMascot, setHoveredMascot] = React.useState(null)
+  const [hoveredMascot, setHoveredMascot] = useState(null)
 
   const handleSakaHover = (e) => {
     setHoveredMascot('saka')

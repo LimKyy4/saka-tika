@@ -4,6 +4,7 @@
  * Header non-obstructive dengan backdrop blur dan spacer konten.
  */
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Home, Sparkles, BookOpen } from 'lucide-react'
 import { useAudio } from '../../hooks/useAudio'
