@@ -1,233 +1,230 @@
 /**
- * Karakter Maskot Saka & Tika - Vector SVG super imut dan animatif.
- * Saka: anak laki-laki berbaju biru dengan topi kancip.
- * Tika: anak perempuan berbaju pink dengan pita di rambut.
- * Keduanya dilengkapi animasi floating, kedipan mata, dan balon ucapan komik.
- * Visual sudah diupdate: mata yang lebih ekspresif dengan pantulan cahaya,
- * rona pipi merah pastel, dan tangan yang melambaikan salam hangat.
- * Ditambahkan interaksi hover per karakter dengan animasi greetings mandiri.
+ * Karakter Maskot Saka & Tika - pasangan SVG vector pastel yang imut.
+ * Saka: anak laki-laki berbaju biru dengan topi.
+ * Tika: anak perempuan berbaju pink dengan pita rambut.
+ * Animasi floating halus + kedipan mata berkala. Tanpa efek hover.
  */
 
-import React, { useState, useEffect, useRef } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
 
-const float = {
-  y: [0, -12, 0],
-  transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-}
-
+/* Kedipan mata: cepat di tengah siklus, lalu istirahat */
 const blink = {
-  scaleY: [1, 0.1, 1],
-  transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', times: [0, 0.5, 1] },
+  scaleY: [1, 1, 0.12, 1, 1],
+  transition: {
+    duration: 5.5,
+    times: [0, 0.88, 0.92, 0.96, 1],
+    repeat: Infinity,
+    repeatDelay: 1.4,
+    ease: 'easeInOut',
+  },
 }
 
-/* Balon ucapan gaya komik anak */
-const SpeechBubble = ({ text, position = 'top', delay = 0 }) => {
+const eyeStyle = { transformBox: 'fill-box', transformOrigin: 'center' }
+
+/* Satu mata: bola mata + pantulan cahaya */
+const Eye = ({ cx, cy }) => (
+  <motion.g animate={blink} style={eyeStyle}>
+    <ellipse cx={cx} cy={cy} rx="7.5" ry="8.5" fill="#1F2937" />
+    <circle cx={cx + 2.6} cy={cy - 3.2} r="2.6" fill="#FFFFFF" />
+    <circle cx={cx - 2.4} cy={cy + 2.6} r="1.2" fill="#FFFFFF" opacity="0.65" />
+  </motion.g>
+)
+
+export const MascotSakaTika = ({ compact = false }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, delay }}
-      className="relative inline-block"
-    >
-      <div className="relative max-w-xs rounded-3xl border-4 border-amber-300 bg-amber-50 p-4 text-center shadow-[0_8px_0_0_rgba(245,158,11,0.2)] md:p-6">
-        <p className="text-base font-bold leading-relaxed text-amber-900 md:text-lg">
-          {text}
-        </p>
-
-        {/* Ekor balon ucapan */}
-        <span
-          aria-hidden="true"
-          className={`absolute left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-amber-300 bg-amber-50 ${
-            position === 'top'
-              ? '-bottom-2 border-b-4 border-r-4'
-              : '-top-2 border-l-4 border-t-4'
-          }`}
-        />
-      </div>
-    </motion.div>
-  )
-}
-
-export const MascotSakaTika = ({
-  speechText,
-  speechPosition = 'top',
-  speechDelay = 0,
-  compact = false,
-}) => {
-  /* State hover per karakter */
-  const [hoveredMascot, setHoveredMascot] = useState(null)
-
-  const handleSakaHover = (e) => {
-    setHoveredMascot('saka')
-    // Reset after animation completes
-    const timer = setTimeout(() => setHoveredMascot(null), 3000)
-    e.currentTarget._timer = timer
-  }
-
-  const handleTikaHover = (e) => {
-    setHoveredMascot('tika')
-    const timer = setTimeout(() => setHoveredMascot(null), 3000)
-    e.currentTarget._timer = timer
-  }
-
-  return (
-    <motion.div
-      className={`relative flex w-full items-center justify-center ${
-        compact ? 'py-2' : 'overflow-hidden'
-      }`}
-      animate={{ y: [0, -10, 0] }}
-      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-      onMouseLeave={(e) => {
-        if (e.currentTarget._timer) clearTimeout(e.currentTarget._timer)
-        setHoveredMascot(null)
-      }}
-    >
-      {/* Hiasan latar belakang lembut */}
-      {!compact && (
-        <>
-          <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-amber-100 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-pink-100 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
-        </>
-      )}
-
+    <div className="flex w-full items-end justify-center gap-4 sm:gap-8">
+      {/* ==================== SAKA ==================== */}
       <motion.div
-        className={`relative z-10 flex items-center ${
-          compact ? 'gap-3' : 'gap-10 md:gap-16'
-        }`}
+        className="relative"
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
       >
-        {/* Saka - anak laki-laki */}
-        <motion.div
-          className="relative"
-          animate={float}
-          onMouseEnter={handleSakaHover}
-          onMouseLeave={(e) => e.currentTarget._timer && clearTimeout(e.currentTarget._timer)}
+        <svg
+          width="160"
+          height="200"
+          viewBox="0 0 160 200"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={compact ? 'h-[84px] w-auto' : 'h-[150px] w-auto sm:h-[176px]'}
+          role="img"
+          aria-label="Saka"
         >
-          <svg width="170" height="210" viewBox="0 0 170 210" fill="none" xmlns="http://www.w3.org/2000/svg" className={compact ? 'h-[92px] w-auto' : undefined}>
-            <defs>
-              <linearGradient id="sakaShirtMascot" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#60A5FA" />
-                <stop offset="100%" stopColor="#3B82F6" />
-              </linearGradient>
-            </defs>
-            {/* Topi kancip */}
-            <path d="M 60 90 L 110 90 L 105 85 Q 85 60 85 60 Q 65 60 65 85 Z" fill="#FBBF24" stroke="#B45309" strokeWidth="4" strokeLinejoin="round" />
-            <path d="M 55 85 Q 85 75 115 85" fill="none" stroke="#B45309" strokeWidth="4" strokeLinecap="round" />
-            {/* Rambut */}
-            <path d="M 65 90 Q 85 70 105 90" fill="none" stroke="#451A03" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Wajah */}
-            <circle cx="85" cy="120" r="28" fill="#FDE68A" stroke="#B45309" strokeWidth="4" strokeLinejoin="round" />
-            {/* Mata Saka dengan pantalan cahaya dan rona pipi */}
-            <motion.circle cx="72" cy="112" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <motion.circle cx="98" cy="112" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <circle cx="72" cy="110" r="3" fill="#FBBF24" />
-            <circle cx="98" cy="110" r="3" fill="#FBBF24" />
-            {/* Pupil dengan pantulan */}
-            <path d="M 75 128 Q 82 128 85 135 L 88 138 Q 85 138 82 132 Z" fill="#1F2937" />
-            <path d="M 93 128 Q 102 128 105 135 L 108 138 Q 105 138 102 132 Z" fill="#1F2937" />
-            {/* Lid mata menutup/buat kedipan */}
-            <motion.path
-              d="M 72 115 Q 78 112 85 115 Q 88 118 85 125"
-              fill="#FDE68A"
-              animate={blink}
-              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-            />
-            <motion.path
-              d="M 98 115 Q 104 112 105 118 Q 102 122 105 125"
-              fill="#FDE68A"
-              animate={blink}
-              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-            />
-            {/* Pipi rona pastel */}
-            <circle cx="66" cy="122" r="6" fill="#F472B6" opacity="0.9" />
-            <circle cx="104" cy="122" r="6" fill="#F472B6" opacity="0.9" />
-            {/* Mata (kedip) - already included above */}
-            {/* Baju biru */}
-            <rect x="60" y="140" width="50" height="30" fill="url(#sakaShirtMascot)" stroke="#1D4ED8" strokeWidth="4" strokeLinejoin="round" rx="10" />
-            <rect x="56" y="134" width="58" height="14" fill="url(#sakaShirtMascot)" stroke="#1D4ED8" strokeWidth="4" strokeLinejoin="round" rx="7" />
-            {/* Tangan - melambaikan salam hangat */}
-            <path d="M 60 150 L 42 158 L 42 182" fill="none" stroke="#FDE68A" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 110 150 L 128 158 L 128 182" fill="none" stroke="#FDE68A" strokeWidth="10" strokeLinecap="round" />
-            {/* Kaki */}
-            <path d="M 70 180 L 70 198" fill="none" stroke="#B45309" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 100 180 L 100 198" fill="none" stroke="#B45309" strokeWidth="10" strokeLinecap="round" />
-          </svg>
-          <span className={`absolute -top-10 left-1/2 -translate-x-1/2 text-[11px] font-black text-slate-700 bg-white/95 px-3 py-1 rounded-full border-2 border-slate-200 shadow-lg ${compact ? 'hidden' : ''}`}>Saka</span>
-        </motion.div>
+          <defs>
+            <linearGradient id="sakaShirtClean" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#93C5FD" />
+              <stop offset="100%" stopColor="#3B82F6" />
+            </linearGradient>
+          </defs>
 
-        {/* Hover greeting for Saka */}
-        {hoveredMascot === 'saka' && (
-          <SpeechBubble
-            text="Halo! Aku Saka! Ayo belajar huruf bareng!"
-            position="bottom"
-            delay={0.3}
+          {/* Bayangan */}
+          <ellipse cx="80" cy="192" rx="40" ry="6" fill="#0F172A" opacity="0.08" />
+
+          {/* Kaki & sepatu */}
+          <path d="M68 158 L68 182" stroke="#FBBF24" strokeWidth="12" strokeLinecap="round" />
+          <path d="M92 158 L92 182" stroke="#FBBF24" strokeWidth="12" strokeLinecap="round" />
+          <path d="M60 184 Q68 189 76 184" stroke="#92400E" strokeWidth="9" strokeLinecap="round" fill="none" />
+          <path d="M84 184 Q92 189 100 184" stroke="#92400E" strokeWidth="9" strokeLinecap="round" fill="none" />
+
+          {/* Badan / kaus biru */}
+          <path
+            d="M56 122 Q80 112 104 122 L108 162 Q80 172 52 162 Z"
+            fill="url(#sakaShirtClean)"
+            stroke="#1D4ED8"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
           />
-        )}
 
-        {/* Tika - anak perempuan */}
-        <motion.div className="relative" animate={{ ...float, transition: { ...float.transition, delay: 0.5 } }}>
-          <svg width="170" height="210" viewBox="0 0 170 210" fill="none" xmlns="http://www.w3.org/2000/svg" className={compact ? 'h-[92px] w-auto' : undefined}>
-            <defs>
-              <linearGradient id="tikaDressMascot" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#F472B6" />
-                <stop offset="100%" stopColor="#EC4899" />
-              </linearGradient>
-            </defs>
-            {/* Pita di rambut */}
-            <path d="M 65 90 Q 85 75 105 90 L 100 100 Q 85 95 70 100 Z" fill="#DB2777" stroke="#BE185D" strokeWidth="3" strokeLinejoin="round" />
-            {/* Wajah */}
-            <circle cx="85" cy="125" r="28" fill="#FDE68A" stroke="#B45309" strokeWidth="4" strokeLinejoin="round" />
-            {/* Mata Tika dengan pantalan cahaya dan rona pipi */}
-            <motion.circle cx="72" cy="117" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <motion.circle cx="98" cy="117" r="6" fill="#1F2937" animate={blink} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-            <circle cx="72" cy="115" r="3" fill="#FBBF24" />
-            <circle cx="98" cy="115" r="3" fill="#FBBF24" />
-            {/* Pupil dengan pantulan */}
-            <path d="M 75 125 Q 82 125 85 132 L 88 135 Q 85 135 82 132 Z" fill="#1F2937" />
-            <path d="M 93 125 Q 102 125 105 132 L 108 135 Q 105 135 102 132 Z" fill="#1F2937" />
-            {/* Lid mata menutup/buat kedipan */}
-            <motion.path
-              d="M 72 117 Q 78 114 85 117 Q 88 120 85 127"
-              fill="#FDE68A"
-              animate={blink}
-              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-            />
-            <motion.path
-              d="M 98 117 Q 104 114 105 120 Q 102 124 105 127"
-              fill="#FDE68A"
-              animate={blink}
-              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-            />
-            {/* Pipi rona pastel */}
-            <circle cx="66" cy="127" r="6" fill="#F472B6" opacity="0.9" />
-            <circle cx="104" cy="127" r="6" fill="#F472B6" opacity="0.9" />
-            {/* Mata (kedip) - already included above */}
-            {/* Baju pink */}
-            <rect x="60" y="145" width="50" height="32" fill="url(#tikaDressMascot)" stroke="#DB2777" strokeWidth="4" strokeLinejoin="round" rx="10" />
-            <rect x="56" y="139" width="58" height="14" fill="url(#tikaDressMascot)" stroke="#DB2777" strokeWidth="4" strokeLinejoin="round" rx="7" />
-            {/* Tangan - melambaikan salam hangat */}
-            <path d="M 60 155 L 42 163 L 42 187" fill="none" stroke="#FBCFE8" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 110 155 L 128 163 L 128 187" fill="none" stroke="#FBCFE8" strokeWidth="10" strokeLinecap="round" />
-            {/* Kaki */}
-            <path d="M 70 185 L 70 203" fill="none" stroke="#BE185D" strokeWidth="10" strokeLinecap="round" />
-            <path d="M 100 185 L 100 203" fill="none" stroke="#BE185D" strokeWidth="10" strokeLinecap="round" />
-          </svg>
-          <span className={`absolute -top-10 left-1/2 -translate-x-1/2 text-[11px] font-black text-slate-700 bg-white/95 px-3 py-1 rounded-full border-2 border-slate-200 shadow-lg ${compact ? 'hidden' : ''}`}>Tika</span>
-        </motion.div>
+          {/* Lengan kiri turun */}
+          <path d="M58 130 Q46 140 42 154" stroke="#1D4ED8" strokeWidth="11" strokeLinecap="round" fill="none" />
+          <circle cx="41" cy="157" r="8" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
 
-        {/* Hover greeting for Tika */}
-        {hoveredMascot === 'tika' && (
-          <SpeechBubble
-            text="Hai! Aku Tika! Petualangan seru siap dimulai!"
-            position="bottom"
-            delay={0.3}
+          {/* Lengan kanan melambai */}
+          <motion.g
+            animate={{ rotate: [0, -10, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ transformBox: 'fill-box', transformOrigin: '82% 60%' }}
+          >
+            <path d="M102 130 Q116 118 122 106" stroke="#1D4ED8" strokeWidth="11" strokeLinecap="round" fill="none" />
+            <circle cx="124" cy="102" r="9" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+          </motion.g>
+
+          {/* Leher */}
+          <rect x="73" y="106" width="14" height="12" rx="6" fill="#FDE9B8" />
+
+          {/* Kepala */}
+          <circle cx="80" cy="76" r="40" fill="#FDE9B8" stroke="#B45309" strokeWidth="3.5" />
+          <circle cx="40" cy="80" r="7" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+          <circle cx="120" cy="80" r="7" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+
+          {/* Rambut */}
+          <path d="M41 74 Q46 42 80 40 Q114 42 119 74 Q106 58 80 58 Q54 58 41 74 Z" fill="#451A03" />
+
+          {/* Topi */}
+          <path
+            d="M40 58 Q80 28 120 58 L120 66 Q80 50 40 66 Z"
+            fill="#FBBF24"
+            stroke="#B45309"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
           />
-        )}
+          <path d="M120 60 Q136 60 139 70" stroke="#B45309" strokeWidth="5" strokeLinecap="round" fill="none" />
 
-        {/* Default speech bubble between Saka and Tika */}
-        {!hoveredMascot && !compact && <SpeechBubble text="Ayo belajar huruf bersama Saka dan Tika!" speechPosition="bottom" speechDelay={0.5} />}
+          {/* Mata */}
+          <Eye cx={66} cy={78} />
+          <Eye cx={94} cy={78} />
+
+          {/* Alis ramah */}
+          <path d="M59 66 Q66 63 73 66" stroke="#78350F" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          <path d="M87 66 Q94 63 101 66" stroke="#78350F" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+          {/* Pipi */}
+          <ellipse cx="52" cy="92" rx="7" ry="4.5" fill="#FB7185" opacity="0.5" />
+          <ellipse cx="108" cy="92" rx="7" ry="4.5" fill="#FB7185" opacity="0.5" />
+
+          {/* Senyum */}
+          <path d="M72 96 Q80 105 88 96" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+        </svg>
+
+        {!compact && (
+          <span className="mt-2 block text-center text-xs font-black uppercase tracking-wider text-indigo-900">
+            Saka
+          </span>
+        )}
       </motion.div>
-    </motion.div>
+
+      {/* ==================== TIKA ==================== */}
+      <motion.div
+        className="relative"
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: 0.35 }}
+      >
+        <svg
+          width="160"
+          height="200"
+          viewBox="0 0 160 200"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={compact ? 'h-[84px] w-auto' : 'h-[150px] w-auto sm:h-[176px]'}
+          role="img"
+          aria-label="Tika"
+        >
+          <defs>
+            <linearGradient id="tikaDressClean" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F9A8D4" />
+              <stop offset="100%" stopColor="#EC4899" />
+            </linearGradient>
+          </defs>
+
+          {/* Bayangan */}
+          <ellipse cx="80" cy="192" rx="40" ry="6" fill="#0F172A" opacity="0.08" />
+
+          {/* Kaki & sepatu */}
+          <path d="M70 160 L70 182" stroke="#FBCFE8" strokeWidth="11" strokeLinecap="round" />
+          <path d="M90 160 L90 182" stroke="#FBCFE8" strokeWidth="11" strokeLinecap="round" />
+          <path d="M63 184 Q70 189 77 184" stroke="#BE185D" strokeWidth="9" strokeLinecap="round" fill="none" />
+          <path d="M83 184 Q90 189 97 184" stroke="#BE185D" strokeWidth="9" strokeLinecap="round" fill="none" />
+
+          {/* Gaun pink */}
+          <path
+            d="M60 122 Q80 112 100 122 L112 164 Q80 176 48 164 Z"
+            fill="url(#tikaDressClean)"
+            stroke="#DB2777"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
+
+          {/* Lengan kiri turun */}
+          <path d="M62 130 Q50 140 47 154" stroke="#DB2777" strokeWidth="10" strokeLinecap="round" fill="none" />
+          <circle cx="46" cy="157" r="8" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+
+          {/* Lengan kanan melambai */}
+          <motion.g
+            animate={{ rotate: [0, 10, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+            style={{ transformBox: 'fill-box', transformOrigin: '20% 60%' }}
+          >
+            <path d="M98 130 Q112 118 117 106" stroke="#DB2777" strokeWidth="10" strokeLinecap="round" fill="none" />
+            <circle cx="119" cy="102" r="9" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+          </motion.g>
+
+          {/* Leher */}
+          <rect x="74" y="106" width="12" height="12" rx="6" fill="#FDE9B8" />
+
+          {/* Kepala */}
+          <circle cx="80" cy="76" r="40" fill="#FDE9B8" stroke="#B45309" strokeWidth="3.5" />
+          <circle cx="40" cy="80" r="7" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+          <circle cx="120" cy="80" r="7" fill="#FDE9B8" stroke="#B45309" strokeWidth="3" />
+
+          {/* Rambut + kuncir */}
+          <path d="M41 74 Q46 42 80 40 Q114 42 119 74 Q106 58 80 58 Q54 58 41 74 Z" fill="#7C2D12" />
+          <circle cx="36" cy="96" r="13" fill="#7C2D12" />
+          <circle cx="124" cy="96" r="13" fill="#7C2D12" />
+
+          {/* Pita rambut */}
+          <path d="M62 46 Q80 34 98 46 L94 56 Q80 50 66 56 Z" fill="#DB2777" stroke="#BE185D" strokeWidth="2.5" strokeLinejoin="round" />
+          <circle cx="80" cy="48" r="5" fill="#FBCFE8" />
+
+          {/* Mata dengan bulu mata */}
+          <Eye cx={66} cy={78} />
+          <Eye cx={94} cy={78} />
+          <path d="M58 68 Q64 64 70 68" stroke="#7C2D12" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          <path d="M90 68 Q96 64 102 68" stroke="#7C2D12" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+          {/* Pipi */}
+          <ellipse cx="52" cy="92" rx="7" ry="4.5" fill="#FB7185" opacity="0.55" />
+          <ellipse cx="108" cy="92" rx="7" ry="4.5" fill="#FB7185" opacity="0.55" />
+
+          {/* Senyum */}
+          <path d="M72 96 Q80 105 88 96" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+        </svg>
+
+        {!compact && (
+          <span className="mt-2 block text-center text-xs font-black uppercase tracking-wider text-pink-700">
+            Tika
+          </span>
+        )}
+      </motion.div>
+    </div>
   )
 }

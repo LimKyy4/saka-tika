@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AudioProvider } from './context/AudioContext'
 import { HomeScreen } from './components/home/HomeScreen'
@@ -15,6 +15,18 @@ const pageVariants = {
   exit: { x: -30, opacity: 0, transition: { duration: 0.2 } },
 }
 
+/* Wrapper transisi halaman agar properti animasi tidak tersebar sebagai props */
+const Screen = ({ children }) => (
+  <motion.div
+    initial={pageVariants.initial}
+    animate={pageVariants.animate}
+    exit={pageVariants.exit}
+    className="min-h-screen"
+  >
+    {children}
+  </motion.div>
+)
+
 export default function App() {
   const [screen, setScreen] = useState('HOME')
 
@@ -26,39 +38,39 @@ export default function App() {
     <AudioProvider>
       <AnimatePresence mode="wait" initial={false}>
         {screen === 'HOME' && (
-          <motion.div key="HOME" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="HOME">
             <HomeScreen onStart={() => goTo('MENU')} />
-          </motion.div>
+          </Screen>
         )}
         {screen === 'MENU' && (
-          <motion.div key="MENU" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="MENU">
             <MenuDashboard onBackToHome={backToHome} onSelectModule={goTo} />
-          </motion.div>
+          </Screen>
         )}
         {screen === 'MODULE_1' && (
-          <motion.div key="MODULE_1" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="MODULE_1">
             <ModuleMengenal onBackToMenu={backToMenu} />
-          </motion.div>
+          </Screen>
         )}
         {screen === 'MODULE_2' && (
-          <motion.div key="MODULE_2" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="MODULE_2">
             <ModuleMenulis onBackToMenu={backToMenu} />
-          </motion.div>
+          </Screen>
         )}
         {screen === 'MODULE_3' && (
-          <motion.div key="MODULE_3" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="MODULE_3">
             <ModuleTemukan onBackToMenu={backToMenu} />
-          </motion.div>
+          </Screen>
         )}
         {screen === 'MODULE_4' && (
-          <motion.div key="MODULE_4" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="MODULE_4">
             <ModuleMengetik onBackToMenu={backToMenu} />
-          </motion.div>
+          </Screen>
         )}
         {screen === 'MODULE_5' && (
-          <motion.div key="MODULE_5" {...pageVariants.animate} exit={pageVariants.exit}>
+          <Screen key="MODULE_5">
             <ModuleMelengkapi onBackToMenu={backToMenu} />
-          </motion.div>
+          </Screen>
         )}
       </AnimatePresence>
     </AudioProvider>
