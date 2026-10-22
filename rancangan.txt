@@ -1,0 +1,140 @@
+SAKA TIKA 
+
+APA YANG HARUS DIBUAT :
+Mengenal & Bunyi Huruf: Kartu alfabet A-Z yang dilengkapi audio pengucapan huruf dan kata
+Menulis Huruf: Fitur tracing garis putus-putus huruf kapital & kecil menggunakan mouse
+Temukan Huruf: Mini-game mencari huruf target dalam grid papan acak (50 sampel data).
+Mengetik Huruf: Game latihan mengetik kata sesuai gambar dengan visual huruf berubah warna.
+Melengkapi Kata: Game melengkapi huruf yang hilang dari suatu kata (50 sampel data).
+
+Aplikasi ini juga dilengkapi sistem reward bintang, efek suara interaktif, serta maskot karakter "Saka & Tika".
+
+
+
+TECH STACK
+Tauri + React Vite (atau HTML5/JS biasa)
+
+LIBRARY & TOOL KHUSUS
+- Framer Motion (framer-motion)
+- Canvas Confetti (canvas-confetti)
+- Howler.js (howler)
+- Tailwind CSS (tailwindcss)
+- Google Fonts (Custom Font)
+- Lucide React (lucide-react)
+- HTML5 Canvas Native (Tanpa Library Tambahan)
+
+React (Frontend): Tempat kita membangun semua tampilan interaktif, animasi, audio, dan logika mini-game menggunakan HTML, CSS, dan JavaScript.
+Tauri (Desktop Wrapper): Berfungsi membungkus kode React menjadi satu file instalasi desktop (.exe) yang mandiri tanpa perlu membuka browser.
+
+
+
+
+TAHAP PEMBANGUNAN APLIKASI
+Tahap 1: Setup Project, Halaman Home Interaktif, & Navigasi Menu Utama
+	- Inisialisasi Tauri + React Vite.
+	- Konfigurasi font unik modern dan tema warna pastel.
+	- Bikin Halaman Home (Welcome Screen dengan tombol Mulai interaktif dan maskot Saka & Tika).
+	- Bikin Halaman Menu Utama (navigasi ke 5 modul).
+	- Setup sistem Audio Global (BGM & efek suara tombol).
+Tahap 2: Modul Mengenal & Bunyi Huruf (A-Z + Suara + Contoh Kata).
+Tahap 3: Modul Menulis Huruf (Canvas Tracing).
+Tahap 4: Tiga Mini-Game Interaktif (Temukan Huruf, Mengetik, Melengkapi Kata).
+Tahap 5: Polishing Visual, Sistem Bintang, & Build Installer .exe .
+
+RENCANA PENGERJAAN APLIKASI 
+Fase 1: Inisialisasi Project & Fondasi Sistem
+	1. Setup Environment : 
+		- Inisialisasi project Tauri + React (Vite).
+		- Install dan konfigurasi Tailwind CSS, Framer Motion, Howler.js, canvas-confetti, dan Lucide React.
+	2. Typography & Styling Base :
+		- Integrasi font khusus anak (Fredoka / Nunito) yang unik, membulat, dan modern.
+		- Pembuatan palet warna pastel (Biru Muda, Kuning Pastel, Hijau Mint, Merah Muda).
+	3. Global Audio System & State Navigation :
+		- Mebuat pengatur audio terpusat untuk musik latar (BGM), sound effect klik tombol, dan suara selebrasi.
+		- Mebuat sistem navigasi halaman utama (State-based Router tanpa reload).
+
+Fase 2: Halaman Home (Pintu Masuk) & Menu Utama
+	1. Halaman Home Interaktif (Welcome Screen) :
+		- Pembuatan judul utama SAKA TIKA: Mengenal Huruf dan subjudul.
+		- Animasi maskot Saka & Tika (floating animation halus).
+		- Tombol interaktif Mulai Belajar dengan efek bounce dan sound effect pembuka.
+		- Opsi kontrol musik latar (Mute/Unmute).
+	2. Halaman Menu Utama (Dashboard Modul) :
+		- Tata letak 5 kartu pilihan modul interaktif sesuai desain referensi.		
+		- Navigasi mulus menuju tiap modul dan tombol kembali ke Halaman Home.
+
+Fase 3: Modul Pembelajaran Dasar (Mengenal & Menulis Huruf) 
+	1. Modul 1: Mengenal & Bunyi Huruf (A-Z) :
+		- Pembuatan galeri kartu alfabet A-Z.
+		- Modal/tampilan detail huruf beserta contoh kata dan objek visual (misal: "B untuk Bola").
+		- Integrasi pemutar audio pengucapan huruf dan kata.
+	2. Modul 2: Ayo Menulis Huruf (Canvas Tracing) :
+		- Pembuatan komponen HTML5 Canvas untuk menelusuri garis putus-putus huruf A-Z.
+		- Petunjuk arah panah penulisan huruf kapital dan huruf kecil.
+		- Logika deteksi goresan mouse sederhana dengan selebrasi bintang dan konfeti saat selesai.
+
+Fase 4: Modul Tiga Mini-Game Interaktif (50 Sampel Data)
+	Penyusunan Dataset JSON :
+		- Menyiapkan file data terstruktur untuk 50 sampel soal game.
+	Modul 3: Temukan Huruf:
+		- Grid papan 4x3 huruf acak.		
+		- Logika pencarian huruf target, respon visual (tanda ceklis/silang), dan efek suara benar/salah.
+	Modul 4: Mengetik Huruf:
+		- Tampilan visual gambar dan teks outline kata.
+		- Listener input keyboard yang mengubah warna huruf secara real-time saat diketik dengan benar.
+	Modul 5: Melengkapi Kata:
+		- Tampilan gambar dan kata dengan slot huruf yang hilang (misal: _ OL).
+		- Pilihan 4 tombol huruf interaktif, validasi jawaban, dan pemberian pujian bintang.
+
+Fase 5: Integrasi Visual, Maskot, & Polishing
+	Integrasi Maskot Saka & Tika : 
+		- Penempatan karakter Saka & Tika di setiap header modul sebagai pemandu interaktif.
+	Transisi & Selebrasi :
+		- Efek transisi antar halaman menggunakan Framer Motion.
+		- Efek animasi bintang dan piala pujian interaktif.
+	Pengujian & Performa :
+		- Pengujian respon keyboard, canvas tracing, dan kelancaran audio.
+		- Optimasi penggunaan memori agar aplikasi kencang di PC spesifikasi standar.
+
+Fase 6: Build & Distribusi Executable (.exe)
+	Konfigurasi Build Tauri:
+		- Penyesuaian ikon aplikasi (.ico), judul jendela, dan ukuran layar resolusi desktop.
+	Compilation:
+		- Compile project menjadi installer Windows (.exe).
+	Uji Coba Akhir:	
+		- Verifikasi instalasi dan jalannya aplikasi di lingkungan Windows offline.
+
+CHECKLIST PROJECT SAKA TIKA
+
+Fase 1: Setup Project & Fondasi Sistem
+	[ ] Inisialisasi Tauri + React Vite
+	[ ] Install library pendukung (Tailwind CSS, Framer Motion, Howler.js, canvas-confetti, Lucide React)
+	[ ] Konfigurasi Font (Fredoka / Nunito) dan Palet Warna Pastel
+	[ ] Setup Audio Controller Global (BGM & Sound Effect)
+	[ ] Buat Halaman Home Interaktif (Welcome Screen + Maskot Saka & Tika)
+	[ ] Buat Halaman Menu Utama (Dashboard 5 Modul)
+
+Fase 2: Modul Pembelajaran Dasar
+	[ ] Modul 1: Mengenal & Bunyi Huruf A-Z (Kartu Alfabet + Audio + Contoh Kata)
+	[ ] Modul 2: Ayo Menulis Huruf (Canvas Tracing Garis Putus-Putus + Deteksi Coretan Mouse)
+
+Fase 3: Modul Mini-Game Interaktif
+	[ ] Buat file dataset 50 sampel soal (data.json)
+	[ ] Modul 3: Temukan Huruf (Grid 4x3 + Validasi Jawaban Benar/Salah)
+	[ ] Modul 4: Mengetik Huruf (Listener Keyboard + Visual Teks Berubah Warna)
+	[ ] Modul 5: Melengkapi Kata (Slot Huruf Hilang + 4 Tombol Pilihan Jawaban)
+
+Fase 4: Polishing & Integrasi Visual
+	[ ] Integrasi Maskot Saka & Tika di setiap header modul
+	[ ] Sistem selebrasi (Bintang, Piala, dan Efek Konfeti)
+	[ ] Transisi antar-halaman yang halus
+	[ ] Testing audio, keyboard listener, dan performa aplikasi
+
+Fase 5: Build & Final Release
+	[ ] Konfigurasi window dan ikon aplikasi (.ico)
+	[ ] Compile project ke file installer Windows (.exe)
+	[ ] Testing instalasi offline di Windows
+
+
+
+

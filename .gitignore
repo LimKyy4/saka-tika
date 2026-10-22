@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Production build outputs
+dist/
+dist-isolation/
+
+# Tauri build outputs
+src-tauri/target/
+
+# Environment variables & local configuration
+.env
+.env.local
+*.log
