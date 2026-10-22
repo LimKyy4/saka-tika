@@ -6,7 +6,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Pencil, Search, Keyboard, Sparkles } from 'lucide-react'
+import { BookOpen, ChevronRight, Pencil, Search, Keyboard, Sparkles } from 'lucide-react'
 import { useAudio } from '../../hooks/useAudio'
 
 /* Variasi skala & opacity per kartu berdasarkan posisinya di carousel.

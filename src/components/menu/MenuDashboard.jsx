@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CuteHeader } from '../common/CuteHeader'
 import { ModuleCard } from './ModuleCard'
 import { modulesData } from '../../data/modulesData'
