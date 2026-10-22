@@ -1,7 +1,6 @@
 /**
- * ModuleCard - Kartu modul bergaya mainan chunky 3D toy.
- * Sudut melengkung tebal, border pastel dengan bayangan 3D,
- * badge ikon floating, animasi press-down, tombol BUKA MODUL 3D.
+ * ModuleCard - Kartu modul bergaya mainan chunky 3D toy dengan warna ultra-vibrant.
+ * Ukuran fixed, badge ikon floating, tombol BUKA MODUL 3D tebal.
  */
 
 import React from 'react'
@@ -17,30 +16,6 @@ const ICON_MAP = {
   Sparkles,
 }
 
-const getCardVariants = (activeIndex, idx) => {
-  const offset = idx - activeIndex
-  const isCenter = offset === 0
-  const isNear = Math.abs(offset) === 1
-  const isFar = Math.abs(offset) >= 2
-
-  let scale
-  if (isCenter) scale = 1.1
-  else if (isNear) scale = 0.95
-  else scale = 0.85
-
-  let opacity
-  if (isCenter) opacity = 1
-  else if (isNear) opacity = 0.8
-  else opacity = 0.5
-
-  let zIndex
-  if (isCenter) zIndex = 100
-  else if (isNear) zIndex = 80
-  else zIndex = 60
-
-  return { scale, opacity, zIndex }
-}
-
 const iconFloatVariant = {
   y: [0, -8, 0],
   transition: { duration: 2.8, repeat: Infinity, ease: 'easeInOut' },
@@ -52,80 +27,88 @@ const sparkleVariant = {
   transition: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
 }
 
-export const ModuleCard = ({ module, onSelect, activeIndex, idx }) => {
+export const ModuleCard = ({ module, onSelect, isCenter, isSide, onClickSide }) => {
   const { playSfx } = useAudio()
-  const IconComponent = ICON_MAP[module.icon]
+  const IconComponent = ICON_MAP[module.icon || module.iconName]
 
   const handleClick = () => {
     playSfx('click')
-    onSelect(module.id)
+    if (isCenter) {
+      onSelect(module.id)
+    } else if (isSide && onClickSide) {
+      onClickSide()
+    }
   }
-
-  const variants = getCardVariants(activeIndex, idx)
-  const isCenter = idx === activeIndex
 
   return (
     <motion.div
-      style={{
-        transform: `scale(${variants.scale})`,
-        opacity: variants.opacity,
-        zIndex: variants.zIndex,
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{
+        scale: isCenter ? 1.05 : 0.95,
+        opacity: isCenter ? 1 : 0.8,
+        zIndex: isCenter ? 20 : 10,
       }}
-      className="flex-shrink-0 w-[160px] flex-col items-center rounded-3xl border-4 border-b-8 p-6 text-left transition-all duration-300 cursor-pointer"
-      whileHover={{ y: -4, scale: 1.02 }}
-      whileTap={{ y: 2, scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+      whileHover={isCenter ? { y: -6 } : { y: -4 }}
+      whileTap={{ scale: isCenter ? 1.0 : 0.9, y: 2 }}
       onClick={handleClick}
+      className={`w-72 sm:w-80 h-[420px] rounded-3xl border-4 border-b-8 ${
+        module.bgColor || module.cardBg
+      } ${module.borderColor} ${module.borderBottomColor || module.edgeColor} shadow-2xl flex flex-col justify-between relative overflow-hidden cursor-pointer`}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() } }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleClick()
+        }
+      }}
       aria-label={`Buka modul ${module.title}`}
     >
       {/* Badge Ikon Floating di pojok atas */}
-      <div className="absolute -top-4 -right-4">
+      <div className="absolute -top-5 -right-5">
         <motion.div
-          className={`relative flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-white/80 shadow-lg ${module.iconBg}`}
+          className={`relative flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white/90 shadow-xl ${
+            module.iconBg
+          }`}
           animate={iconFloatVariant}
         >
-          <IconComponent size={28} strokeWidth={2.8} className={module.iconColor} aria-hidden="true" />
+          <IconComponent size={32} strokeWidth={2.8} className={module.iconColor} aria-hidden="true" />
         </motion.div>
-        {/* Partikel kilauan bintang di sekitar badge */}
-        <motion.span
-          className="absolute -top-1 -right-1"
-          animate={sparkleVariant}
-        >
-          <Star size={16} strokeWidth={2.5} className="text-amber-400" aria-hidden="true" />
+        {/* Partikel kilauan bintang */}
+        <motion.span className="absolute -top-1 -right-1" animate={sparkleVariant}>
+          <Star size={18} strokeWidth={2.5} className="text-amber-400" aria-hidden="true" />
         </motion.span>
       </div>
 
       {/* Hiasan lembut di sudut kartu */}
-      <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${module.glowColor}`} />
+      <div className={`pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-2xl ${module.glowColor}`} />
 
-      {/* Judul Modul */}
-      <h3 className="relative mt-6 text-xl font-black leading-tight text-indigo-950 sm:text-2xl">
-        {module.title}
-      </h3>
+      {/* Konten utama */}
+      <div className="relative flex-1 flex flex-col justify-start pt-8">
+        <h3 className="text-2xl sm:text-3xl font-black leading-tight text-indigo-950 mb-3">
+          {module.title}
+        </h3>
+        <p className="text-sm sm:text-base font-bold leading-relaxed text-slate-900">
+          {module.description}
+        </p>
+      </div>
 
-      {/* Deskripsi Modul */}
-      <p className="relative mt-2 mb-6 text-xs font-bold leading-relaxed text-slate-700 sm:text-sm">
-        {module.description}
-      </p>
-
-      {/* Tombol BUKA MODUL – hanya muncul di kartu tengah */}
+      {/* Tombol BUKA MODUL - hanya untuk kartu tengah */}
       {isCenter && (
         <motion.div
-          className="relative mt-auto flex w-full items-center justify-between rounded-2xl border-b-4 border-amber-500 bg-amber-400 px-5 py-3 shadow-lg transition-colors duration-200 hover:bg-amber-300"
+          className="relative mt-auto w-full flex items-center justify-between bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-500 rounded-2xl text-indigo-950 font-black text-base py-3 px-6 shadow-lg active:translate-y-1 active:border-b-0 transition-all duration-200"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="text-sm font-black tracking-wide text-indigo-950">BUKA MODUL</span>
-          <motion.span
-            className="flex items-center"
-            whileHover={{ x: 3 }}
-          >
-            <ChevronRight size={20} strokeWidth={3} className="text-indigo-950" aria-hidden="true" />
+          <span className="tracking-wide">BUKA MODUL</span>
+          <motion.span whileHover={{ x: 4 }}>
+            <ChevronRight size={22} strokeWidth={3} aria-hidden="true" />
           </motion.span>
         </motion.div>
       )}
     </motion.div>
   )
 }
+
+export default ModuleCard
