@@ -5,13 +5,22 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Star } from 'lucide-react'
+import { BookOpen, Pencil, Search, Keyboard } from 'lucide-react'
 import { CuteHeader } from '../common/CuteHeader'
 import { ModuleCard } from './ModuleCard'
 import { modulesData } from '../../data/modulesData'
 import { AnimatedBackground } from '../common/AnimatedBackground'
 import { FlyingAnimal } from '../common/FlyingAnimal'
 import { MascotSakaTika } from '../common/MascotSakaTika'
+
+const ICON_MAP = {
+  BookOpen,
+  Pencil,
+  Search,
+  Keyboard,
+  Sparkles,
+}
 
 const NAV_BUTTON_CLASS =
   'bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-500 rounded-full p-4 shadow-xl active:translate-y-1 active:border-b-0'
@@ -32,7 +41,7 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
   const [activeIndex, setActiveIndex] = useState(0)
   const modules = modulesData.map((module) => ({
     ...module,
-    IconComponent: module.icon,
+    IconComponent: ICON_MAP[module.icon],
   }))
 
   const handleLeft = () => {
@@ -42,11 +51,6 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
   const handleRight = () => {
     setActiveIndex((i) => Math.min(i + 1, modules.length - 1))
   }
-
-  const prevClass =
-    'w-10 h-10 rounded-full bg-amber-200 border-2 border-amber-300 transition-all duration-300 hover:bg-amber-300 hover:scale-110'
-  const nextClass =
-    'w-10 h-10 rounded-full bg-amber-200 border-2 border-amber-300 transition-all duration-300 hover:bg-amber-300 hover:scale-110'
 
   return (
     <motion.div
@@ -70,7 +74,7 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-24 sm:px-6">
         {/* Sapaan maskot dinamis berdasarkan modul aktif */}
-        <section className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+        <section className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
           <motion.div
             initial={{ y: 14, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -111,16 +115,14 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
           </motion.button>
 
           <div
-            className="relative flex overflow-x-auto scrollbar-none -mx-4 space-x-2 pb-4 sm:-mx-6 sm:pb-6"
-            style={{ overflowX: 'auto', touchAction: 'pan-y' }
-          }>
-            {/* Setiap kartu modul dengan idx 0..4 */}
+            className="relative flex overflow-x-auto scrollbar-none -mx-4 space-x-3 pb-6 sm:-mx-6"
+            style={{ overflowX: 'auto', touchAction: 'pan-y' }}
+          >
             {modules.map((module, idx) => (
               <motion.div
                 key={module.id}
-                ref={null}
                 index={idx}
-                className="flex shrink-0 w-64 flex-col items-center rounded-3xl border-4 border-b-8 p-6 text-left transition-all duration-300 group-pointer-events-none"
+                className="flex shrink-0 w-[172px] flex-col items-center rounded-3xl border-4 border-b-8 p-6 text-left transition-all duration-300"
                 drag="x"
                 dragConstraints={{ left: 0, right: (modules.length - 1) * 140 }}
                 onDragStart={(e) => {
@@ -154,7 +156,7 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
         </section>
 
         {/* Indikator 5 titik di bagian bawah */}
-        <div className="mt-6 flex justify-center gap-2">
+        <div className="mt-8 flex justify-center gap-2">
           {Array.from({ length: modules.length }, (_, i) => (
             <motion.span
               key={i}
