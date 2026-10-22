@@ -1,9 +1,9 @@
 /**
  * ModuleMengenal - Halaman Modul 1 (Mengenal Huruf A-Z).
- * Grid rapi & simetris. Detail kalimat lengkap ada di LetterModal.
+ * Grid 26 kartu huruf rapi, simetris, responsif, dan tidak tertutup header.
  */
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { alphabetData, findLetter } from '../../data/alphabetData'
@@ -45,7 +45,7 @@ export const ModuleMengenal = ({ onBackToMenu }) => {
         showHome={false}
       />
 
-      <div className="mx-auto max-w-6xl p-4">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-24 sm:px-6">
         {/* Petunjuk singkat */}
         <motion.div
           initial={{ y: 10, opacity: 0 }}
