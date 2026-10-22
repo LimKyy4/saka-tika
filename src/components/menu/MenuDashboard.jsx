@@ -1,11 +1,11 @@
 /**
  * MenuDashboard - Halaman menu utama: header non-obstructive, sapaan maskot,
- * dan grid 5 kartu modul chunky 3D dengan tema pastel.
+ * dan 1-row 3D cover-flow carousel untuk 5 modul dengan gestur drag/swipe.
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Pencil, Search, Keyboard, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react'
 import { CuteHeader } from '../common/CuteHeader'
 import { ModuleCard } from './ModuleCard'
 import { modulesData } from '../../data/modulesData'
@@ -13,31 +13,40 @@ import { AnimatedBackground } from '../common/AnimatedBackground'
 import { FlyingAnimal } from '../common/FlyingAnimal'
 import { MascotSakaTika } from '../common/MascotSakaTika'
 
-const ICON_MAP = {
-  BookOpen,
-  Pencil,
-  Search,
-  Keyboard,
-  Sparkles,
-}
+const NAV_BUTTON_CLASS =
+  'bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-500 rounded-full p-4 shadow-xl active:translate-y-1 active:border-b-0'
 
-const STORAGE_KEY = 'saka-tika-total-stars'
-
-const readTotalStars = () => {
-  try {
-    const parsed = Number(window.localStorage.getItem(STORAGE_KEY))
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
-  } catch {
-    return 0
+const indicatorClass = (
+  i,
+  activeIndex,
+  baseClass =
+    'w-8 h-8 rounded-full bg-amber-200 border-2 border-amber-300 transition-all duration-300'
+) => {
+  if (i === activeIndex) {
+    return `${baseClass} bg-amber-400 border-amber-500 shadow-lg scale-110`
   }
+  return `${baseClass} hover:bg-amber-300 hover:scale-105`
 }
 
 export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
+  const [activeIndex, setActiveIndex] = useState(0)
   const modules = modulesData.map((module) => ({
     ...module,
-    IconComponent: ICON_MAP[module.icon],
+    IconComponent: module.icon,
   }))
-  const totalStars = readTotalStars()
+
+  const handleLeft = () => {
+    setActiveIndex((i) => Math.max(i - 1, 0))
+  }
+
+  const handleRight = () => {
+    setActiveIndex((i) => Math.min(i + 1, modules.length - 1))
+  }
+
+  const prevClass =
+    'w-10 h-10 rounded-full bg-amber-200 border-2 border-amber-300 transition-all duration-300 hover:bg-amber-300 hover:scale-110'
+  const nextClass =
+    'w-10 h-10 rounded-full bg-amber-200 border-2 border-amber-300 transition-all duration-300 hover:bg-amber-300 hover:scale-110'
 
   return (
     <motion.div
@@ -56,11 +65,11 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
         onBack={onBackToHome}
         showHome={false}
         showStars
-        stars={totalStars}
+        stars={0}
       />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-24 sm:px-6">
-        {/* Sapaan maskot */}
+        {/* Sapaan maskot dinamis berdasarkan modul aktif */}
         <section className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
           <motion.div
             initial={{ y: 14, opacity: 0 }}
@@ -87,25 +96,75 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
           </motion.div>
         </section>
 
-        {/* Grid modul */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module, index) => (
-            <motion.div
-              key={module.id}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.08 * index, ease: 'easeOut' }}
-              className="h-full"
-            >
-              <ModuleCard module={module} onSelect={onSelectModule} />
-            </motion.div>
+        {/* 3D Cover-Flow Carousel */}
+        <section className="relative">
+          {/* Navigasi kiri */}
+          <motion.button
+            type="button"
+            onClick={handleLeft}
+            className={NAV_BUTTON_CLASS}
+            aria-label="Modul sebelumnya"
+            whileHover={{ scale: 0.95 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronLeft size={24} strokeWidth={3} className="text-amber-950" aria-hidden="true" />
+          </motion.button>
+
+          <div
+            className="relative flex overflow-x-auto scrollbar-none -mx-4 space-x-2 pb-4 sm:-mx-6 sm:pb-6"
+            style={{ overflowX: 'auto', touchAction: 'pan-y' }
+          }>
+            {/* Setiap kartu modul dengan idx 0..4 */}
+            {modules.map((module, idx) => (
+              <motion.div
+                key={module.id}
+                ref={null}
+                index={idx}
+                className="flex shrink-0 w-64 flex-col items-center rounded-3xl border-4 border-b-8 p-6 text-left transition-all duration-300 group-pointer-events-none"
+                drag="x"
+                dragConstraints={{ left: 0, right: (modules.length - 1) * 140 }}
+                onDragStart={(e) => {
+                  e.currentTarget.style.userSelect = 'none'
+                }}
+                onDragEnd={(e) => {
+                  e.currentTarget.style.userSelect = ''
+                }}
+              >
+                <ModuleCard
+                  module={module}
+                  onSelect={onSelectModule}
+                  activeIndex={activeIndex}
+                  idx={idx}
+                />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Navigasi kanan */}
+          <motion.button
+            type="button"
+            onClick={handleRight}
+            className={NAV_BUTTON_CLASS}
+            aria-label="Modul selanjutnya"
+            whileHover={{ scale: 0.95 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronRight size={24} strokeWidth={3} className="text-amber-950" aria-hidden="true" />
+          </motion.button>
+        </section>
+
+        {/* Indikator 5 titik di bagian bawah */}
+        <div className="mt-6 flex justify-center gap-2">
+          {Array.from({ length: modules.length }, (_, i) => (
+            <motion.span
+              key={i}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: i === activeIndex ? 1 : 0.7, opacity: i === activeIndex ? 1 : 0.4 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+              className={indicatorClass(i, activeIndex)}
+            />
           ))}
         </div>
-
-        <p className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs font-bold text-slate-500">
-          <Sparkles size={13} strokeWidth={2.5} className="text-amber-500" aria-hidden="true" />
-          Pilih satu kartu untuk mulai bermain dan belajar huruf.
-        </p>
       </div>
     </motion.div>
   )

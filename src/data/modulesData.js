@@ -1,7 +1,8 @@
 /**
  * Metadata 5 modul pembelajaran.
  * Setiap tema membawa kelas pastel untuk kartu chunky 3D:
- * cardBg, borderColor, edgeColor, iconBg, iconColor, glowColor.
+ * cardBg, borderColor, edgeColor, iconBg, iconColor, glowColor,
+ * serta sapaan maskot dinamis yang muncul di atas carousel.
  */
 
 export const modulesData = [
@@ -16,6 +17,7 @@ export const modulesData = [
     iconBg: 'bg-sky-200 border-sky-300',
     iconColor: 'text-sky-700',
     glowColor: 'bg-sky-300/50',
+    mascotGreeting: 'Yuk, kenalan dengan huruf A sampai Z dan dengar bunyini!',
   },
   {
     id: 'MODULE_2',
@@ -28,6 +30,7 @@ export const modulesData = [
     iconBg: 'bg-amber-200 border-amber-300',
     iconColor: 'text-amber-700',
     glowColor: 'bg-amber-300/50',
+    mascotGreeting: 'Asik! Ayo latih jarimu corat-coret huruf di kanvas!',
   },
   {
     id: 'MODULE_3',
@@ -40,6 +43,7 @@ export const modulesData = [
     iconBg: 'bg-rose-200 border-rose-300',
     iconColor: 'text-rose-700',
     glowColor: 'bg-rose-300/50',
+    mascotGreeting: 'Mata jeli siap? Cari huruf tersembunyi di dalam papan!',
   },
   {
     id: 'MODULE_4',
@@ -52,6 +56,7 @@ export const modulesData = [
     iconBg: 'bg-orange-200 border-orange-300',
     iconColor: 'text-orange-700',
     glowColor: 'bg-orange-300/50',
+    mascotGreeting: 'Hore! Mari belajar ketik kata pakai papan ketik ceria!',
   },
   {
     id: 'MODULE_5',
@@ -64,5 +69,6 @@ export const modulesData = [
     iconBg: 'bg-emerald-200 border-emerald-300',
     iconColor: 'text-emerald-700',
     glowColor: 'bg-emerald-300/50',
+    mascotGreeting: 'Wah, ada huruf hilang! Bantu Saka & Tika melengkapinya ya!',
   },
 ]
