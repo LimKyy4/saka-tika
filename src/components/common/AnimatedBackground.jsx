@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, Cloud, Sun } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 
 const clouds = [
   { top: '4%', left: '3%', width: 160, delay: 0, duration: 20 },

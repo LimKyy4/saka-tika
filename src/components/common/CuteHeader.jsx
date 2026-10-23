@@ -1,7 +1,8 @@
 /**
- * CuteHeader - Header bar non-obstructive (sticky, z-50, backdrop blur).
+ * CuteHeader - Header bar non-obstructive.
  * Mode logo  : brand "SAKA TIKA" + kontrol audio (Home).
  * Mode halaman: tombol kembali 3D + judul/subjudul + total bintang + audio.
+ * compact    : header ringkas h-14 flex-none (dipakai di HomeScreen 1 layar).
  */
 
 import React from 'react'
@@ -21,6 +22,7 @@ export const CuteHeader = ({
   showAudio = true,
   showStars = false,
   stars = 0,
+  compact = false,
 }) => {
   const { playSfx } = useAudio()
 
@@ -32,12 +34,16 @@ export const CuteHeader = ({
   const navButtonClass =
     'flex h-11 w-11 items-center justify-center rounded-full border-4 border-amber-300 bg-amber-200 text-amber-900 shadow-[0_5px_0_rgba(245,158,11,0.35)] transition-colors hover:bg-amber-100 active:translate-y-1 active:shadow-none focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/50'
 
+  const headerClass = compact
+    ? 'relative flex-none z-30 flex h-14 w-full items-center justify-between gap-3 border-b-2 border-amber-200/50 bg-white/70 px-3 py-2 shadow-sm backdrop-blur-md sm:px-5'
+    : 'sticky top-0 z-50 flex w-full items-center justify-between gap-3 border-b-2 border-amber-200/50 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md sm:px-6'
+
   return (
     <motion.header
       initial={{ y: -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-      className="sticky top-0 z-50 flex w-full items-center justify-between gap-3 border-b-2 border-amber-200/50 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md sm:px-6"
+      className={headerClass}
     >
       {/* Kiri: kembali + judul / logo */}
       <div className="flex min-w-0 items-center gap-3">

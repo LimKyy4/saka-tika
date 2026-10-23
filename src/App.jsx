@@ -15,13 +15,14 @@ const pageVariants = {
   exit: { x: -30, opacity: 0, transition: { duration: 0.2 } },
 }
 
-/* Wrapper transisi halaman agar properti animasi tidak tersebar sebagai props */
-const Screen = ({ children }) => (
+/* Wrapper transisi halaman agar properti animasi tidak tersebar sebagai props.
+   fit=true dipakai untuk layar yang wajib pas 1 viewport tanpa scrollbar. */
+const Screen = ({ children, fit = false }) => (
   <motion.div
     initial={pageVariants.initial}
     animate={pageVariants.animate}
     exit={pageVariants.exit}
-    className="min-h-screen"
+    className={fit ? 'h-screen w-full overflow-hidden' : 'min-h-screen'}
   >
     {children}
   </motion.div>
@@ -38,7 +39,7 @@ export default function App() {
     <AudioProvider>
       <AnimatePresence mode="wait" initial={false}>
         {screen === 'HOME' && (
-          <Screen key="HOME">
+          <Screen key="HOME" fit>
             <HomeScreen onStart={() => goTo('MENU')} />
           </Screen>
         )}

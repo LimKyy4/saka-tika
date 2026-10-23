@@ -31,7 +31,7 @@ const Eye = ({ cx, cy }) => (
   </motion.g>
 )
 
-export const MascotSakaTika = ({ compact = false }) => {
+export const MascotSakaTika = ({ compact = false, hideNames = false }) => {
   return (
     <div className="flex w-full items-end justify-center gap-4 sm:gap-8">
       {/* ==================== SAKA ==================== */}
@@ -46,7 +46,7 @@ export const MascotSakaTika = ({ compact = false }) => {
           viewBox="0 0 160 200"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={compact ? 'h-[84px] w-auto' : 'h-[150px] w-auto sm:h-[176px]'}
+          className={compact ? 'h-[84px] w-auto' : 'h-[126px] w-auto sm:h-[152px]'}
           role="img"
           aria-label="Saka"
         >
@@ -126,8 +126,8 @@ export const MascotSakaTika = ({ compact = false }) => {
           <path d="M72 96 Q80 105 88 96" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
         </svg>
 
-        {!compact && (
-          <span className="mt-2 block text-center text-xs font-black uppercase tracking-wider text-indigo-900">
+        {!compact && !hideNames && (
+          <span className="mt-1 block text-center text-[10px] font-black uppercase tracking-wider text-indigo-900">
             Saka
           </span>
         )}
@@ -145,7 +145,7 @@ export const MascotSakaTika = ({ compact = false }) => {
           viewBox="0 0 160 200"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={compact ? 'h-[84px] w-auto' : 'h-[150px] w-auto sm:h-[176px]'}
+          className={compact ? 'h-[84px] w-auto' : 'h-[126px] w-auto sm:h-[152px]'}
           role="img"
           aria-label="Tika"
         >
@@ -219,8 +219,8 @@ export const MascotSakaTika = ({ compact = false }) => {
           <path d="M72 96 Q80 105 88 96" stroke="#92400E" strokeWidth="3.5" strokeLinecap="round" fill="none" />
         </svg>
 
-        {!compact && (
-          <span className="mt-2 block text-center text-xs font-black uppercase tracking-wider text-pink-700">
+        {!compact && !hideNames && (
+          <span className="mt-1 block text-center text-[10px] font-black uppercase tracking-wider text-pink-700">
             Tika
           </span>
         )}
