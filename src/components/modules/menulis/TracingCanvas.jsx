@@ -1,24 +1,19 @@
 /**
- * TracingCanvas - Kanvas tracing interaktif untuk Modul 2 (Ayo Menulis Huruf).
+ * TracingCanvas - Mesin kanvas tracing Modul 2 (Ayo Menulis Huruf).
  *
- * Prinsip validasi (KETAT, PER STROKE):
- * 1. Setiap stroke punya kumpulan checkpoint sendiri (jarak ~12 px).
- * 2. Kursor hanya menandai checkpoint yang jaraknya <= toleransi.
+ * Prinsip validasi (berurutan, per stroke):
+ * 1. Setiap stroke punya checkpoint sendiri (jarak ~12 px).
+ * 2. Hanya stroke aktif (pertama yang belum selesai) yang boleh mengumpulkan
+ *    checkpoint, sehingga langkah 1 -> 2 -> 3 -> 4 berjalan berurutan.
  * 3. Satu stroke selesai jika >= 82% checkpoint-nya tersentuh.
- * 4. Huruf selesai HANYA jika SEMUA stroke selesai.
- *    Tidak ada perhitungan "persentase global kanvas".
+ * 4. Ketika cakupan keseluruhan mencapai >= 65%, selebrasi otomatis dipicu.
  *
- * Prinsip menggambar:
- * - drawingRef = false secara default.
- * - Menjadi true HANYA pada pointerdown.
- * - pointerup / leave / cancel menutup stroke.
- *
- * Kanvas memakai resolusi internal 1000x1000 agar seluruh geometri huruf
- * (koordinat 0-1000) muat, lalu diskalakan responsif lewat CSS.
+ * Kanvas memakai resolusi internal 1000x1000, lalu diskalakan responsif
+ * lewat CSS agar tidak pernah terpotong di dalam papan tulis.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, ChevronLeft, ChevronRight, RotateCcw, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { useAudio } from '../../../hooks/useAudio'
 import {
   CANVAS_SIZE,
@@ -37,14 +32,18 @@ const HIT_TOLERANCE = 32
 /* Ambang kelulusan tiap stroke (82% dari checkpoint-nya) */
 const STROKE_PASS_RATIO = 0.82
 
-const BRUSH_WIDTH = 26
+/* Cakupan minimal untuk memicu selebrasi */
+const COMPLETION_THRESHOLD = 65
+
+const BRUSH_WIDTH = 22
 const SPARKLE_LIFE = 650
 const BADGE_RADIUS = 26
 const RING_RADIUS = 37
 
-const COLORS = [
+/* Palet spidol pastel 3D yang dipakai toolbar ModuleMenulis */
+export const MARKER_COLORS = [
   { value: '#38BDF8', label: 'Biru Langit' },
-  { value: '#34D399', label: 'Hijau Zamrud' },
+  { value: '#34D399', label: 'Hijau Mint' },
   { value: '#FB7185', label: 'Merah Muda' },
   { value: '#FBBF24', label: 'Kuning Ceria' },
 ]
@@ -73,14 +72,22 @@ const createEmptyStats = (checkpoints) =>
     done: false,
   }))
 
+const getOverall = (stats) => {
+  if (!stats || stats.length === 0) return 0
+  return Math.round(
+    stats.reduce((sum, item) => sum + (item.done ? 100 : item.percent * 100), 0) /
+      stats.length
+  )
+}
+
 export const TracingCanvas = ({
   letter,
   isCompleted = false,
   onComplete,
-  onPrev,
-  onNext,
-  hint,
+  onProgress,
+  brushColor = MARKER_COLORS[0].value,
   resetKey = 0,
+  className = '',
 }) => {
   const canvasRef = useRef(null)
   const { playSfx } = useAudio()
@@ -97,13 +104,9 @@ export const TracingCanvas = ({
     () => getLetterCheckpoints(letterId, CHECKPOINT_SPACING),
     [letterId]
   )
-  const badgePositions = useMemo(
-    () => getBadgePositions(strokes),
-    [strokes]
-  )
+  const badgePositions = useMemo(() => getBadgePositions(strokes), [strokes])
 
   /* State UI */
-  const [brushColor, setBrushColor] = useState(COLORS[0].value)
   const [isLocked, setIsLocked] = useState(false)
   const [isDrawing, setIsDrawing] = useState(false)
   const [completion, setCompletion] = useState(0)
@@ -114,7 +117,7 @@ export const TracingCanvas = ({
   const drawingRef = useRef(false)
   const lockedRef = useRef(false)
   const completedRef = useRef(Boolean(isCompleted))
-  const brushColorRef = useRef(COLORS[0].value)
+  const brushColorRef = useRef(brushColor)
   const visitedRef = useRef(checkpoints.map(() => new Set()))
   const doneRef = useRef(checkpoints.map(() => false))
   const statsRef = useRef(createEmptyStats(checkpoints))
@@ -125,9 +128,11 @@ export const TracingCanvas = ({
   const rafRef = useRef(0)
   const completionTimerRef = useRef(0)
   const drawRef = useRef(() => {})
+  const onProgressRef = useRef(onProgress)
 
   /* Sinkronkan status selesai dari parent tanpa memicu reset kanvas */
   completedRef.current = Boolean(isCompleted)
+  onProgressRef.current = onProgress
 
   /* ---------------- Layer panduan & badge ---------------- */
 
@@ -351,33 +356,33 @@ export const TracingCanvas = ({
   }, [])
 
   /**
-   * Tandai checkpoint yang tersentuh kursor.
+   * Tandai checkpoint stroke AKTIF saja (urutan 1 -> 2 -> 3 -> 4).
    * Mengembalikan stroke terakhir yang mendapat checkpoint baru.
    */
   const markCheckpoints = useCallback(
     (point) => {
+      const activeIndex = doneRef.current.findIndex((done) => !done)
+      if (activeIndex < 0) return { changed: false, lastTouched: -1 }
+
+      const list = checkpoints[activeIndex]
+      if (!list || list.length === 0) return { changed: false, lastTouched: -1 }
+
       const toleranceSquared = HIT_TOLERANCE * HIT_TOLERANCE
+      const visited = visitedRef.current[activeIndex]
       let changed = false
-      let lastTouched = -1
 
-      checkpoints.forEach((list, strokeIndex) => {
-        if (doneRef.current[strokeIndex]) return
+      for (let i = 0; i < list.length; i += 1) {
+        if (visited.has(i)) continue
 
-        const visited = visitedRef.current[strokeIndex]
-        for (let i = 0; i < list.length; i += 1) {
-          if (visited.has(i)) continue
-
-          const dx = point.x - list[i].x
-          const dy = point.y - list[i].y
-          if (dx * dx + dy * dy <= toleranceSquared) {
-            visited.add(i)
-            changed = true
-            lastTouched = strokeIndex
-          }
+        const dx = point.x - list[i].x
+        const dy = point.y - list[i].y
+        if (dx * dx + dy * dy <= toleranceSquared) {
+          visited.add(i)
+          changed = true
         }
-      })
+      }
 
-      return { changed, lastTouched }
+      return { changed, lastTouched: activeIndex }
     },
     [checkpoints]
   )
@@ -405,18 +410,12 @@ export const TracingCanvas = ({
     statsRef.current = next
     setStrokeStats(next)
 
-    const overall =
-      next.length > 0
-        ? Math.round(
-            next.reduce(
-              (sum, item) => sum + (item.done ? 100 : item.percent * 100),
-              0
-            ) / next.length
-          )
-        : 0
+    const overall = getOverall(next)
     setCompletion(overall)
+    onProgressRef.current?.({ steps: next, completion: overall })
 
-    if (newlyDone) playSfx('click')
+    /* Chime lembut setiap satu langkah berhasil */
+    if (newlyDone) playSfx('transition')
 
     return next
   }, [checkpoints, playSfx])
@@ -457,7 +456,7 @@ export const TracingCanvas = ({
     const stats = refreshProgress()
     setTouched(null)
 
-    if (stats.length > 0 && stats.every((item) => item.done)) {
+    if (getOverall(stats) >= COMPLETION_THRESHOLD) {
       finish()
       return
     }
@@ -482,7 +481,10 @@ export const TracingCanvas = ({
       if (changed) {
         setTouched(lastTouched)
         const stats = refreshProgress()
-        if (stats.length > 0 && stats.every((item) => item.done)) finish()
+        if (getOverall(stats) >= COMPLETION_THRESHOLD) {
+          finish()
+          return
+        }
       }
 
       drawRef.current()
@@ -530,7 +532,7 @@ export const TracingCanvas = ({
       if (changed) {
         setTouched(lastTouched)
         const stats = refreshProgress()
-        if (stats.length > 0 && stats.every((item) => item.done)) {
+        if (getOverall(stats) >= COMPLETION_THRESHOLD) {
           finish()
           return
         }
@@ -539,7 +541,14 @@ export const TracingCanvas = ({
       drawRef.current()
       startSparkleLoop()
     },
-    [endStroke, finish, markCheckpoints, refreshProgress, setTouched, startSparkleLoop]
+    [
+      endStroke,
+      finish,
+      markCheckpoints,
+      refreshProgress,
+      setTouched,
+      startSparkleLoop,
+    ]
   )
 
   const handlePointerUp = useCallback(() => {
@@ -557,31 +566,7 @@ export const TracingCanvas = ({
     setTouched(null)
   }, [checkpoints, setTouched])
 
-  const handleReset = useCallback(() => {
-    brushStrokesRef.current = []
-    currentStrokeRef.current = null
-    sparklesRef.current = []
-    drawingRef.current = false
-    lockedRef.current = false
-
-    setIsDrawing(false)
-    setIsLocked(false)
-    buildFreshProgress()
-
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current)
-      rafRef.current = 0
-    }
-    if (completionTimerRef.current) {
-      window.clearTimeout(completionTimerRef.current)
-      completionTimerRef.current = 0
-    }
-
-    drawRef.current()
-    playSfx('click')
-  }, [buildFreshProgress, playSfx])
-
-  /* Reset saat huruf berganti atau "Coba Lagi" ditekan.
+  /* Reset saat huruf berganti, tombol Hapus ditekan, atau "Coba Lagi".
      Naiknya isCompleted TIDAK boleh menghapus coretan yang baru selesai. */
   useEffect(() => {
     brushStrokesRef.current = []
@@ -593,9 +578,9 @@ export const TracingCanvas = ({
     visitedRef.current = checkpoints.map(() => new Set())
 
     const alreadyDone = completedRef.current
+    buildFreshProgress()
 
     if (alreadyDone) {
-      /* Huruf yang sudah pernah diselesaikan: tampilkan semua langkah selesai */
       doneRef.current = checkpoints.map(() => true)
       statsRef.current = checkpoints.map((list) => ({
         total: list.length,
@@ -603,17 +588,11 @@ export const TracingCanvas = ({
         percent: 1,
         done: true,
       }))
+      setStrokeStats(statsRef.current)
       setCompletion(100)
-    } else {
-      doneRef.current = checkpoints.map(() => false)
-      statsRef.current = createEmptyStats(checkpoints)
-      setCompletion(0)
     }
 
-    setStrokeStats(statsRef.current)
-    setTouchedStroke(null)
     setIsDrawing(false)
-
     lockedRef.current = alreadyDone
     setIsLocked(alreadyDone)
 
@@ -626,7 +605,15 @@ export const TracingCanvas = ({
       completionTimerRef.current = 0
     }
 
+    onProgressRef.current?.({
+      steps: statsRef.current,
+      completion: alreadyDone ? 100 : 0,
+    })
+
     drawRef.current()
+    // buildFreshProgress sudah menangani state; effect ini sengaja
+    // dijalankan hanya saat huruf/reset berubah.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkpoints, letterId, resetKey])
 
   useEffect(() => {
@@ -647,171 +634,42 @@ export const TracingCanvas = ({
   const allDone = strokeStats.length > 0 && strokeStats.every((item) => item.done)
   const activeIndex = strokeStats.findIndex((item) => !item.done)
   const activeStep = activeIndex >= 0 ? activeIndex + 1 : strokeStats.length
-  const highlightedIndex = touchedStroke ?? (activeIndex >= 0 ? activeIndex : null)
 
   /* ---------------- Render ---------------- */
 
   return (
-    <div className="flex w-full flex-col items-center">
-      {/* Papan tulis */}
-      <div className="relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-3xl border-4 border-amber-300 bg-white shadow-[0_10px_0_rgba(245,158,11,0.18)]">
-        <canvas
-          ref={canvasRef}
-          width={CANVAS_SIZE}
-          height={CANVAS_SIZE}
-          className={`block h-full w-full touch-none select-none ${
-            isLocked ? 'cursor-default' : 'cursor-crosshair'
-          }`}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onContextMenu={(event) => event.preventDefault()}
-          aria-label={`Kanvas menulis huruf ${letterId}`}
-        />
+    <div className={`relative flex h-full w-full items-center justify-center ${className}`}>
+      <canvas
+        ref={canvasRef}
+        width={CANVAS_SIZE}
+        height={CANVAS_SIZE}
+        className={`block h-full w-full touch-none select-none ${
+          isLocked ? 'cursor-default' : 'cursor-crosshair'
+        }`}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onContextMenu={(event) => event.preventDefault()}
+        aria-label={`Kanvas menulis huruf ${letterId}`}
+      />
 
-        {isLocked && (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-amber-50/90">
-            <div className="flex flex-col items-center gap-2 rounded-2xl border-4 border-amber-300 bg-white px-6 py-4 shadow-lg">
-              <Sparkles size={28} strokeWidth={2.5} className="text-amber-500" />
-              <span className="text-2xl font-black text-amber-800">Selesai!</span>
-            </div>
+      {isLocked && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-amber-50/80 backdrop-blur-[1px]">
+          <div className="flex items-center gap-2 rounded-2xl border-4 border-amber-300 bg-white px-5 py-3 shadow-xl">
+            <Sparkles size={24} strokeWidth={2.6} className="text-amber-500" aria-hidden="true" />
+            <span className="text-xl font-black text-amber-800">Hebat, selesai!</span>
           </div>
-        )}
-      </div>
-
-      {/* Kotak petunjuk */}
-      {hint && (
-        <div className="mt-4 w-full max-w-sm rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-center">
-          <p className="text-sm font-bold leading-relaxed text-slate-800">{hint}</p>
         </div>
       )}
-
-      {/* Kemajuan keseluruhan */}
-      <div className="mt-4 w-full max-w-md">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="text-sm font-bold text-slate-700">Kemajuan</span>
-          <span className="text-sm font-extrabold text-amber-700">{completion}%</span>
-        </div>
-        <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
-          <div
-            className="h-full rounded-full bg-amber-400 transition-[width] duration-200"
-            style={{ width: `${completion}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Status per langkah (bukti aturan semua-stroke) */}
-      <div className="mt-3 w-full max-w-md">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {strokeStats.map((stat, index) => {
-            const isDone = stat.done
-            const isHighlighted = !isDone && highlightedIndex === index
-            const percent = Math.min(100, Math.round(stat.percent * 100))
-
-            return (
-              <div
-                key={`step-${index + 1}`}
-                data-step={index + 1}
-                data-done={isDone ? 'true' : 'false'}
-                className={`flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1 text-xs font-black transition-colors ${
-                  isDone
-                    ? 'border-emerald-300 bg-emerald-100 text-emerald-800'
-                    : isHighlighted
-                      ? 'border-amber-400 bg-amber-100 text-amber-900'
-                      : 'border-slate-200 bg-white text-slate-600'
-                }`}
-              >
-                {isDone ? (
-                  <Check size={13} strokeWidth={3.5} />
-                ) : (
-                  <span className="tabular-nums">{index + 1}</span>
-                )}
-                <span className="tabular-nums">{isDone ? 'Selesai' : `${percent}%`}</span>
-              </div>
-            )
-          })}
-        </div>
-        <p className="mt-2 text-center text-xs font-bold text-slate-600">
-          {allDone
-            ? 'Semua langkah selesai. Hebat!'
-            : `Langkah ${activeStep} dari ${strokeStats.length}`}
-        </p>
-      </div>
-
-      {/* Control bar */}
-      <div className="mt-4 w-full max-w-md rounded-2xl border-2 border-amber-200 bg-white p-3 shadow-[0_6px_0_rgba(0,0,0,0.05)]">
-        {/* Pilihan warna */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <span className="mr-1 text-xs font-bold uppercase tracking-wider text-slate-600">
-            Warna
-          </span>
-          {COLORS.map((color) => {
-            const selected = brushColor === color.value
-            return (
-              <button
-                key={color.value}
-                type="button"
-                onClick={() => setBrushColor(color.value)}
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-transform ${
-                  selected
-                    ? 'scale-110 border-white ring-4 ring-amber-300'
-                    : 'border-white/70 hover:scale-105'
-                }`}
-                style={{ backgroundColor: color.value }}
-                aria-label={`Pilih warna ${color.label}`}
-                aria-pressed={selected}
-                title={color.label}
-              >
-                {selected && <Check size={16} strokeWidth={3} className="text-white" />}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Hapus + navigasi huruf */}
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={onPrev}
-            disabled={!onPrev}
-            className="flex items-center gap-1 rounded-2xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Huruf sebelumnya"
-          >
-            <ChevronLeft size={18} strokeWidth={2.5} />
-            <span className="hidden sm:inline">Sebelumnya</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleReset}
-            className="flex items-center gap-1 rounded-2xl border-2 border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700 shadow-[0_4px_0_rgba(244,63,94,0.18)] transition-colors hover:bg-rose-100 active:translate-y-1 active:shadow-none"
-            aria-label="Hapus semua coretan"
-          >
-            <RotateCcw size={18} strokeWidth={2.5} />
-            Hapus
-          </button>
-
-          <button
-            type="button"
-            onClick={onNext}
-            disabled={!onNext}
-            className="flex items-center gap-1 rounded-2xl border-2 border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Huruf berikutnya"
-          >
-            <span className="hidden sm:inline">Berikutnya</span>
-            <ChevronRight size={18} strokeWidth={2.5} />
-          </button>
-        </div>
-      </div>
 
       {/* Status kecil untuk pembaca layar */}
       <span className="sr-only" aria-live="polite">
         {isDrawing
           ? `Sedang menggambar langkah ${activeStep}`
           : allDone
-            ? 'Semua langkah selesai'
+            ? `Semua langkah selesai, cakupan ${completion}%`
             : `Siap menggambar langkah ${activeStep} dari ${strokeStats.length}`}
       </span>
     </div>
