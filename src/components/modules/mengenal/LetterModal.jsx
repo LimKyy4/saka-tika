@@ -15,7 +15,7 @@ import { getLetterIcon } from '../../../utils/letterIcons'
 import { useAudio } from '../../../hooks/useAudio'
 
 export const LetterModal = ({ letter, onClose, onNext, onPrev }) => {
-  const { capital, small, word, sentence, iconName, bgColor, textColor } = letter
+  const { capital, small, word, sentence, iconName, bgColor, borderColor, textColor } = letter
   const { playSfx } = useAudio()
 
   /* Static + fallback aman, tidak ada dynamic import */
@@ -94,8 +94,7 @@ export const LetterModal = ({ letter, onClose, onNext, onPrev }) => {
 
           {/* Kartu Ilustrasi Utama: ikon objek di lingkaran pastel besar */}
           <div
-            className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-3xl border-4 bg-white shadow-md"
-            style={{ backgroundColor: bgColor }}
+            className={`mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-3xl border-4 shadow-md ${bgColor} ${borderColor}`}
           >
             <Icon size={64} strokeWidth={2.4} className={textColor} aria-hidden="true" />
           </div>
