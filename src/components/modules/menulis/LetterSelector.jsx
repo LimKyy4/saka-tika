@@ -42,7 +42,7 @@ export const LetterSelector = ({
               isDone ? ' (sudah selesai)' : ''
             }`}
             aria-current={isActive ? 'true' : undefined}
-            className={`relative flex h-6 w-6 items-center justify-center rounded-lg border-2 text-[10px] font-black transition-colors duration-150 ${
+            className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 text-[10px] font-black transition-colors duration-150 ${
               isDone
                 ? 'border-emerald-300 bg-emerald-100 text-emerald-800'
                 : isActive

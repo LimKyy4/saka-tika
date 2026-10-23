@@ -6,7 +6,7 @@
  * 2. Hanya stroke aktif (pertama yang belum selesai) yang boleh mengumpulkan
  *    checkpoint, sehingga langkah 1 -> 2 -> 3 -> 4 berjalan berurutan.
  * 3. Satu stroke selesai jika >= 82% checkpoint-nya tersentuh.
- * 4. Ketika cakupan keseluruhan mencapai >= 65%, selebrasi otomatis dipicu.
+ * 4. Selebrasi dipicu setelah SEMUA stroke selesai (cakupan akhir > 65%).
  *
  * Kanvas memakai resolusi internal 1000x1000, lalu diskalakan responsif
  * lewat CSS agar tidak pernah terpotong di dalam papan tulis.
@@ -32,10 +32,12 @@ const HIT_TOLERANCE = 32
 /* Ambang kelulusan tiap stroke (82% dari checkpoint-nya) */
 const STROKE_PASS_RATIO = 0.82
 
-/* Cakupan minimal untuk memicu selebrasi */
-const COMPLETION_THRESHOLD = 65
+/* Selebrasi hanya setelah SEMUA langkah selesai. Setiap stroke minimal 82%,
+   jadi cakupan akhir selalu di atas ambang 65% yang diminta brief. */
+const isLetterComplete = (stats) =>
+  stats.length > 0 && stats.every((item) => item.done)
 
-const BRUSH_WIDTH = 22
+const BRUSH_WIDTH = 24
 const SPARKLE_LIFE = 650
 const BADGE_RADIUS = 26
 const RING_RADIUS = 37
@@ -48,8 +50,8 @@ export const MARKER_COLORS = [
   { value: '#FBBF24', label: 'Kuning Ceria' },
 ]
 
-const GUIDE_COLOR = '#CBD5E1'
-const GUIDE_COLOR_DONE = '#E2E8F0'
+const GUIDE_COLOR = '#94A3B8'
+const GUIDE_COLOR_DONE = '#CBD5E1'
 const SUCCESS_COLOR = '#10B981'
 const EMPTY_RING = 'rgba(148, 163, 184, 0.3)'
 
@@ -143,7 +145,7 @@ export const TracingCanvas = ({
 
         ctx.save()
         ctx.strokeStyle = doneRef.current[index] ? GUIDE_COLOR_DONE : GUIDE_COLOR
-        ctx.lineWidth = 16
+        ctx.lineWidth = 20
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
         ctx.setLineDash([20, 16])
@@ -212,9 +214,14 @@ export const TracingCanvas = ({
         /* Badge */
         ctx.globalAlpha = alpha
         ctx.fillStyle = done ? SUCCESS_COLOR : color
+        if (isHighlighted) {
+          ctx.shadowColor = color
+          ctx.shadowBlur = 18
+        }
         ctx.beginPath()
         ctx.arc(position.x, position.y, BADGE_RADIUS, 0, Math.PI * 2)
         ctx.fill()
+        ctx.shadowBlur = 0
 
         ctx.globalAlpha = 1
         if (done) {
@@ -250,12 +257,17 @@ export const TracingCanvas = ({
     ctx.lineWidth = BRUSH_WIDTH
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.18)'
+    ctx.shadowBlur = 7
+    ctx.shadowOffsetY = 3
     ctx.beginPath()
     ctx.moveTo(points[0].x, points[0].y)
     for (let i = 1; i < points.length; i += 1) {
       ctx.lineTo(points[i].x, points[i].y)
     }
     ctx.stroke()
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetY = 0
 
     /* Titik awal bulat agar ujung goresan rapi */
     if (points.length === 1) {
@@ -456,7 +468,7 @@ export const TracingCanvas = ({
     const stats = refreshProgress()
     setTouched(null)
 
-    if (getOverall(stats) >= COMPLETION_THRESHOLD) {
+    if (isLetterComplete(stats)) {
       finish()
       return
     }
@@ -477,19 +489,31 @@ export const TracingCanvas = ({
       setIsDrawing(true)
       currentStrokeRef.current = { points: [point], color: brushColorRef.current }
 
+      /* Percikan bintang langsung terlihat saat spidol menyentuh papan */
+      for (let i = 0; i < 3; i += 1) {
+        sparklesRef.current.push({
+          x: point.x + (Math.random() - 0.5) * 22,
+          y: point.y + (Math.random() - 0.5) * 22,
+          r: 7 + Math.random() * 10,
+          born: performance.now(),
+          color: brushColorRef.current,
+        })
+      }
+
       const { changed, lastTouched } = markCheckpoints(point)
       if (changed) {
         setTouched(lastTouched)
         const stats = refreshProgress()
-        if (getOverall(stats) >= COMPLETION_THRESHOLD) {
+        if (isLetterComplete(stats)) {
           finish()
           return
         }
       }
 
       drawRef.current()
+      startSparkleLoop()
     },
-    [finish, markCheckpoints, refreshProgress, setTouched]
+    [finish, markCheckpoints, refreshProgress, setTouched, startSparkleLoop]
   )
 
   const handlePointerMove = useCallback(
@@ -532,7 +556,7 @@ export const TracingCanvas = ({
       if (changed) {
         setTouched(lastTouched)
         const stats = refreshProgress()
-        if (getOverall(stats) >= COMPLETION_THRESHOLD) {
+        if (isLetterComplete(stats)) {
           finish()
           return
         }

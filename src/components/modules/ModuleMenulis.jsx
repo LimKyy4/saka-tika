@@ -4,10 +4,10 @@
  * Tata letak SATU LAYAR (tanpa scrollbar):
  *  - Header ringkas h-14
  *  - Grid 12 kolom: toolbar spidol (2) | papan tulis 3D (8) | navigasi huruf (2)
- *  - Footer: indikator langkah bintang + kemajuan + bar pemilih A-Z
+ *  - Footer: indikator langkah angka bercahaya + kemajuan + bar pemilih A-Z
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import {
@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Eraser,
   Pencil,
-  Star,
+  Sparkles,
   Volume2,
 } from 'lucide-react'
 import { alphabetData } from '../../data/alphabetData'
@@ -53,6 +53,17 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
   const [progress, setProgress] = useState({ steps: [], completion: 0 })
 
   const { playSfx } = useAudio()
+
+  /* Kunci scroll dokumen hanya selama Modul 2 aktif (modul lain tetap bebas). */
+  useEffect(() => {
+    const { documentElement: html, body } = document
+    html.classList.add('module-no-scroll')
+    body.classList.add('module-no-scroll')
+    return () => {
+      html.classList.remove('module-no-scroll')
+      body.classList.remove('module-no-scroll')
+    }
+  }, [])
 
   const currentIndex = alphabetData.findIndex((item) => item.id === currentLetterId)
   const currentLetter = alphabetData[currentIndex] || alphabetData[0]
@@ -145,7 +156,7 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
       </div>
 
       {/* Playground 12 kolom */}
-      <div className="my-1 mx-auto grid w-full max-w-6xl flex-1 grid-cols-12 items-center justify-center gap-2 overflow-hidden sm:gap-3">
+      <div className="my-1 mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-12 items-center justify-center gap-2 overflow-hidden sm:gap-3">
         {/* Kiri: spidol + hapus + dengar */}
         <aside className="col-span-2 flex h-full min-h-0 flex-col items-center justify-center gap-2 sm:gap-3">
           <div className="w-full max-w-[168px] rounded-3xl border-4 border-amber-200 bg-white/85 p-2 shadow-xl">
@@ -206,7 +217,7 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
 
         {/* Tengah: papan tulis mainan 3D */}
         <section className="col-span-8 flex h-full min-h-0 items-center justify-center">
-          <div className="relative flex aspect-square w-full max-w-[min(100%,calc(100vh_-_220px))] items-center justify-center overflow-hidden rounded-3xl border-8 border-amber-300 bg-amber-50 shadow-[0_14px_0_rgba(245,158,11,0.28),0_22px_45px_rgba(15,23,42,0.2)] ring-4 ring-white/70">
+          <div className="relative flex aspect-square w-full max-w-[min(100%,calc(100vh_-_150px))] items-center justify-center overflow-hidden rounded-3xl border-8 border-amber-300 bg-amber-50 shadow-[0_14px_0_rgba(245,158,11,0.28),0_22px_45px_rgba(15,23,42,0.2)] ring-4 ring-white/70">
             <TracingCanvas
               letter={currentLetter}
               isCompleted={isCompleted}
@@ -215,6 +226,24 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
               onComplete={handleComplete}
               onProgress={setProgress}
             />
+
+            {/* Kilau magis di dua sudut papan */}
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-3 z-10 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]"
+              animate={{ opacity: [0.35, 1, 0.35], rotate: [0, 18, 0], scale: [0.9, 1.1, 0.9] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Sparkles size={18} strokeWidth={2.6} />
+            </motion.span>
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-3 right-3 z-10 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.9)]"
+              animate={{ opacity: [1, 0.35, 1], rotate: [0, -18, 0], scale: [1.1, 0.9, 1.1] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Sparkles size={16} strokeWidth={2.6} />
+            </motion.span>
 
             {/* Sekrup mainan di empat sudut */}
             <span className="pointer-events-none absolute left-2 top-2 h-2.5 w-2.5 rounded-full bg-amber-300 shadow-inner" />
@@ -240,7 +269,7 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
             onClick={() => moveBy(-1)}
             aria-label="Huruf sebelumnya"
             title="Huruf sebelumnya"
-            className="flex h-12 w-full max-w-[168px] items-center justify-center rounded-2xl border-4 border-b-8 border-sky-500 bg-sky-300 text-sky-950 shadow-xl transition-colors hover:bg-sky-200 active:translate-y-1 active:border-b-0 sm:h-16"
+            className="flex h-14 w-full max-w-[168px] items-center justify-center rounded-2xl border-4 border-b-8 border-sky-500 bg-sky-300 text-sky-950 shadow-xl transition-colors hover:bg-sky-200 active:translate-y-1 active:border-b-0 sm:h-20"
           >
             <ChevronLeft size={34} strokeWidth={3.5} aria-hidden="true" />
           </motion.button>
@@ -276,7 +305,7 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
             onClick={() => moveBy(1)}
             aria-label="Huruf berikutnya"
             title="Huruf berikutnya"
-            className="flex h-12 w-full max-w-[168px] items-center justify-center rounded-2xl border-4 border-b-8 border-amber-500 bg-amber-300 text-amber-950 shadow-xl transition-colors hover:bg-amber-200 active:translate-y-1 active:border-b-0 sm:h-16"
+            className="flex h-14 w-full max-w-[168px] items-center justify-center rounded-2xl border-4 border-b-8 border-amber-500 bg-amber-300 text-amber-950 shadow-xl transition-colors hover:bg-amber-200 active:translate-y-1 active:border-b-0 sm:h-20"
           >
             <ChevronRight size={34} strokeWidth={3.5} aria-hidden="true" />
           </motion.button>
@@ -300,24 +329,16 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
                   key={`step-${index + 1}`}
                   data-step={index + 1}
                   data-done={done ? 'true' : 'false'}
-                  className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all duration-200 ${
+                  aria-label={`Langkah ${index + 1}${done ? ' selesai' : active ? ' sedang aktif' : ' belum'}`}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all duration-300 ${
                     done
-                      ? 'border-amber-400 bg-amber-300 text-amber-900 shadow-[0_0_14px_rgba(251,191,36,0.9)]'
+                      ? 'scale-110 border-amber-400 bg-amber-300 text-amber-950 shadow-[0_0_16px_rgba(251,191,36,1)] ring-2 ring-amber-200'
                       : active
-                        ? 'border-amber-400 bg-white text-amber-700 ring-2 ring-amber-200'
+                        ? 'border-amber-400 bg-white text-amber-700 ring-2 ring-amber-200 motion-safe:animate-pulse-fast'
                         : 'border-slate-200 bg-white text-slate-400'
                   }`}
                 >
-                  {done ? (
-                    <Star
-                      size={14}
-                      strokeWidth={2.5}
-                      className="fill-amber-500 text-amber-600"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <span className="text-xs font-black tabular-nums">{index + 1}</span>
-                  )}
+                  <span className="text-xs font-black tabular-nums">{index + 1}</span>
                 </div>
               )
             })}
@@ -347,7 +368,7 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
             currentId={currentLetterId}
             completedLetters={completedLetters}
             onSelect={selectLetter}
-            className="ml-auto hidden xl:flex"
+            className="ml-auto hidden shrink-0 lg:flex"
           />
         </div>
       </footer>
