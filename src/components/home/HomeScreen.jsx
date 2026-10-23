@@ -42,7 +42,7 @@ export const HomeScreen = ({ onStart }) => {
       <CuteHeader compact logo showBack={false} showHome={false} />
 
       {/* Bagian tengah: hero */}
-      <main className="relative z-20 flex-1 flex flex-col items-center justify-center px-4 py-1 overflow-hidden">
+      <main className="relative z-20 flex-1 flex flex-col items-center justify-center px-4 py-2 overflow-hidden">
         <motion.h1
           initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
