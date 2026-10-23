@@ -38,7 +38,7 @@ const CloudSVG = ({ width, delay, duration }) => (
 /* ---------------- Matahari tersenyum ---------------- */
 const SmilingSun = () => (
   <motion.div
-    className="absolute top-4 right-10 sm:right-16"
+    className="absolute top-4 right-8 sm:right-16 z-10"
     animate={{ scale: [1, 1.08, 1] }}
     transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
   >
@@ -100,11 +100,11 @@ const sparkles = [
 
 /* ---------------- Gunung kembar ---------------- */
 const TwinMountains = () => (
-  <div className="absolute inset-x-0 bottom-0 h-[42vh] min-h-[210px]">
+  <div className="absolute bottom-12 sm:bottom-16 left-0 right-0 w-full z-0 opacity-90">
     <svg
       viewBox="0 0 1440 500"
       preserveAspectRatio="none"
-      className="h-full w-full"
+      className="h-[38vh] min-h-[200px] w-full"
       aria-hidden="true"
     >
       {/* Gunung jauh (biru lembut) */}
@@ -132,46 +132,46 @@ const TwinMountains = () => (
 
 export const AnimatedBackground = () => {
   return (
-    <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
       <SmilingSun />
-
-      {/* Awan pastel melayang */}
-      {clouds.map((cloud, index) => (
-        <div key={index} className="absolute" style={{ top: cloud.top, left: cloud.left }}>
-          <CloudSVG width={cloud.width} delay={cloud.delay} duration={cloud.duration} />
-        </div>
-      ))}
 
       {/* Pemandangan gunung kembar + bukit */}
       <TwinMountains />
 
-      {/* Huruf & angka pastel melayang */}
-      {floatingTokens.map(({ char, top, left, right, size, rotate, duration, delay, color, hideOnMobile }) => (
-        <motion.div
-          key={char}
-          className={`absolute items-center justify-center rounded-2xl border-4 font-black shadow-lg ${color} ${
-            hideOnMobile ? 'hidden sm:flex' : 'flex'
-          }`}
-          style={{ top, left, right, width: size, height: size, fontSize: size * 0.44 }}
-          animate={{ y: [0, -12, 0], rotate: [rotate, -rotate, rotate] }}
-          transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          {char}
-        </motion.div>
-      ))}
+      {/* Awan, huruf & angka, kilauan bintang */}
+      <div className="absolute inset-0 z-[5]">
+        {clouds.map((cloud, index) => (
+          <div key={index} className="absolute" style={{ top: cloud.top, left: cloud.left }}>
+            <CloudSVG width={cloud.width} delay={cloud.delay} duration={cloud.duration} />
+          </div>
+        ))}
 
-      {/* Kilauan bintang */}
-      {sparkles.map(({ style, size, color }, index) => (
-        <motion.div
-          key={index}
-          className="absolute"
-          style={style}
-          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.15, 0.8] }}
-          transition={{ duration: 3.5, delay: index * 0.7, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <Sparkles size={size} strokeWidth={2.5} className={color} />
-        </motion.div>
-      ))}
+        {floatingTokens.map(({ char, top, left, right, size, rotate, duration, delay, color, hideOnMobile }) => (
+          <motion.div
+            key={char}
+            className={`absolute items-center justify-center rounded-2xl border-4 font-black shadow-lg ${color} ${
+              hideOnMobile ? 'hidden sm:flex' : 'flex'
+            }`}
+            style={{ top, left, right, width: size, height: size, fontSize: size * 0.44 }}
+            animate={{ y: [0, -12, 0], rotate: [rotate, -rotate, rotate] }}
+            transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            {char}
+          </motion.div>
+        ))}
+
+        {sparkles.map(({ style, size, color }, index) => (
+          <motion.div
+            key={index}
+            className="absolute"
+            style={style}
+            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.15, 0.8] }}
+            transition={{ duration: 3.5, delay: index * 0.7, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Sparkles size={size} strokeWidth={2.5} className={color} />
+          </motion.div>
+        ))}
+      </div>
     </div>
   )
 }

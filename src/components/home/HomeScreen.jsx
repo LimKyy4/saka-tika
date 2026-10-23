@@ -33,7 +33,7 @@ export const HomeScreen = ({ onStart }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
-      className="relative h-screen w-full overflow-hidden flex flex-col justify-between bg-gradient-to-b from-sky-100 via-sky-50 to-amber-50 select-none"
+      className="relative h-screen w-screen overflow-hidden flex flex-col justify-between pt-14 select-none"
     >
       <AnimatedBackground />
       <FlyingAnimal />

@@ -35,7 +35,7 @@ export const CuteHeader = ({
     'flex h-11 w-11 items-center justify-center rounded-full border-4 border-amber-300 bg-amber-200 text-amber-900 shadow-[0_5px_0_rgba(245,158,11,0.35)] transition-colors hover:bg-amber-100 active:translate-y-1 active:shadow-none focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/50'
 
   const headerClass = compact
-    ? 'relative flex-none z-30 flex h-14 w-full items-center justify-between gap-3 border-b-2 border-amber-200/50 bg-white/70 px-3 py-2 shadow-sm backdrop-blur-md sm:px-5'
+    ? 'fixed top-0 left-0 right-0 z-50 flex h-14 w-full items-center justify-between gap-3 border-b-2 border-amber-200/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-md sm:px-5'
     : 'sticky top-0 z-50 flex w-full items-center justify-between gap-3 border-b-2 border-amber-200/50 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-md sm:px-6'
 
   return (
