@@ -1,6 +1,8 @@
 /**
- * ModuleCard - Kartu modul bergaya mainan chunky 3D toy dengan warna ultra-vibrant.
- * Ukuran fixed, badge ikon floating, tombol BUKA MODUL 3D tebal.
+ * ModuleCard - Kartu modul persegi (square) chunky 3D toy.
+ * Semua konten (ikon, judul, deskripsi, tombol) berada tepat di tengah kotak.
+ * Kartu tengah: membesar, bercahaya emas, dan melayang halus.
+ * Kartu sisi: mengecil, sedikit pudar, dan miring 3D (rotateY).
  */
 
 import React from 'react'
@@ -18,18 +20,18 @@ const ICON_MAP = {
 
 const iconFloatVariant = {
   y: [0, -8, 0],
-  transition: { duration: 2.8, repeat: Infinity, ease: 'easeInOut' },
+  transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' },
 }
 
 const sparkleVariant = {
-  opacity: [0.4, 1, 0.4],
+  opacity: [0.35, 1, 0.35],
   scale: [0.8, 1.2, 0.8],
   transition: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
 }
 
-export const ModuleCard = ({ module, onSelect, isCenter, isSide, onClickSide }) => {
+export const ModuleCard = ({ module, onSelect, isCenter, isSide, side, onClickSide }) => {
   const { playSfx } = useAudio()
-  const IconComponent = ICON_MAP[module.icon || module.iconName]
+  const IconComponent = ICON_MAP[module.iconName || module.icon]
 
   const handleClick = () => {
     playSfx('click')
@@ -40,73 +42,99 @@ export const ModuleCard = ({ module, onSelect, isCenter, isSide, onClickSide }) 
     }
   }
 
+  const rotateY = isCenter ? 0 : side === 'left' ? -12 : 12
+
   return (
     <motion.div
-      initial={{ scale: 0.9, opacity: 0 }}
       animate={{
-        scale: isCenter ? 1.05 : 0.95,
-        opacity: isCenter ? 1 : 0.8,
-        zIndex: isCenter ? 20 : 10,
+        rotateY,
+        scale: isCenter ? 1.05 : 0.9,
+        opacity: isCenter ? 1 : 0.75,
+        zIndex: isCenter ? 30 : 10,
       }}
-      transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-      whileHover={isCenter ? { y: -6 } : { y: -4 }}
-      whileTap={{ scale: isCenter ? 1.0 : 0.9, y: 2 }}
-      onClick={handleClick}
-      className={`w-72 sm:w-80 h-[420px] rounded-3xl border-4 border-b-8 ${
-        module.bgColor || module.cardBg
-      } ${module.borderColor} ${module.borderBottomColor || module.edgeColor} shadow-2xl flex flex-col justify-between relative overflow-hidden cursor-pointer`}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          handleClick()
-        }
-      }}
-      aria-label={`Buka modul ${module.title}`}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      style={{ transformStyle: 'preserve-3d' }}
+      className="shrink-0"
     >
-      {/* Badge Ikon Floating di pojok atas */}
-      <div className="absolute -top-5 -right-5">
+      {/* Float halus khusus kartu tengah */}
+      <motion.div
+        animate={{ y: isCenter ? [0, -6, 0] : 0 }}
+        transition={
+          isCenter
+            ? { duration: 3.2, repeat: Infinity, ease: 'easeInOut' }
+            : { duration: 0.3 }
+        }
+      >
         <motion.div
-          className={`relative flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white/90 shadow-xl ${
-            module.iconBg
-          }`}
-          animate={iconFloatVariant}
+          whileHover={{ y: -6, scale: isCenter ? 1.05 : 0.9 }}
+          whileTap={{ scale: isCenter ? 1.02 : 0.87 }}
+          onClick={handleClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              handleClick()
+            }
+          }}
+          aria-label={isCenter ? `Buka modul ${module.title}` : `Tampilkan modul ${module.title}`}
+          className={`w-72 sm:w-80 h-72 sm:h-80 aspect-square rounded-3xl border-4 border-b-8 p-6 shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden cursor-pointer ${module.bgColor || module.cardBg} ${module.borderColor} ${module.borderBottomColor || module.edgeColor} ${isCenter ? 'ring-4 ring-amber-300/70' : ''}`}
         >
-          <IconComponent size={32} strokeWidth={2.8} className={module.iconColor} aria-hidden="true" />
-        </motion.div>
-        {/* Partikel kilauan bintang */}
-        <motion.span className="absolute -top-1 -right-1" animate={sparkleVariant}>
-          <Star size={18} strokeWidth={2.5} className="text-amber-400" aria-hidden="true" />
-        </motion.span>
-      </div>
+          {/* Hiasan glow lembut */}
+          <div
+            className={`pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-2xl ${module.glowColor}`}
+          />
 
-      {/* Hiasan lembut di sudut kartu */}
-      <div className={`pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-2xl ${module.glowColor}`} />
-
-      {/* Konten utama */}
-      <div className="relative flex-1 flex flex-col justify-start pt-8">
-        <h3 className="text-2xl sm:text-3xl font-black leading-tight text-indigo-950 mb-3">
-          {module.title}
-        </h3>
-        <p className="text-sm sm:text-base font-bold leading-relaxed text-slate-900">
-          {module.description}
-        </p>
-      </div>
-
-      {/* Tombol BUKA MODUL - hanya untuk kartu tengah */}
-      {isCenter && (
-        <motion.div
-          className="relative mt-auto w-full flex items-center justify-between bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-500 rounded-2xl text-indigo-950 font-black text-base py-3 px-6 shadow-lg active:translate-y-1 active:border-b-0 transition-all duration-200"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <span className="tracking-wide">BUKA MODUL</span>
-          <motion.span whileHover={{ x: 4 }}>
-            <ChevronRight size={22} strokeWidth={3} aria-hidden="true" />
+          {/* Kilauan bintang */}
+          <motion.span
+            className="pointer-events-none absolute right-4 top-4"
+            animate={sparkleVariant}
+            aria-hidden="true"
+          >
+            <Star size={18} strokeWidth={2.5} className="text-amber-400" />
           </motion.span>
+
+          {/* Konten tengah */}
+          <motion.div
+            className={`relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white/90 shadow-lg ${module.iconBg}`}
+            animate={iconFloatVariant}
+            aria-hidden="true"
+          >
+            <IconComponent size={26} strokeWidth={2.8} className={module.iconColor} />
+          </motion.div>
+
+          <h3 className="relative my-2 text-xl sm:text-2xl font-black leading-tight text-indigo-950">
+            {module.title}
+          </h3>
+
+          <p className="relative mb-3 text-slate-800 font-bold text-xs sm:text-sm line-clamp-2 max-w-[15rem]">
+            {module.description}
+          </p>
+
+          {isCenter ? (
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="relative flex items-center justify-center gap-2 rounded-2xl border-b-4 border-amber-500 bg-amber-400 px-6 py-2.5 text-sm font-black text-indigo-950 shadow-md transition-colors duration-200 hover:bg-amber-300"
+            >
+              <span>BUKA MODUL</span>
+              <motion.span whileHover={{ x: 3 }} className="flex items-center">
+                <ChevronRight size={18} strokeWidth={3} aria-hidden="true" />
+              </motion.span>
+            </motion.div>
+          ) : (
+            <div className="relative flex items-center justify-center gap-2 rounded-2xl border-2 border-white/80 bg-white/50 px-5 py-2.5 text-sm font-black text-indigo-900 shadow-sm">
+              <span>LIHAT</span>
+              <ChevronRight
+                size={16}
+                strokeWidth={3}
+                className={side === 'left' ? 'rotate-180' : ''}
+                aria-hidden="true"
+              />
+            </div>
+          )}
         </motion.div>
-      )}
+      </motion.div>
     </motion.div>
   )
 }

@@ -99,14 +99,18 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
             <ChevronLeft size={28} strokeWidth={3} className="text-indigo-950" aria-hidden="true" />
           </motion.button>
 
-          {/* Container 3 Kartu */}
-          <div className="flex items-center justify-center gap-6 sm:gap-8 py-6 flex-1">
+          {/* Container 3 Kartu dengan kedalaman 3D */}
+          <div
+            className="flex items-center justify-center gap-6 sm:gap-8 py-6 flex-1"
+            style={{ perspective: '1200px' }}
+          >
             {/* Kartu Sisi Kiri */}
             <ModuleCard
               module={modulesData[leftIndex]}
               onSelect={onSelectModule}
               isCenter={false}
               isSide={true}
+              side="left"
               onClickSide={handlePrev}
             />
 
@@ -116,6 +120,7 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
               onSelect={onSelectModule}
               isCenter={true}
               isSide={false}
+              side="center"
             />
 
             {/* Kartu Sisi Kanan */}
@@ -124,6 +129,7 @@ export const MenuDashboard = ({ onBackToHome, onSelectModule }) => {
               onSelect={onSelectModule}
               isCenter={false}
               isSide={true}
+              side="right"
               onClickSide={handleNext}
             />
           </div>
