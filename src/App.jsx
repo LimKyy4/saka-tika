@@ -64,7 +64,7 @@ export default function App() {
           </Screen>
         )}
         {screen === 'MODULE_4' && (
-          <Screen key="MODULE_4">
+          <Screen key="MODULE_4" fit>
             <ModuleMengetik onBackToMenu={backToMenu} />
           </Screen>
         )}

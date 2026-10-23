@@ -2,26 +2,31 @@
  * ModuleMengetik - Modul 4: game "Mengetik Huruf".
  *
  * Satu sesi = 10 kata acak (Fisher-Yates). Anak mengetik huruf satu per
- * satu lewat keyboard fisik atau papan ketik visual. Huruf benar mengisi
- * kotak dan memajukan kursor; huruf salah hanya menggoyang kotak aktif.
- * Setelah 10 kata, modal selebrasi + konfeti ditampilkan.
+ * satu lewat keyboard fisik ATAU papan ketik maya 3D. Huruf benar mengisi
+ * slot dan memajukan kursor; huruf salah hanya menggoyang slot + tombol
+ * tanpa mengurangi skor. Setelah 10 kata, modal selebrasi + konfeti tampil.
+ *
+ * Tata letak wajib 1 layar (100vh) tanpa scrollbar.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Keyboard } from 'lucide-react'
 import { CuteHeader } from '../common/CuteHeader'
+import { AnimatedBackground } from '../common/AnimatedBackground'
 import { TypingProgressBar } from './mengetik/TypingProgressBar'
-import { WordCard } from './mengetik/WordCard'
-import { VirtualKeyboard } from './mengetik/VirtualKeyboard'
+import { ClueCard3D } from './mengetik/ClueCard3D'
+import { LetterSlots3D } from './mengetik/LetterSlots3D'
+import { QwertyKeyboard3D } from './mengetik/QwertyKeyboard3D'
 import { TypingRewardModal } from './mengetik/TypingRewardModal'
-import { WORDS_PER_SESSION, createTypingSession } from '../../data/typingData'
+import { WORDS_PER_SESSION, createTypingSession } from '../../data/typingWordData'
 import { useAudio } from '../../hooks/useAudio'
+import { useLockScroll } from '../../hooks/useLockScroll'
 import { speakSentence, stopSpeech } from '../../utils/textToSpeech'
 
 const ADVANCE_MS = 1200
-const KEY_FEEDBACK_MS = 180
+const KEY_FEEDBACK_MS = 160
 const WRONG_FEEDBACK_MS = 450
+const IGNORED_KEYS = ['Control', 'Alt', 'Shift', 'Meta', 'Tab', 'CapsLock']
 
 export const ModuleMengetik = ({ onBackToMenu }) => {
   const { playSfx } = useAudio()
@@ -35,14 +40,18 @@ export const ModuleMengetik = ({ onBackToMenu }) => {
   const [locked, setLocked] = useState(false)
   const [showReward, setShowReward] = useState(false)
   const [shakeSignal, setShakeSignal] = useState(0)
+  const [slotError, setSlotError] = useState(false)
   const [activeKey, setActiveKey] = useState(null)
   const [wrongKey, setWrongKey] = useState(null)
 
   const timersRef = useRef([])
+  const lockedRef = useRef(false)
+
+  useLockScroll()
 
   const currentWord = session[wordIndex] ?? session[0]
   const word = currentWord?.word ?? ''
-  const wordDone = typedCount >= word.length
+  const wordDone = word.length > 0 && typedCount >= word.length
 
   const schedule = useCallback((callback, delay) => {
     const timer = window.setTimeout(callback, delay)
@@ -60,10 +69,14 @@ export const ModuleMengetik = ({ onBackToMenu }) => {
   )
 
   const finishWord = useCallback(() => {
+    lockedRef.current = true
     setLocked(true)
     setCompletedWords((count) => count + 1)
+    setSlotError(false)
+    setWrongKey(null)
+
     playSfx('celebration')
-    speakSentence(`${word}!`)
+    speakSentence(`${word.split('').join('-')}! ${word}!`)
 
     schedule(() => {
       if (wordIndex + 1 >= session.length) {
@@ -74,23 +87,32 @@ export const ModuleMengetik = ({ onBackToMenu }) => {
       setWordIndex((index) => index + 1)
       setTypedCount(0)
       setLocked(false)
+      setSlotError(false)
+      setWrongKey(null)
+      lockedRef.current = false
     }, ADVANCE_MS)
   }, [playSfx, schedule, session.length, word, wordIndex])
 
   const handleKey = useCallback(
     (rawKey) => {
-      if (locked || showReward) return
+      if (lockedRef.current || locked || showReward) return
 
-      const key = String(rawKey ?? '').toLowerCase()
-      if (!/^[a-z]$/.test(key)) return
+      const key = String(rawKey ?? '')
+      if (!/^[a-zA-Z]$/.test(key)) return
 
-      setActiveKey(key)
+      const normalized = key.toLowerCase()
+      const target = (word[typedCount] ?? '').toLowerCase()
+
+      setActiveKey(normalized)
       schedule(() => {
-        setActiveKey((current) => (current === key ? null : current))
+        setActiveKey((current) => (current === normalized ? null : current))
       }, KEY_FEEDBACK_MS)
 
-      if (key === (word[typedCount] ?? '').toLowerCase()) {
+      if (normalized === target) {
         playSfx('click')
+        setSlotError(false)
+        setWrongKey(null)
+
         const nextCount = typedCount + 1
         setTypedCount(nextCount)
 
@@ -100,32 +122,68 @@ export const ModuleMengetik = ({ onBackToMenu }) => {
 
       playSfx('oops')
       setWrongCount((count) => count + 1)
-      setWrongKey(key)
+      setWrongKey(normalized)
+      setSlotError(true)
       setShakeSignal((signal) => signal + 1)
+
       schedule(() => {
-        setWrongKey((current) => (current === key ? null : current))
+        setWrongKey((current) => (current === normalized ? null : current))
+        setSlotError(false)
       }, WRONG_FEEDBACK_MS)
     },
     [finishWord, locked, playSfx, schedule, showReward, typedCount, word]
   )
 
+  const handleBackspace = useCallback(() => {
+    if (lockedRef.current || locked || showReward || typedCount <= 0) return
+
+    playSfx('click')
+    setTypedCount((count) => Math.max(0, count - 1))
+    setSlotError(false)
+    setWrongKey(null)
+  }, [locked, playSfx, showReward, typedCount])
+
+  const handleReset = useCallback(() => {
+    if (lockedRef.current || locked || showReward) return
+
+    playSfx('click')
+    setTypedCount(0)
+    setSlotError(false)
+    setWrongKey(null)
+    setActiveKey(null)
+  }, [locked, playSfx, showReward])
+
   /* Simpan handler terbaru agar listener keyboard fisik tidak basi */
   const handleKeyRef = useRef(handleKey)
   handleKeyRef.current = handleKey
 
+  const handleBackspaceRef = useRef(handleBackspace)
+  handleBackspaceRef.current = handleBackspace
+
   useEffect(() => {
-    const onKeyDown = (event) => {
+    const handlePhysicalKeyPress = (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return
-      handleKeyRef.current(event.key)
+      if (IGNORED_KEYS.includes(event.key)) return
+
+      if (event.key === 'Backspace') {
+        event.preventDefault()
+        handleBackspaceRef.current()
+        return
+      }
+
+      if (/^[a-zA-Z]$/.test(event.key)) {
+        handleKeyRef.current(event.key)
+      }
     }
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', handlePhysicalKeyPress)
+    return () => window.removeEventListener('keydown', handlePhysicalKeyPress)
   }, [])
 
   const handlePlayWord = () => {
-    if (!word || locked) return
-    speakSentence(`${word}!`)
+    if (!word || lockedRef.current || locked) return
+    playSfx('click')
+    speakSentence(word)
   }
 
   const handleReplay = () => {
@@ -142,11 +200,15 @@ export const ModuleMengetik = ({ onBackToMenu }) => {
     setLocked(false)
     setShowReward(false)
     setShakeSignal(0)
+    setSlotError(false)
     setActiveKey(null)
     setWrongKey(null)
+    lockedRef.current = false
   }
 
   const handleBack = () => {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer))
+    timersRef.current = []
     stopSpeech()
     onBackToMenu?.()
   }
@@ -157,54 +219,57 @@ export const ModuleMengetik = ({ onBackToMenu }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-orange-50 via-white to-sky-50 pb-12"
+      className="relative flex h-screen w-screen select-none flex-col justify-between overflow-hidden bg-gradient-to-b from-sky-100 via-sky-50 to-amber-50 p-2 sm:p-3"
     >
-      {/* Hiasan latar */}
-      <div className="pointer-events-none absolute -left-16 top-24 h-52 w-52 rounded-full bg-orange-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 top-1/2 h-64 w-64 rounded-full bg-sky-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-48 w-48 rounded-full bg-amber-200/40 blur-3xl" />
+      <AnimatedBackground />
 
-      <div className="relative">
+      {/* Header floating ringkas + spacer setinggi h-14 */}
+      <div className="h-14 flex-none">
         <CuteHeader
+          compact
           title="Mengetik Huruf"
-          description={`Ketik kata yang muncul. Babak ${round} • ${WORDS_PER_SESSION} kata`}
           onBack={handleBack}
           showHome={false}
+          showStars
+          stars={completedWords}
+        />
+      </div>
+
+      <main className="relative z-20 mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col justify-center gap-2 py-1 sm:gap-3">
+        <TypingProgressBar
+          current={Math.min(wordIndex + 1, session.length)}
+          total={session.length}
+          stars={completedWords}
+          done={showReward}
         />
 
-        <div className="mx-auto mt-5 max-w-3xl space-y-4 px-4">
-          <TypingProgressBar
-            current={Math.min(wordIndex + 1, session.length)}
-            total={session.length}
-            stars={completedWords}
-            done={showReward}
-          />
+        <ClueCard3D
+          key={`clue-${round}-${wordIndex}`}
+          word={word}
+          category={currentWord?.category}
+          hintText={currentWord?.hintText}
+          iconName={currentWord?.iconName}
+          onPlayAudio={handlePlayWord}
+        />
 
-          <WordCard
-            key={`${round}-${wordIndex}`}
-            word={word}
-            iconName={currentWord?.iconName}
-            category={currentWord?.category}
-            hintText={currentWord?.hintText}
-            typedCount={typedCount}
-            completed={wordDone}
-            shakeSignal={shakeSignal}
-            onPlayAudio={handlePlayWord}
-          />
+        <LetterSlots3D
+          key={`slots-${round}-${wordIndex}`}
+          word={word}
+          typedCount={typedCount}
+          completed={wordDone}
+          error={slotError}
+          shakeSignal={shakeSignal}
+        />
 
-          <VirtualKeyboard
-            onKey={handleKey}
-            disabled={locked || showReward}
-            activeKey={activeKey}
-            wrongKey={wrongKey}
-          />
-
-          <div className="flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white/70 px-4 py-2 text-center text-xs font-bold text-slate-600">
-            <Keyboard size={15} strokeWidth={2.6} className="shrink-0 text-orange-500" />
-            <p>Ketik di keyboard, atau klik tombol huruf di papan ketik.</p>
-          </div>
-        </div>
-      </div>
+        <QwertyKeyboard3D
+          onKey={handleKey}
+          onBackspace={handleBackspace}
+          onReset={handleReset}
+          disabled={locked || showReward}
+          activeKey={activeKey}
+          wrongKey={wrongKey}
+        />
+      </main>
 
       <AnimatePresence>
         {showReward && (
