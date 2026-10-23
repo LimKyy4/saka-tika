@@ -59,7 +59,7 @@ export default function App() {
           </Screen>
         )}
         {screen === 'MODULE_3' && (
-          <Screen key="MODULE_3">
+          <Screen key="MODULE_3" fit>
             <ModuleTemukan onBackToMenu={backToMenu} />
           </Screen>
         )}

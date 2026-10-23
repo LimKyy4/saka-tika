@@ -1,6 +1,6 @@
 /**
- * GameRewardModal - Selebrasi akhir game "Temukan Huruf".
- * Konfeti, 3 bintang emas 3D, dan tombol Main Lagi / Menu Utama.
+ * FindRewardModal - Selebrasi akhir game "Temukan Huruf".
+ * Konfeti, tiga bintang emas 3D, dan tombol Main Lagi / Menu Utama.
  */
 
 import { useEffect } from 'react'
@@ -25,24 +25,23 @@ const starMotion = (index) => ({
   },
 })
 
-export const GameRewardModal = ({
-  stars = 3,
-  maxStars = 3,
-  correct = 10,
+export const FindRewardModal = ({
+  stars = 10,
   total = 10,
+  wrongCount = 0,
   onReplay,
   onMenu,
 }) => {
   useEffect(() => {
     confetti({
-      particleCount: 110,
+      particleCount: 120,
       spread: 85,
       origin: { x: 0.2, y: 0.4 },
       colors: CONFETTI_COLORS,
       zIndex: 60,
     })
     confetti({
-      particleCount: 110,
+      particleCount: 120,
       spread: 85,
       origin: { x: 0.8, y: 0.4 },
       colors: CONFETTI_COLORS,
@@ -51,7 +50,7 @@ export const GameRewardModal = ({
 
     const timer = window.setTimeout(() => {
       confetti({
-        particleCount: 160,
+        particleCount: 170,
         spread: 120,
         origin: { y: 0.6 },
         colors: CONFETTI_COLORS,
@@ -89,58 +88,54 @@ export const GameRewardModal = ({
             transition={{ type: 'spring', stiffness: 220, damping: 15 }}
             className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-amber-400 bg-gradient-to-b from-amber-200 to-amber-400 shadow-[0_7px_0_rgba(180,83,9,0.45)]"
           >
-            <Trophy size={38} strokeWidth={2.4} className="text-amber-800" />
+            <Trophy size={38} strokeWidth={2.4} className="text-amber-800" aria-hidden="true" />
           </motion.div>
 
           <div className="mt-4 flex items-end justify-center gap-2">
-            {Array.from({ length: maxStars }).map((_, index) => {
-              const earned = index < stars
-              return (
-                <motion.div
-                  key={`star-${index + 1}`}
-                  {...starMotion(index)}
-                  className={`flex h-14 w-14 items-center justify-center rounded-2xl border-2 ${
-                    index === 1 ? '-translate-y-2' : ''
-                  } ${
-                    earned
-                      ? 'border-amber-400 bg-gradient-to-b from-amber-200 to-amber-400 shadow-[0_5px_0_rgba(180,83,9,0.45)]'
-                      : 'border-slate-200 bg-slate-100 shadow-[0_5px_0_rgba(148,163,184,0.3)]'
-                  }`}
-                >
-                  <Star
-                    size={32}
-                    strokeWidth={2.2}
-                    className={earned ? 'fill-white text-white' : 'text-slate-300'}
-                  />
-                </motion.div>
-              )
-            })}
+            {[0, 1, 2].map((index) => (
+              <motion.div
+                key={`star-${index + 1}`}
+                {...starMotion(index)}
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-amber-400 bg-gradient-to-b from-amber-200 to-amber-400 shadow-[0_5px_0_rgba(180,83,9,0.45)] ${
+                  index === 1 ? '-translate-y-2' : ''
+                }`}
+              >
+                <Star
+                  size={32}
+                  strokeWidth={2.2}
+                  className="fill-white text-white"
+                  aria-hidden="true"
+                />
+              </motion.div>
+            ))}
           </div>
 
           <h2 className="mt-5 text-2xl font-black leading-tight text-indigo-950 sm:text-3xl">
-            Luar Biasa! Kamu Berhasil Menemukan Semua Huruf!
+            Luar Biasa! Semua Huruf Ditemukan!
           </h2>
 
           <p className="mt-2 text-sm font-bold leading-relaxed text-slate-600">
-            Kamu menjawab benar {correct} dari {total} soal dan mengumpulkan{' '}
-            {stars} bintang.
+            Kamu mengumpulkan {stars} dari {total} bintang.{' '}
+            {wrongCount === 0
+              ? 'Sempurna, tidak ada yang keliru!'
+              : `Sempat keliru ${wrongCount} kali, tidak masalah!`}
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={onReplay}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-4 border-amber-500 bg-amber-400 px-4 py-3 text-base font-black text-amber-950 shadow-[0_6px_0_rgba(180,83,9,0.45)] transition-transform hover:brightness-105 active:translate-y-1 active:shadow-none"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-4 border-b-8 border-amber-500 bg-amber-400 px-4 py-3 text-base font-black text-amber-950 shadow-lg transition-colors hover:bg-amber-300 active:translate-y-1 active:border-b-0"
             >
-              <RotateCcw size={19} strokeWidth={2.8} />
+              <RotateCcw size={19} strokeWidth={2.8} aria-hidden="true" />
               Main Lagi
             </button>
             <button
               type="button"
               onClick={onMenu}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-4 border-slate-200 bg-white px-4 py-3 text-base font-black text-slate-700 shadow-[0_6px_0_rgba(148,163,184,0.25)] transition-colors hover:bg-slate-50 active:translate-y-1 active:shadow-none"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-4 border-b-8 border-slate-300 bg-white px-4 py-3 text-base font-black text-slate-700 shadow-lg transition-colors hover:bg-slate-50 active:translate-y-1 active:border-b-0"
             >
-              <Home size={19} strokeWidth={2.8} />
+              <Home size={19} strokeWidth={2.8} aria-hidden="true" />
               Menu Utama
             </button>
           </div>

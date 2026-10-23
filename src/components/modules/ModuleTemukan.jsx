@@ -1,49 +1,46 @@
 /**
- * ModuleTemukan - Modul 3: mini-game "Temukan Huruf".
+ * ModuleTemukan - Modul 3: game "Temukan Huruf" 3x2.
  *
- * Satu sesi = 10 soal acak. Anak memilih huruf target pada papan 4x3.
- * Jawaban benar langsung lanjut soal berikutnya. Setelah 10 soal,
- * modal selebrasi + konfeti ditampilkan.
+ * Satu sesi = 10 soal acak. Setiap soal menampilkan 6 kartu raksasa
+ * (1 huruf target + 5 pengganggu). Jawaban benar lanjut otomatis,
+ * jawaban salah boleh dicoba lagi. Selesai 10 soal = modal selebrasi.
  *
- * "Main Lagi" membangun 10 soal baru lewat createSessionQuestions()
- * sehingga urutan huruf dan susunan grid selalu berbeda.
+ * Tata letak wajib 1 layar (100vh) tanpa scrollbar.
  */
 
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Star } from 'lucide-react'
 import { CuteHeader } from '../common/CuteHeader'
-import { ProgressBar } from './temukan/ProgressBar'
-import { TargetCard } from './temukan/TargetCard'
-import { LetterGrid } from './temukan/LetterGrid'
-import { GameRewardModal } from './temukan/GameRewardModal'
+import { AnimatedBackground } from '../common/AnimatedBackground'
+import { QuestionBanner } from './temukan/QuestionBanner'
+import { LetterGrid3D } from './temukan/LetterGrid3D'
+import { FindRewardModal } from './temukan/FindRewardModal'
 import {
   QUESTIONS_PER_SESSION,
-  createSessionQuestions,
+  createFindLetterSession,
 } from '../../data/findLetterData'
-import { findLetter } from '../../data/alphabetData'
-import { playLetterAudio } from '../../utils/textToSpeech'
+import { speakSentence } from '../../utils/textToSpeech'
+import { useLockScroll } from '../../hooks/useLockScroll'
 
 export const ModuleTemukan = ({ onBackToMenu }) => {
-  const [questions, setQuestions] = useState(() => createSessionQuestions())
-  const [round, setRound] = useState(1)
+  const [questions, setQuestions] = useState(() => createFindLetterSession())
   const [questionIndex, setQuestionIndex] = useState(0)
-  const [correctCount, setCorrectCount] = useState(0)
+  const [round, setRound] = useState(0)
+  const [starsCount, setStarsCount] = useState(0)
   const [wrongCount, setWrongCount] = useState(0)
   const [sessionDone, setSessionDone] = useState(false)
 
-  const question = questions[questionIndex] ?? questions[0]
-  const letterData = findLetter(question.targetLetter)
+  useLockScroll()
 
-  /* 3 bintang: maksimal 2 salah, 2 bintang: maksimal 5 salah, sisanya 1 */
-  const stars = wrongCount <= 2 ? 3 : wrongCount <= 5 ? 2 : 1
+  const question = questions[questionIndex] ?? questions[0]
 
   const playInstruction = () => {
-    if (letterData) playLetterAudio(letterData)
+    speakSentence(question.hintText)
   }
 
   const handleCorrect = () => {
-    setCorrectCount((count) => count + 1)
+    setStarsCount((count) => Math.min(QUESTIONS_PER_SESSION, count + 1))
 
     if (questionIndex + 1 >= questions.length) {
       setSessionDone(true)
@@ -58,10 +55,10 @@ export const ModuleTemukan = ({ onBackToMenu }) => {
   }
 
   const handleReplay = () => {
-    setQuestions(createSessionQuestions())
+    setQuestions(createFindLetterSession())
     setRound((value) => value + 1)
     setQuestionIndex(0)
-    setCorrectCount(0)
+    setStarsCount(0)
     setWrongCount(0)
     setSessionDone(false)
   }
@@ -72,58 +69,82 @@ export const ModuleTemukan = ({ onBackToMenu }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-pink-50 via-white to-indigo-50 pb-12"
+      className="relative flex h-screen w-screen select-none flex-col justify-between overflow-hidden bg-gradient-to-b from-sky-100 via-sky-50 to-amber-50 p-3"
     >
-      {/* Hiasan latar */}
-      <div className="pointer-events-none absolute -left-16 top-24 h-52 w-52 rounded-full bg-pink-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 top-1/2 h-64 w-64 rounded-full bg-amber-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-48 w-48 rounded-full bg-sky-200/40 blur-3xl" />
+      <AnimatedBackground />
 
-      <div className="relative">
+      {/* Header floating ringkas + spacer setinggi h-14 */}
+      <div className="h-14 flex-none">
         <CuteHeader
+          compact
           title="Temukan Huruf"
-          description={`Cari huruf yang diminta. Babak ${round} • ${QUESTIONS_PER_SESSION} soal`}
           onBack={onBackToMenu}
           showHome={false}
+          showStars
+          stars={starsCount}
+        />
+      </div>
+
+      <main className="relative z-20 mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col justify-center gap-2 py-1 sm:gap-3">
+        <QuestionBanner
+          key={`banner-${round}-${question.id}`}
+          targetLetter={question.targetLetter}
+          questionText={question.questionText}
+          hintText={question.hintText}
+          onPlayAudio={playInstruction}
         />
 
-        <div className="mx-auto mt-5 max-w-2xl space-y-4 px-4">
-          <ProgressBar
-            current={questionIndex + 1}
-            total={QUESTIONS_PER_SESSION}
-            stars={correctCount}
-            done={sessionDone}
-          />
+        {/* Baris status ringkas: soal & bintang */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="rounded-full border-2 border-white/80 bg-white/85 px-3 py-1 shadow-sm backdrop-blur-sm">
+            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+              Soal
+            </span>
+            <span className="ml-1.5 text-sm font-black tabular-nums text-indigo-950">
+              {Math.min(questionIndex + 1, QUESTIONS_PER_SESSION)} / {QUESTIONS_PER_SESSION}
+            </span>
+          </div>
 
-          <TargetCard
-            targetLetter={question.targetLetter}
-            hintText={question.hintText}
-            onPlayAudio={playInstruction}
-          />
-
-          <LetterGrid
-            key={`${round}-${question.id}`}
-            letters={question.gridLetters}
-            targetLetter={question.targetLetter}
-            disabled={sessionDone}
-            onCorrect={handleCorrect}
-            onWrong={handleWrong}
-          />
-
-          <div className="flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white/70 px-4 py-2 text-center text-xs font-bold text-slate-600">
-            <Sparkles size={15} strokeWidth={2.6} className="shrink-0 text-amber-500" />
-            <p>Pilih huruf yang benar. Kalau keliru, coba lagi, ya!</p>
+          <div
+            className="flex items-center gap-1.5 rounded-full border-2 border-amber-300 bg-amber-100/95 px-3 py-1 shadow-sm"
+            aria-label={`Bintang terkumpul ${starsCount} dari ${QUESTIONS_PER_SESSION}`}
+          >
+            <Star
+              size={16}
+              strokeWidth={2.6}
+              className="fill-amber-400 text-amber-600"
+              aria-hidden="true"
+            />
+            <span className="text-sm font-black tabular-nums text-amber-900">
+              {starsCount}
+              <span className="ml-0.5 text-xs font-extrabold text-amber-700">
+                / {QUESTIONS_PER_SESSION}
+              </span>
+            </span>
           </div>
         </div>
-      </div>
+
+        <LetterGrid3D
+          key={`grid-${round}-${question.id}`}
+          letters={question.gridLetters}
+          targetLetter={question.targetLetter}
+          disabled={sessionDone}
+          onCorrect={handleCorrect}
+          onWrong={handleWrong}
+        />
+
+        <div className="mx-auto flex items-center justify-center gap-2 rounded-full border-2 border-white/70 bg-white/70 px-3 py-1 text-[10px] font-bold text-slate-600 shadow-sm backdrop-blur-sm sm:text-xs">
+          <Sparkles size={14} strokeWidth={2.6} className="shrink-0 text-amber-500" aria-hidden="true" />
+          <p>Pilih huruf yang benar. Kalau keliru, coba lagi ya!</p>
+        </div>
+      </main>
 
       <AnimatePresence>
         {sessionDone && (
-          <GameRewardModal
-            stars={stars}
-            maxStars={3}
-            correct={correctCount}
+          <FindRewardModal
+            stars={starsCount}
             total={QUESTIONS_PER_SESSION}
+            wrongCount={wrongCount}
             onReplay={handleReplay}
             onMenu={onBackToMenu}
           />

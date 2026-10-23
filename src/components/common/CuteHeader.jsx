@@ -53,8 +53,8 @@ export const CuteHeader = ({
             whileTap={{ scale: 0.88, y: 2 }}
             onClick={handleNav(onBack)}
             className={navButtonClass}
-            aria-label="Kembali ke Home"
-            title="Kembali ke Home"
+            aria-label="Kembali ke menu"
+            title="Kembali ke menu"
           >
             <ArrowLeft size={22} strokeWidth={3} aria-hidden="true" />
           </motion.button>

@@ -7,7 +7,7 @@
  *  - Footer: indikator langkah angka bercahaya + kemajuan + bar pemilih A-Z
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import {
@@ -27,6 +27,7 @@ import { LetterSelector } from './menulis/LetterSelector'
 import { RewardModal } from './menulis/RewardModal'
 import { playLetterAudio } from '../../utils/textToSpeech'
 import { useAudio } from '../../hooks/useAudio'
+import { useLockScroll } from '../../hooks/useLockScroll'
 
 const CONFETTI_COLORS = ['#FBBF24', '#FDE047', '#F472B6', '#34D399', '#60A5FA']
 
@@ -54,16 +55,7 @@ export const ModuleMenulis = ({ onBackToMenu }) => {
 
   const { playSfx } = useAudio()
 
-  /* Kunci scroll dokumen hanya selama Modul 2 aktif (modul lain tetap bebas). */
-  useEffect(() => {
-    const { documentElement: html, body } = document
-    html.classList.add('module-no-scroll')
-    body.classList.add('module-no-scroll')
-    return () => {
-      html.classList.remove('module-no-scroll')
-      body.classList.remove('module-no-scroll')
-    }
-  }, [])
+  useLockScroll()
 
   const currentIndex = alphabetData.findIndex((item) => item.id === currentLetterId)
   const currentLetter = alphabetData[currentIndex] || alphabetData[0]
