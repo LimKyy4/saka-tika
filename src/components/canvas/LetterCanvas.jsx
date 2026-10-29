@@ -191,15 +191,14 @@ export default function LetterCanvas({
   const letterPathData = ALPHABET_PATHS[letterObj.letter] || ALPHABET_PATHS.A;
   const totalStrokes = letterPathData.paths.length;
 
-  // Proportional scaling for handwriting guidelines (100 x 120 viewBox coordinate space)
+  // Proportional uniform scaling: target letter coordinate bounds occupy 70% to 75% of canvas easel height
+  // In alphabetPaths.js, cap line is at Y=16, baseline at Y=100 -> letter stroke height is 84 units.
+  // Center is at X=50, Y=58.
   const getScaleAndOffset = useCallback((w, h) => {
-    const padX = w * 0.14;
-    const padY = h * 0.08;
-    const drawW = Math.max(100, w - padX * 2);
-    const drawH = Math.max(120, h - padY * 2);
-    const scaleX = drawW / 100;
-    const scaleY = drawH / 120;
-    return { scaleX, scaleY, offsetX: padX, offsetY: padY, drawW, drawH };
+    const scale = Math.min((0.72 * h) / 84, (0.75 * w) / 80);
+    const offsetX = (w / 2) - 50 * scale;
+    const offsetY = (h / 2) - 58 * scale;
+    return { scaleX: scale, scaleY: scale, offsetX, offsetY, drawW: 80 * scale, drawH: 84 * scale };
   }, []);
 
   // Clear scratch user drawing canvas
@@ -223,8 +222,8 @@ export default function LetterCanvas({
     ctx.clearRect(0, 0, width, height);
 
     const { scaleX, scaleY, offsetX, offsetY } = getScaleAndOffset(width, height);
-    const lineXStart = width * 0.02;
-    const lineXEnd = width * 0.98;
+    const lineXStart = Math.max(16, width * 0.05);
+    const lineXEnd = Math.min(width - 16, width * 0.95);
 
     const completedList = completedStrokesRef.current;
     const activeStroke = currentStrokeIdxRef.current;
@@ -292,7 +291,7 @@ export default function LetterCanvas({
 
     // ── 3. Completed Strokes & Active Track Guides ──
     letterPathData.paths.forEach((p, idx) => {
-      if (completedList.includes(idx)) {
+      if (completedList.includes(idx) || isHolding) {
         // Crisp, solid royal blue vector ink with glossy highlight
         ctx.setLineDash([]);
         ctx.lineWidth = 18 * Math.min(scaleX, scaleY);
@@ -641,7 +640,7 @@ export default function LetterCanvas({
     return milestoneHits.current.start && milestoneHits.current.end;
   };
 
-  // ─── Mandatory 1.8-Second Grand Completion Hold ────────────────────
+  // ─── Mandatory 1.8-Second Grand Completion Hold & Smooth Auto-Advance ──
   const triggerGrandCompletion = () => {
     setIsHoldingCompletion(true);
     isHoldingCompletionRef.current = true;
@@ -651,29 +650,48 @@ export default function LetterCanvas({
     playSuccessSound();
     playFanfareSound();
 
-    // Mark completed
+    // Mark completed & increment star reward in GameContext
     onLetterCompletedRef.current?.(letterObj.letter);
     onProgressUpdateRef.current?.(100);
 
-    // Exact 1,800 ms hold so child enjoys seeing their perfect finished letter
-    completionHoldTimer.current = setTimeout(() => {
-      setIsCompleted(true);
+    if (!hasAwardedStar) {
+      addStars(1);
+      setHasAwardedStar(true);
+    }
 
-      // Celebration confetti
-      confetti({
-        particleCount: 110,
-        spread: 80,
-        origin: { y: 0.55 },
-        colors: ["#2563EB", "#60A5FA", "#F59E0B", "#10B981", "#EC4899", "#8B5CF6"],
+    // Immediate celebratory confetti burst
+    confetti({
+      particleCount: 95,
+      spread: 80,
+      origin: { y: 0.55 },
+      colors: ["#2563EB", "#60A5FA", "#F59E0B", "#10B981", "#EC4899", "#8B5CF6"],
+    });
+
+    // Spawn burst of sparkling star particles across the canvas
+    const { scaleX, scaleY, offsetX, offsetY } = getScaleAndOffset(
+      guideCanvasRef.current?.width || 500,
+      guideCanvasRef.current?.height || 400
+    );
+    for (let i = 0; i < 28; i++) {
+      particlesRef.current.push({
+        x: offsetX + (20 + Math.random() * 60) * scaleX,
+        y: offsetY + (20 + Math.random() * 80) * scaleY,
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3 - 1,
+        life: 1.8,
+        size: Math.random() * 5 + 3,
+        color: ["#FCD34D", "#60A5FA", "#34D399", "#F472B6"][i % 4],
       });
+    }
 
-      // Cheerful voice affirmation
-      speakInstruction(`Hebat! Huruf ${letterObj.letter} selesai!`);
+    // Cheerful voice affirmation
+    speakInstruction(`Hebat! Huruf ${letterObj.letter} selesai!`);
 
-      if (!hasAwardedStar) {
-        addStars(1);
-        setHasAwardedStar(true);
-      }
+    // Hold the completed drawing for exactly 1.8 seconds so the child can appreciate their artwork,
+    // then smoothly auto-advance to the next letter in sequence
+    completionHoldTimer.current = setTimeout(() => {
+      handleFullReset();
+      onNextLetterRef.current?.();
     }, 1800);
   };
 
@@ -862,73 +880,20 @@ export default function LetterCanvas({
           </span>
         </div>
 
-        {/* Celebration Modal Overlay (Displayed after mandatory 1.8s hold) */}
+        {/* Friendly Celebration Floating Badge during 1.8s hold */}
         <AnimatePresence>
-          {isCompleted && (
+          {isHoldingCompletion && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 350, damping: 22 }}
-              className="absolute inset-0 bg-[#FFFDF9]/95 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-5 text-center"
+              initial={{ opacity: 0, y: -20, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="absolute top-3 inset-x-0 mx-auto w-fit z-30 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-2 pointer-events-none"
             >
-              {/* Star Badge Icon */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#FCD34D] border-4 border-[#F59E0B] rounded-3xl flex items-center justify-center mb-2 shadow-lg animate-bounce">
-                <Sparkles size={36} className="text-[#B45309] fill-[#B45309]" />
-              </div>
-
-              <h3 className="font-display font-black text-2xl sm:text-3xl text-[#1B4965] mb-1">
-                Luar Biasa!
-              </h3>
-              <p className="font-sans font-bold text-sm sm:text-base text-[#1B4965]/80 mb-3 max-w-xs">
-                Huruf <span className="font-black text-[#2563EB]">{letterObj.letter}</span> berhasil kamu tulis dengan rapi!
-              </p>
-
-              {/* Star Reward indicator */}
-              <div className="flex items-center gap-2 bg-[#FFFDF9] border-2 border-[#F59E0B] px-4 py-1.5 rounded-2xl shadow-sm mb-4">
-                <svg className="w-5 h-5 fill-[#F59E0B] stroke-[#D97706]" viewBox="0 0 24 24">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-                <span className="font-display font-black text-sm text-[#92400E]">
-                  +1 Bintang Didapatkan!
-                </span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleFullReset}
-                  aria-label="Tulis Ulang Huruf Ini"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-white border-2 border-slate-200 border-b-4 text-[#1B4965] font-display font-bold text-xs shadow-md active:border-b-0 cursor-pointer"
-                >
-                  <RotateCcw size={15} />
-                  <span>Tulis Lagi</span>
-                </motion.button>
-
-                {hasNextLetter && (
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={() => {
-                      handleFullReset();
-                      onNextLetterRef.current?.();
-                    }}
-                    aria-label="Lanjut ke Huruf Berikutnya Sekarang"
-                    className="p-0 bg-transparent border-0 outline-none cursor-pointer"
-                  >
-                    <img
-                      src="/assets/buttons/next.png"
-                      alt="Lanjut"
-                      draggable="false"
-                      className="h-10 sm:h-11 w-auto object-contain drop-shadow select-none pointer-events-none"
-                    />
-                  </motion.button>
-                )}
-              </div>
+              <Sparkles size={18} className="text-yellow-300 animate-spin" />
+              <span className="font-display font-black text-xs sm:text-sm md:text-base">
+                Luar Biasa! Huruf {letterObj.letter} Berhasil Ditulis! (+1 Bintang)
+              </span>
             </motion.div>
           )}
         </AnimatePresence>

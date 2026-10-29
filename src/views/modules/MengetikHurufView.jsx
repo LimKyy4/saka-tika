@@ -14,6 +14,7 @@ import {
   ChevronRight,
   RotateCcw,
   Check,
+  Keyboard,
 } from "lucide-react";
 
 import { useGame } from "../../context/GameContext.jsx";
@@ -34,29 +35,19 @@ import WordIllustration from "../../components/illustrations/WordIllustration.js
 import SakaMascot from "../../components/illustrations/SakaMascot.jsx";
 import TikaMascot from "../../components/illustrations/TikaMascot.jsx";
 
-// Standard kid-friendly QWERTY keyboard rows with alternating chunky pastel palettes
+// Alternating bright, playful pastel hues (Sunny Yellow, Mint Green, Pastel Coral, Sky Blue, Lilac)
+const KEY_PASTELS = [
+  { bg: "from-amber-100 to-amber-200", border: "border-amber-300 border-b-amber-400", shadow: "shadow-amber-200/50" },
+  { bg: "from-emerald-100 to-teal-200", border: "border-emerald-300 border-b-teal-400", shadow: "shadow-emerald-200/50" },
+  { bg: "from-rose-100 to-pink-200", border: "border-rose-300 border-b-rose-400", shadow: "shadow-rose-200/50" },
+  { bg: "from-sky-100 to-blue-200", border: "border-sky-300 border-b-sky-400", shadow: "shadow-sky-200/50" },
+  { bg: "from-purple-100 to-indigo-200", border: "border-purple-300 border-b-purple-400", shadow: "shadow-purple-200/50" },
+];
+
 const KEYBOARD_ROWS = [
-  {
-    theme: "sky",
-    bg: "from-sky-100 to-sky-200",
-    border: "border-sky-300 border-b-sky-400",
-    text: "#0284C7",
-    keys: ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-  },
-  {
-    theme: "mint",
-    bg: "from-emerald-100 to-teal-200",
-    border: "border-teal-300 border-b-teal-400",
-    text: "#0D9488",
-    keys: ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  },
-  {
-    theme: "amber",
-    bg: "from-amber-100 to-orange-200",
-    border: "border-amber-300 border-b-amber-400",
-    text: "#D97706",
-    keys: ["Z", "X", "C", "V", "B", "N", "M"],
-  },
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["Z", "X", "C", "V", "B", "N", "M"],
 ];
 
 export default function MengetikHurufView() {
@@ -131,7 +122,7 @@ export default function MengetikHurufView() {
         if (activeCharIndex + 1 < wordChars.length) {
           const nextIdx = activeCharIndex + 1;
           setActiveCharIndex(nextIdx);
-          setSpeechBubbleText(`Bagus! Sekarang ketik huruf ${wordChars[nextIdx]}!`);
+          setSpeechBubbleText(`Bagus! Lanjut ketik huruf ${wordChars[nextIdx]}!`);
         } else {
           setIsWordComplete(true);
           setActiveCharIndex(wordChars.length);
@@ -157,7 +148,7 @@ export default function MengetikHurufView() {
       } else {
         playRubberBoingSound();
         setWobbleKey(upperKey);
-        setSpeechBubbleText(`Itu tombol ${upperKey}. Cari tombol ${expectedChar} ya!`);
+        setSpeechBubbleText(`Itu tombol ${upperKey}. Tekan tombol ${expectedChar} ya!`);
         setTimeout(() => setWobbleKey(null), 450);
       }
     },
@@ -209,24 +200,25 @@ export default function MengetikHurufView() {
       {/* ── Content Wrapper ── */}
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between max-w-7xl w-full mx-auto">
         
-        {/* ── Target Spotlight Banner: Compact Single Pill Card ── */}
+        {/* ── Top Tier: Spotlight Exhibition Card Banner ── */}
         <div className="w-full px-2 mt-1 flex justify-center flex-shrink-0">
           <motion.div
             initial={{ y: -12, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 450, damping: 20 }}
-            className="bg-white/92 backdrop-blur-md border-2 border-sky-300 border-b-3 border-sky-400 rounded-2xl px-3 py-1 shadow-sm flex items-center gap-2.5 sm:gap-4 max-h-12"
+            className="bg-white/95 backdrop-blur-md border-3 border-sky-300 border-b-4 border-b-sky-400 rounded-3xl px-3 sm:px-4 py-1.5 shadow-md flex items-center justify-between gap-2.5 sm:gap-4 max-w-2xl w-full max-h-14"
           >
-            {/* Object Illustration Card */}
+            {/* Object Illustration Card with speaker action */}
             <motion.button
               type="button"
               whileHover={{ scale: 1.08, rotate: -2 }}
               whileTap={{ scale: 0.94 }}
               onClick={handleSpeakWord}
               aria-label={`Dengarkan contoh kata ${currentItem.word}`}
-              className="flex items-center gap-1.5 bg-gradient-to-b from-sky-50 to-indigo-50 border border-sky-200 rounded-xl px-2 py-0.5 shadow-2xs cursor-pointer group"
+              className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-sky-50 to-indigo-50 border border-sky-200 rounded-2xl px-2 py-0.5 shadow-2xs cursor-pointer group flex-shrink-0"
+              title="Klik untuk mendengarkan pengucapan kata"
             >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <WordIllustration
                   illustrationKey={currentItem.illustrationKey}
                   word={currentItem.word}
@@ -234,44 +226,49 @@ export default function MengetikHurufView() {
                   className="w-full h-full object-contain drop-shadow-xs"
                 />
               </div>
-              <div className="text-left hidden sm:block">
+              <div className="text-left">
                 <span className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight block">
                   {currentItem.word}
                 </span>
+                <span className="font-sans font-semibold text-[9px] text-sky-600 block">
+                  Ketuk Suara
+                </span>
+              </div>
+              <div className="p-0.5 rounded-md bg-sky-100 text-[#0284C7] ml-0.5">
+                <Volume2 size={13} />
               </div>
             </motion.button>
 
-            {/* Prompt & Audio */}
-            <div className="flex items-center gap-1.5">
-              <span className="font-display font-black text-xs sm:text-sm text-[#1B4965]">
-                Ketik: <span className="text-[#0284C7] font-black">{currentItem.word.toUpperCase()}</span>
-                {scoreStreak > 0 && (
-                  <span className="ml-2 text-amber-600 font-bold">({scoreStreak} Kata)</span>
-                )}
-              </span>
-              <button
-                type="button"
-                onClick={handleSpeakWord}
-                aria-label="Bunyikan Kata"
-                className="p-1 rounded-md bg-sky-100 hover:bg-sky-200 text-[#0284C7] cursor-pointer transition-colors"
-                title="Dengarkan pengucapan kata"
-              >
-                <Volume2 size={13} />
-              </button>
-              <span className="font-sans text-[11px] text-[#1B4965]/70 font-semibold hidden md:inline ml-0.5">
-                (Tekan <strong className="text-[#0284C7] font-black">{expectedChar}</strong>)
-              </span>
+            {/* Center: Animated Pulse Hint Badge */}
+            <div className="flex items-center gap-1.5 flex-1 justify-center">
+              {!isWordComplete ? (
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="bg-gradient-to-r from-amber-400 via-amber-500 to-orange-400 text-white font-display font-black text-xs sm:text-sm px-3 py-1 rounded-2xl shadow-sm border border-white flex items-center gap-1.5"
+                >
+                  <Keyboard size={14} className="text-amber-100" />
+                  <span>
+                    Ketik Huruf: <span className="underline decoration-2 decoration-white underline-offset-2">{expectedChar}</span>
+                  </span>
+                </motion.div>
+              ) : (
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-display font-black text-xs sm:text-sm px-3 py-1 rounded-2xl shadow-sm border border-white flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-yellow-300" />
+                  <span>Kata Selesai!</span>
+                </div>
+              )}
             </div>
 
             {/* Quick Toolbar */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={handleResetCurrentWord}
                 aria-label="Ketik Ulang Kata"
-                className="p-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer flex-shrink-0"
+                className="p-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer"
                 title="Ketik ulang kata ini dari awal"
               >
                 <RotateCcw size={14} />
@@ -283,7 +280,7 @@ export default function MengetikHurufView() {
                 whileTap={{ scale: 0.92 }}
                 onClick={handleNextWord}
                 aria-label="Kata Berikutnya"
-                className="p-1 rounded-xl bg-sky-100 hover:bg-sky-200 text-[#0284C7] border border-sky-300 shadow-2xs cursor-pointer flex-shrink-0"
+                className="p-1 rounded-xl bg-sky-100 hover:bg-sky-200 text-[#0284C7] border border-sky-300 shadow-2xs cursor-pointer"
                 title="Lanjut ke kata berikutnya"
               >
                 <ChevronRight size={15} />
@@ -292,11 +289,10 @@ export default function MengetikHurufView() {
           </motion.div>
         </div>
 
-        {/* ── Central Stage: flex-1 min-h-0 max-h-[55vh] flex flex-col items-center justify-center ── */}
-        <section className="relative z-20 flex-1 min-h-0 max-h-[55vh] flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4 my-auto">
+        {/* ── Central Stage: Juicy 3D Letter Slot Blocks ── */}
+        <section className="relative z-20 flex-1 min-h-0 max-h-[50vh] flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4 my-auto">
           
-          {/* Dynamic 3D Letter Toy Blocks */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+          <div className="flex items-center justify-center gap-2 sm:gap-3.5 flex-wrap">
             {wordChars.map((char, index) => {
               const isFilled = index < activeCharIndex || isWordComplete;
               const isActive = index === activeCharIndex && !isWordComplete;
@@ -307,30 +303,30 @@ export default function MengetikHurufView() {
                   key={`${char}-${index}`}
                   animate={
                     isTargetWobble
-                      ? { x: [-5, 5, -4, 4, 0] }
+                      ? { x: [-6, 6, -4, 4, 0] }
                       : isFilled
                       ? {
-                          scale: [1, 1.12, 1],
+                          scale: [1, 1.1, 1],
                           rotate: [0, 2, -2, 0],
                         }
                       : isActive
                       ? {
-                          scale: [1, 1.05, 1],
+                          scale: [1, 1.06, 1],
                           y: [0, -3, 0],
                         }
                       : {}
                   }
                   transition={
                     isActive
-                      ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" }
+                      ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
                       : { duration: 0.35, ease: "easeOut" }
                   }
-                  className={`relative w-13 h-15 sm:w-16 sm:h-18 lg:w-18 lg:h-20 rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl transition-all shadow-md select-none ${
+                  className={`relative w-13 h-15 sm:w-16 sm:h-18 lg:w-18 lg:h-20 rounded-2xl sm:rounded-3xl border-2 sm:border-3 flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl transition-all shadow-md select-none ${
                     isFilled
-                      ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-teal-300 border-b-5 border-b-[#065F46] text-white shadow-emerald-200"
+                      ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-teal-200 border-b-6 border-b-[#065F46] text-white shadow-emerald-200/50"
                       : isActive
-                      ? "bg-white/95 border-3 border-[#0284C7] border-b-5 border-b-[#0369A1] text-[#0284C7] shadow-lg ring-3 ring-sky-300/60"
-                      : "bg-white/65 backdrop-blur-xs border-2 border-stone-200 border-dashed text-stone-300"
+                      ? "bg-gradient-to-b from-amber-200 via-amber-300 to-amber-400 border-amber-300 border-b-6 border-b-amber-600 text-amber-950 shadow-xl ring-4 ring-amber-300/80 animate-pulse"
+                      : "bg-white/70 backdrop-blur-xs border-2 border-stone-200 border-dashed text-stone-300"
                   }`}
                 >
                   <span>{isFilled ? char : isActive ? char : "?"}</span>
@@ -346,7 +342,7 @@ export default function MengetikHurufView() {
                   )}
 
                   {isActive && (
-                    <div className="absolute -bottom-1.5 inset-x-3 h-1 bg-[#0284C7] rounded-full animate-pulse" />
+                    <div className="absolute -bottom-1.5 inset-x-3 h-1 bg-amber-600 rounded-full animate-pulse shadow-xs" />
                   )}
                 </motion.div>
               );
@@ -355,11 +351,11 @@ export default function MengetikHurufView() {
 
         </section>
 
-        {/* ── Bottom Tier: Virtual Keyboard & Mascots Anchored in Lower Zones (h-[28%] max-h-[175px]) ── */}
-        <footer className="h-[28%] max-h-[175px] relative flex items-end justify-between px-2 sm:px-4 pb-1 pointer-events-none w-full max-w-6xl mx-auto flex-shrink-0">
+        {/* ── Bottom Tier: Chunky 3D Toy Keyboard for Children & Anchored Mascots (h-[32%] max-h-[195px]) ── */}
+        <footer className="h-[32%] max-h-[195px] relative flex items-end justify-between px-2 sm:px-4 pb-1 pointer-events-none w-full max-w-6xl mx-auto flex-shrink-0">
           
           {/* Left Side: Saka Mascot */}
-          <div className="flex flex-col items-center pointer-events-auto origin-bottom-left pb-1">
+          <div className="flex flex-col items-center pointer-events-auto origin-bottom-left pb-1 flex-shrink-0">
             {/* Dynamic Speech Bubble */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -368,18 +364,18 @@ export default function MengetikHurufView() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.8, opacity: 0, y: -6 }}
                 transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                className="bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-2.5 py-1 shadow-md w-[135px] sm:w-[160px] text-center mb-1 pointer-events-none relative z-30"
+                className="bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-2 py-1 shadow-md w-[125px] sm:w-[150px] text-center mb-1 pointer-events-none relative z-30"
               >
-                <p className="font-sans font-bold text-[11px] text-[#1B4965] leading-snug">
+                <p className="font-sans font-bold text-[10px] sm:text-[11px] text-[#1B4965] leading-snug">
                   {speechBubbleText}
                 </p>
                 <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
               </motion.div>
             </AnimatePresence>
 
-            {/* Saka Mascot (Height locked to h-22 sm:h-26) */}
+            {/* Saka Mascot (Height locked to h-20 sm:h-24) */}
             <motion.div
-              animate={isSakaJumping ? { y: [-16, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
+              animate={isSakaJumping ? { y: [-14, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
               transition={
                 isSakaJumping
                   ? { duration: 0.45, type: "spring", stiffness: 500 }
@@ -387,11 +383,11 @@ export default function MengetikHurufView() {
               }
               className="origin-bottom"
             >
-              <SakaMascot isWaving={isSakaJumping || isWordComplete} className="h-22 sm:h-26 w-auto object-contain" />
+              <SakaMascot isWaving={isSakaJumping || isWordComplete} className="h-20 sm:h-24 w-auto object-contain" />
             </motion.div>
 
             {/* Grassy Mound Base */}
-            <div className="w-20 sm:w-26 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1.5" />
+            <div className="w-18 sm:w-24 h-2 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1" />
           </div>
 
           {/* Center: Chunky 3D Toy Keyboard */}
@@ -405,9 +401,9 @@ export default function MengetikHurufView() {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3.5 py-1 rounded-2xl shadow-lg border border-white flex items-center gap-1.5 mb-1"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3.5 py-0.5 rounded-2xl shadow-lg border border-white flex items-center gap-1.5 mb-1"
                 >
-                  <Sparkles size={14} className="text-yellow-300" />
+                  <Sparkles size={13} className="text-yellow-300" />
                   <span className="font-display font-black text-xs">
                     Luar Biasa! Kata {currentItem.word.toUpperCase()} Selesai! (+1 Bintang)
                   </span>
@@ -416,13 +412,14 @@ export default function MengetikHurufView() {
             </AnimatePresence>
 
             {/* Keyboard Rows */}
-            <div className="w-full max-w-lg lg:max-w-xl flex flex-col gap-1">
-              {KEYBOARD_ROWS.map((rowObj, rowIdx) => (
-                <div key={rowIdx} className="flex justify-center gap-1">
-                  {rowObj.keys.map((keyChar) => {
+            <div className="w-full max-w-lg lg:max-w-xl flex flex-col gap-1 sm:gap-1.5">
+              {KEYBOARD_ROWS.map((rowKeys, rowIdx) => (
+                <div key={rowIdx} className="flex justify-center gap-1 sm:gap-1.5">
+                  {rowKeys.map((keyChar, keyIdx) => {
                     const isTarget = keyChar === expectedChar && !isWordComplete;
                     const isPressed = activePressedKey === keyChar;
                     const isKeyWobble = wobbleKey === keyChar;
+                    const pastel = KEY_PASTELS[(keyChar.charCodeAt(0) + keyIdx) % KEY_PASTELS.length];
 
                     return (
                       <motion.button
@@ -439,32 +436,21 @@ export default function MengetikHurufView() {
                               }
                             : isTarget
                             ? {
-                                scale: [1, 1.04, 1],
+                                scale: [1, 1.06, 1],
                               }
                             : {}
                         }
                         transition={{ duration: 0.35 }}
                         onClick={() => handleKeyPress(keyChar)}
-                        className={`h-8 sm:h-9 lg:h-10 rounded-xl font-display font-black text-xs sm:text-sm border-2 border-b-3 sm:border-b-4 transition-all flex items-center justify-center select-none cursor-pointer shadow-xs ${
-                          rowIdx === 0
-                            ? "w-6.5 sm:w-8.5 lg:w-9.5"
-                            : rowIdx === 1
-                            ? "w-6.5 sm:w-8.5 lg:w-9.5"
-                            : "w-7.5 sm:w-9.5 lg:w-10.5"
-                        } ${
+                        className={`h-9 sm:h-11 md:h-12 min-w-[32px] sm:min-w-[40px] md:min-w-[48px] px-1 sm:px-2 rounded-2xl font-display font-black text-sm sm:text-base md:text-lg border-2 border-b-4 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center select-none cursor-pointer shadow-xs ${
                           isPressed && isTarget
-                            ? "bg-gradient-to-b from-emerald-400 to-teal-500 border-teal-300 border-b-teal-600 text-white translate-y-0.5"
+                            ? "bg-gradient-to-b from-emerald-400 to-teal-500 border-teal-300 border-b-teal-700 text-white translate-y-0.5"
                             : isKeyWobble
-                            ? "bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300 border-b-rose-600 text-white"
+                            ? "bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300 border-b-rose-700 text-white"
                             : isTarget
-                            ? "bg-gradient-to-b from-sky-400 to-blue-500 border-sky-300 border-b-blue-600 text-white shadow-sky-200 shadow-sm ring-2 ring-sky-300/60 font-black"
-                            : `bg-gradient-to-b ${rowObj.bg} ${rowObj.border} active:translate-y-0.5`
+                            ? "bg-gradient-to-b from-amber-300 to-amber-400 border-amber-300 border-b-amber-500 text-amber-950 shadow-amber-200/80 shadow-md ring-3 ring-amber-400/80 font-black animate-pulse"
+                            : `bg-gradient-to-b ${pastel.bg} ${pastel.border} ${pastel.shadow} text-slate-800`
                         }`}
-                        style={
-                          !isTarget && !isPressed && !isKeyWobble
-                            ? { color: rowObj.text }
-                            : {}
-                        }
                       >
                         {keyChar}
                       </motion.button>
@@ -477,10 +463,10 @@ export default function MengetikHurufView() {
           </div>
 
           {/* Right Side: Tika Mascot */}
-          <div className="flex flex-col items-center pointer-events-auto origin-bottom-right pb-1">
-            {/* Tika Mascot (Height locked to h-22 sm:h-26) */}
+          <div className="flex flex-col items-center pointer-events-auto origin-bottom-right pb-1 flex-shrink-0">
+            {/* Tika Mascot (Height locked to h-20 sm:h-24) */}
             <motion.div
-              animate={isTikaJumping ? { y: [-16, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
+              animate={isTikaJumping ? { y: [-14, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
               transition={
                 isTikaJumping
                   ? { duration: 0.45, type: "spring", stiffness: 500, delay: 0.05 }
@@ -488,11 +474,11 @@ export default function MengetikHurufView() {
               }
               className="origin-bottom"
             >
-              <TikaMascot isCheering={isTikaJumping || isWordComplete} className="h-22 sm:h-26 w-auto object-contain" />
+              <TikaMascot isCheering={isTikaJumping || isWordComplete} className="h-20 sm:h-24 w-auto object-contain" />
             </motion.div>
 
             {/* Grassy Mound Base */}
-            <div className="w-20 sm:w-26 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1.5" />
+            <div className="w-18 sm:w-24 h-2 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1" />
           </div>
 
         </footer>

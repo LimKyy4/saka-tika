@@ -29,12 +29,12 @@ import TikaMascot from "../../components/illustrations/TikaMascot.jsx";
 
 // Glass bubble pastel themes with soft translucent tints and matching specular rings
 const GLASS_BUBBLE_THEMES = [
-  { name: "sky", tint: "from-sky-300/35 via-white/40 to-blue-300/25", border: "border-sky-300/70", glow: "shadow-sky-300/30", text: "#0284C7" },
-  { name: "rose", tint: "from-rose-300/35 via-white/40 to-pink-300/25", border: "border-rose-300/70", glow: "shadow-rose-300/30", text: "#E11D48" },
-  { name: "emerald", tint: "from-emerald-300/35 via-white/40 to-teal-300/25", border: "border-emerald-300/70", glow: "shadow-emerald-300/30", text: "#059669" },
-  { name: "amber", tint: "from-amber-300/35 via-white/40 to-orange-300/25", border: "border-amber-300/70", glow: "shadow-amber-300/30", text: "#D97706" },
-  { name: "purple", tint: "from-purple-300/35 via-white/40 to-indigo-300/25", border: "border-purple-300/70", glow: "shadow-purple-300/30", text: "#9333EA" },
-  { name: "teal", tint: "from-teal-300/35 via-white/40 to-cyan-300/25", border: "border-teal-300/70", glow: "shadow-teal-300/30", text: "#0D9488" },
+  { name: "sky", tint: "from-white/70 via-sky-200/40 to-blue-300/30", border: "border-sky-300/80", glow: "shadow-sky-300/40", text: "#0F172A" },
+  { name: "rose", tint: "from-white/70 via-rose-200/40 to-pink-300/30", border: "border-rose-300/80", glow: "shadow-rose-300/40", text: "#0F172A" },
+  { name: "emerald", tint: "from-white/70 via-emerald-200/40 to-teal-300/30", border: "border-emerald-300/80", glow: "shadow-emerald-300/40", text: "#0F172A" },
+  { name: "amber", tint: "from-white/70 via-amber-200/40 to-orange-300/30", border: "border-amber-300/80", glow: "shadow-amber-300/40", text: "#0F172A" },
+  { name: "purple", tint: "from-white/70 via-purple-200/40 to-indigo-300/30", border: "border-purple-300/80", glow: "shadow-purple-300/40", text: "#0F172A" },
+  { name: "teal", tint: "from-white/70 via-teal-200/40 to-cyan-300/30", border: "border-teal-300/80", glow: "shadow-teal-300/40", text: "#0F172A" },
 ];
 
 // Natural, non-overlapping anchor positions across the 16:9 arena (leaving banner & mascots clear)
@@ -68,6 +68,7 @@ export default function TemukanHurufView() {
   const [foundIds, setFoundIds] = useState([]);
   const [wobbleId, setWobbleId] = useState(null);
   const [poppingId, setPoppingId] = useState(null);
+  const [splashDroplets, setSplashDroplets] = useState([]);
   const [roundComplete, setRoundComplete] = useState(false);
   const [isSakaJumping, setIsSakaJumping] = useState(false);
   const [isTikaJumping, setIsTikaJumping] = useState(false);
@@ -137,6 +138,7 @@ export default function TemukanHurufView() {
     setFoundIds([]);
     setWobbleId(null);
     setPoppingId(null);
+    setSplashDroplets([]);
     setRoundComplete(false);
     setIsSakaJumping(false);
     setIsTikaJumping(false);
@@ -158,6 +160,24 @@ export default function TemukanHurufView() {
 
       setPoppingId(bubble.id);
       playBubblePopSound(stageIdx);
+
+      // Spawn burst of 8 water droplet splash particles around the popped bubble
+      const newDroplets = Array.from({ length: 8 }).map((_, i) => {
+        const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.4;
+        const dist = 3 + Math.random() * 4.5;
+        return {
+          id: `${bubble.id}-drop-${i}-${Date.now()}`,
+          startX: bubble.x,
+          startY: bubble.y,
+          targetX: Math.max(5, Math.min(95, bubble.x + Math.cos(angle) * dist)),
+          targetY: Math.max(5, Math.min(95, bubble.y + Math.sin(angle) * dist)),
+          size: Math.random() * 6 + 4,
+        };
+      });
+      setSplashDroplets((prev) => [...prev, ...newDroplets]);
+      setTimeout(() => {
+        setSplashDroplets((prev) => prev.filter((d) => !d.id.startsWith(bubble.id)));
+      }, 500);
 
       setIsSakaJumping(true);
       setIsTikaJumping(true);
@@ -237,13 +257,13 @@ export default function TemukanHurufView() {
       {/* ── Content Wrapper ── */}
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between max-w-7xl w-full mx-auto">
         
-        {/* ── Target Spotlight Banner: Compact Single Pill Card ── */}
+        {/* ── Target Spotlight Mission Banner: High Visibility Marquee Card ── */}
         <div className="w-full px-2 mt-1 flex justify-center flex-shrink-0">
           <motion.div
             initial={{ y: -12, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 450, damping: 20 }}
-            className="bg-white/92 backdrop-blur-md border-2 border-amber-300 border-b-3 border-amber-400 rounded-2xl px-3 py-1 shadow-sm flex items-center gap-2.5 sm:gap-4 max-h-12"
+            className="bg-white/95 backdrop-blur-md border-3 border-amber-300 border-b-4 border-b-amber-400 rounded-3xl px-3 sm:px-4 py-1.5 shadow-md flex items-center justify-between gap-2.5 sm:gap-4 max-w-2xl w-full max-h-14"
           >
             {/* Target Word Illustration Card */}
             <motion.button
@@ -252,9 +272,10 @@ export default function TemukanHurufView() {
               whileTap={{ scale: 0.94 }}
               onClick={handleSpeakWord}
               aria-label={`Dengarkan contoh kata ${currentTarget.word}`}
-              className="flex items-center gap-1.5 bg-amber-50/80 border border-amber-200 rounded-xl px-2 py-0.5 shadow-2xs cursor-pointer group"
+              className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-2 py-0.5 shadow-2xs cursor-pointer group flex-shrink-0"
+              title="Klik untuk mendengarkan pengucapan kata"
             >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <WordIllustration
                   illustrationKey={currentTarget.illustrationKey}
                   word={currentTarget.word}
@@ -263,61 +284,60 @@ export default function TemukanHurufView() {
                 />
               </div>
               <div className="text-left hidden sm:block">
-                <span className="font-display font-bold text-xs text-[#1B4965] leading-tight block">
+                <span className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight block">
                   {currentTarget.word}
+                </span>
+                <span className="font-sans font-semibold text-[9px] text-amber-600 block">
+                  Ketuk Suara
                 </span>
               </div>
             </motion.button>
 
-            {/* Target Letter Spotlight */}
-            <div className="flex items-center gap-2">
+            {/* Target Letter Spotlight Mission */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-center">
               <motion.div
-                animate={{ scale: [1, 1.05, 1] }}
+                animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                 onClick={handleSpeakTarget}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-b from-white to-sky-50 border-2 flex items-center justify-center font-display font-black text-xl sm:text-2xl shadow-2xs cursor-pointer active:scale-95 transition-transform"
-                style={{
-                  borderColor: currentTarget.color,
-                  color: currentTarget.color,
-                }}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-b from-white to-amber-50 border-3 border-amber-400 flex items-center justify-center font-display font-black text-2xl sm:text-3xl text-amber-600 shadow-sm cursor-pointer active:scale-95 transition-transform flex-shrink-0"
                 title="Klik untuk mendengarkan bunyi huruf"
               >
                 {targetLetter}
               </motion.div>
 
               <div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <span className="font-display font-black text-xs sm:text-sm text-[#1B4965]">
-                    Temukan 3 Gelembung <span style={{ color: currentTarget.color }}>{targetLetter}</span>!
+                    TEMUKAN 3 GELEMBUNG HURUF <span className="text-[#D97706] font-black underline decoration-2 decoration-amber-400 underline-offset-2">{targetLetter}</span>!
                   </span>
                   <button
                     type="button"
                     onClick={handleSpeakTarget}
                     aria-label="Bunyikan Huruf"
-                    className="p-0.5 rounded-md bg-sky-100 hover:bg-sky-200 text-[#0284C7] cursor-pointer transition-colors"
+                    className="p-1 rounded-md bg-sky-100 hover:bg-sky-200 text-[#0284C7] cursor-pointer transition-colors"
                   >
                     <Volume2 size={13} />
                   </button>
                 </div>
 
                 {/* 3 Golden Star Progress Slots */}
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex items-center gap-2 mt-0.5">
                   {[0, 1, 2].map((slotIdx) => {
                     const isSlotFilled = slotIdx < foundIds.length;
                     return (
                       <motion.div
                         key={slotIdx}
                         initial={false}
-                        animate={isSlotFilled ? { scale: [1.25, 1] } : { scale: 1 }}
+                        animate={isSlotFilled ? { scale: [1.3, 1] } : { scale: 1 }}
                         transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                        className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center transition-all ${
+                        className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                           isSlotFilled
-                            ? "bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border border-[#D97706] shadow-2xs"
-                            : "bg-white/80 border border-stone-200 border-dashed"
+                            ? "bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border-2 border-[#D97706] shadow-xs"
+                            : "bg-white/80 border-2 border-stone-200 border-dashed"
                         }`}
                       >
                         <Star
-                          size={10}
+                          size={11}
                           className={
                             isSlotFilled
                               ? "fill-[#F59E0B] text-[#B45309]"
@@ -332,7 +352,7 @@ export default function TemukanHurufView() {
             </div>
 
             {/* Quick Toolbar */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.08 }}
@@ -362,6 +382,28 @@ export default function TemukanHurufView() {
 
         {/* ── Central Glass Bubble Arena Stage (flex-1 min-h-0 max-h-[55vh]) ── */}
         <section className="relative z-20 flex-1 min-h-0 max-h-[55vh] w-full max-w-6xl mx-auto px-4 my-auto overflow-hidden">
+          
+          {/* Water Droplet Splash Particles */}
+          {splashDroplets.map((d) => (
+            <motion.div
+              key={d.id}
+              initial={{ left: `${d.startX}%`, top: `${d.startY}%`, opacity: 0.95, scale: 1 }}
+              animate={{ left: `${d.targetX}%`, top: `${d.targetY}%`, opacity: 0, scale: 0.2 }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+              style={{
+                position: "absolute",
+                width: `${d.size}px`,
+                height: `${d.size}px`,
+                borderRadius: "9999px",
+                transform: "translate(-50%, -50%)",
+                background: "radial-gradient(circle, rgba(255,255,255,0.95) 20%, rgba(56,189,248,0.75) 80%)",
+                boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                pointerEvents: "none",
+                zIndex: 35,
+              }}
+            />
+          ))}
+
           {bubbles.map((b) => {
             const isFound = foundIds.includes(b.id);
             const isPopping = poppingId === b.id;
@@ -386,8 +428,8 @@ export default function TemukanHurufView() {
                 animate={
                   isPopping
                     ? {
-                        scale: [1, 1.45, 0],
-                        opacity: [1, 0.8, 0],
+                        scale: [1, 1.5, 0],
+                        opacity: [1, 0.9, 0],
                       }
                     : isWobble
                     ? {
@@ -411,14 +453,14 @@ export default function TemukanHurufView() {
                         delay: b.floatDelay,
                       }
                 }
-                className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full border-2 ${b.theme.border} bg-gradient-to-br ${b.theme.tint} backdrop-blur-xs ${b.theme.glow} shadow-md flex items-center justify-center font-display font-black text-xl sm:text-2xl lg:text-3xl select-none cursor-pointer relative active:scale-90 transition-transform`}
+                className={`w-13 h-13 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-full border-2 ${b.theme.border} bg-gradient-to-br ${b.theme.tint} backdrop-blur-sm ${b.theme.glow} shadow-lg flex items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl select-none cursor-pointer relative active:scale-90 transition-transform`}
               >
                 {/* Curved Glass Specular Highlight */}
-                <div className="absolute top-1 left-2 w-3.5 h-2 bg-white/70 rounded-full rotate-[-30deg] pointer-events-none" />
-                <div className="absolute bottom-1 right-2 w-1.5 h-1 bg-white/40 rounded-full rotate-[-30deg] pointer-events-none" />
+                <div className="absolute top-1.5 left-2 w-4 h-2 bg-white/85 rounded-full rotate-[-35deg] pointer-events-none" />
+                <div className="absolute bottom-1.5 right-2 w-2 h-1 bg-white/50 rounded-full rotate-[-35deg] pointer-events-none" />
 
                 {/* Letter Glyph */}
-                <span style={{ color: b.theme.text }} className="drop-shadow-xs">
+                <span className="text-slate-800 drop-shadow-xs">
                   {b.letter}
                 </span>
               </motion.button>

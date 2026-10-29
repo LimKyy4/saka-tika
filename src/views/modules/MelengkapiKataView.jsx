@@ -231,13 +231,13 @@ export default function MelengkapiKataView() {
       {/* ── Interactive Content Wrapper ── */}
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between max-w-5xl w-full mx-auto">
         
-        {/* ── Target Spotlight Banner: Compact Single Pill Card ── */}
+        {/* ── High-Visibility Word Challenge Card Banner ── */}
         <div className="w-full px-2 mt-1 flex justify-center flex-shrink-0">
           <motion.div
             initial={{ y: -12, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 450, damping: 20 }}
-            className="bg-white/92 backdrop-blur-md border-2 border-emerald-300 border-b-3 border-emerald-400 rounded-2xl px-3 py-1 shadow-sm flex items-center gap-2.5 sm:gap-4 max-h-12"
+            className="bg-white/95 backdrop-blur-md border-3 border-emerald-300 border-b-4 border-b-emerald-400 rounded-3xl px-3 sm:px-4 py-1.5 shadow-md flex items-center justify-between gap-2.5 sm:gap-4 max-w-2xl w-full max-h-14"
           >
             {/* Object Illustration Card (Clickable Pronunciation) */}
             <motion.button
@@ -246,7 +246,7 @@ export default function MelengkapiKataView() {
               whileTap={{ scale: 0.94 }}
               onClick={handleReplayAudio}
               aria-label={`Dengarkan contoh kata ${currentItem.word}`}
-              className="flex items-center gap-1.5 bg-gradient-to-b from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-1 shadow-2xs cursor-pointer group flex-shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl px-2 py-0.5 shadow-2xs cursor-pointer group flex-shrink-0"
               title="Klik untuk mendengarkan pengucapan kata"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -258,14 +258,22 @@ export default function MelengkapiKataView() {
                   className="w-full h-full object-contain drop-shadow-xs"
                 />
               </div>
+              <div className="text-left hidden sm:block">
+                <span className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight block">
+                  {currentItem.word}
+                </span>
+                <span className="font-sans font-semibold text-[9px] text-emerald-600 block">
+                  Ketuk Suara
+                </span>
+              </div>
             </motion.button>
 
             {/* Instruction */}
-            <div className="flex flex-col text-left">
+            <div className="flex flex-col text-center flex-1">
               <h2 className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight">
                 Lengkapi Huruf yang Hilang!
               </h2>
-              <span className="font-sans font-semibold text-[10px] sm:text-xs text-[#1B4965]/65 leading-none mt-0.5 capitalize">
+              <span className="font-sans font-semibold text-[10px] sm:text-xs text-[#1B4965]/70 leading-none mt-0.5 capitalize">
                 Kata: <strong className="text-[#059669] font-black">{currentItem.word}</strong>
                 {scoreStreak > 0 && (
                   <span className="ml-2 text-amber-600 font-bold">({scoreStreak} Kata)</span>
@@ -274,12 +282,12 @@ export default function MelengkapiKataView() {
             </div>
 
             {/* Quick Audio & Controls */}
-            <div className="flex items-center gap-1 ml-1 sm:ml-2">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 type="button"
                 onClick={handleReplayAudio}
                 aria-label="Dengarkan Suara Kata"
-                className="p-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-[#059669] cursor-pointer transition-colors shadow-2xs"
+                className="p-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-[#059669] cursor-pointer transition-colors shadow-2xs"
                 title="Dengarkan pengucapan kata"
               >
                 <Volume2 size={14} />
@@ -292,7 +300,7 @@ export default function MelengkapiKataView() {
                 onClick={handleToggleHint}
                 disabled={showHint || isAnswered}
                 aria-label="Petunjuk Huruf"
-                className={`p-1 rounded-lg border shadow-2xs cursor-pointer transition-colors ${
+                className={`p-1 rounded-xl border shadow-2xs cursor-pointer transition-colors ${
                   showHint
                     ? "bg-amber-100 border-amber-300 text-amber-700"
                     : "bg-white hover:bg-stone-50 border-stone-200 text-stone-600"
@@ -308,7 +316,7 @@ export default function MelengkapiKataView() {
                 whileTap={{ scale: 0.92 }}
                 onClick={handleResetCurrentQuestion}
                 aria-label="Mainkan Ulang Kata"
-                className="p-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer"
+                className="p-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer"
                 title="Mainkan ulang kata ini dari awal"
               >
                 <RotateCcw size={14} />
@@ -320,7 +328,7 @@ export default function MelengkapiKataView() {
                 whileTap={{ scale: 0.92 }}
                 onClick={handleNext}
                 aria-label="Kata Berikutnya"
-                className="p-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-[#059669] border border-emerald-300 shadow-2xs cursor-pointer"
+                className="p-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-[#059669] border border-emerald-300 shadow-2xs cursor-pointer"
                 title="Lanjut ke kata berikutnya"
               >
                 <ChevronRight size={15} />
@@ -353,16 +361,16 @@ export default function MelengkapiKataView() {
           {/* 3D Handcrafted Wooden Toy Puzzle Tray */}
           <motion.div
             layout
-            className="relative bg-gradient-to-b from-[#E7C495] via-[#D5A570] to-[#B8824C] border-3 sm:border-4 border-[#875525] border-b-6 border-b-[#54300E] rounded-3xl shadow-xl p-2.5 sm:p-4"
+            className="relative bg-gradient-to-b from-[#E7C495] via-[#D5A570] to-[#B8824C] border-3 sm:border-4 border-[#875525] border-b-8 border-b-[#54300E] rounded-3xl shadow-2xl p-2.5 sm:p-4"
           >
             {/* Corner Joinery Pegs */}
-            <div className="absolute top-2.5 left-2.5 w-2 h-2 rounded-full bg-[#54300E] opacity-50 shadow-inner" />
-            <div className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#54300E] opacity-50 shadow-inner" />
-            <div className="absolute bottom-2.5 left-2.5 w-2 h-2 rounded-full bg-[#54300E] opacity-50 shadow-inner" />
-            <div className="absolute bottom-2.5 right-2.5 w-2 h-2 rounded-full bg-[#54300E] opacity-50 shadow-inner" />
+            <div className="absolute top-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
+            <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
+            <div className="absolute bottom-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
+            <div className="absolute bottom-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
 
             {/* Inset Felt Inlay */}
-            <div className="bg-gradient-to-b from-[#4A2609]/30 to-black/20 rounded-2xl p-2 sm:p-3.5 border border-[#54300E]/40 shadow-inner flex items-center justify-center gap-2.5 sm:gap-3.5 flex-wrap">
+            <div className="bg-gradient-to-b from-[#4A2609]/40 to-black/30 rounded-2xl p-2 sm:p-3.5 border border-[#54300E]/50 shadow-inner flex items-center justify-center gap-2.5 sm:gap-3.5 flex-wrap">
               {wordChars.map((char, index) => {
                 const isMissing = index === missingIndex;
                 const isFilled = isMissing && isCorrect;
@@ -388,10 +396,10 @@ export default function MelengkapiKataView() {
                           ? { duration: 0.5, ease: "easeOut" }
                           : { duration: 2.0, repeat: Infinity, ease: "easeInOut" }
                       }
-                      className={`relative w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl transition-all shadow-lg select-none aspect-square ${
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl transition-all shadow-xl select-none aspect-square ${
                         isFilled
-                          ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-teal-300 border-b-5 border-b-[#065F46] text-white shadow-emerald-200"
-                          : "bg-gradient-to-b from-amber-200 via-amber-300 to-amber-400 border-amber-300 border-b-5 border-b-amber-600 text-amber-950 shadow-lg ring-3 ring-amber-300/80 animate-pulse"
+                          ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-teal-200 border-b-6 border-b-[#065F46] text-white shadow-emerald-200"
+                          : "bg-gradient-to-b from-amber-200 via-amber-300 to-amber-400 border-amber-300 border-b-6 border-b-amber-600 text-amber-950 shadow-xl ring-4 ring-amber-300/80 animate-pulse"
                       }`}
                     >
                       <span>{isFilled ? targetLetter : showHint ? targetLetter : "?"}</span>
@@ -407,7 +415,7 @@ export default function MelengkapiKataView() {
                       )}
 
                       {!isFilled && (
-                        <div className="absolute -bottom-1.5 inset-x-2.5 h-1 bg-amber-500 rounded-full animate-pulse shadow-xs" />
+                        <div className="absolute -bottom-1.5 inset-x-2.5 h-1 bg-amber-600 rounded-full animate-pulse shadow-xs" />
                       )}
                     </motion.div>
                   );
@@ -435,7 +443,7 @@ export default function MelengkapiKataView() {
                           }
                         : {}
                     }
-                    className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl bg-gradient-to-b from-[#FFFFFF] to-[#F7EFE5] border-2 border-[#E3D1BE] border-b-5 border-b-[#C2AB92] flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#1B4965] shadow-xs select-none aspect-square"
+                    className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl bg-gradient-to-b from-[#FFFFFF] to-[#F7EFE5] border-2 sm:border-3 border-[#E3D1BE] border-b-6 border-b-[#C2AB92] flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#1B4965] shadow-md select-none aspect-square"
                   >
                     <span>{char}</span>
                   </motion.div>
@@ -525,13 +533,13 @@ export default function MelengkapiKataView() {
                         : { duration: 0.35 }
                     }
                     onClick={() => handleSelectOption(letter)}
-                    className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl font-display font-black text-xl sm:text-2xl lg:text-3xl border-2 border-b-5 transition-all flex items-center justify-center select-none cursor-pointer shadow-md relative aspect-square ${
+                    className={`w-13 h-13 sm:w-15 sm:h-15 lg:w-18 lg:h-18 rounded-2xl font-display font-black text-2xl sm:text-3xl lg:text-4xl border-2 border-b-6 active:border-b-0 active:translate-y-1.5 transition-all flex items-center justify-center select-none cursor-pointer shadow-lg relative aspect-square ${
                       isMatchingTarget
                         ? "bg-gradient-to-b from-emerald-400 to-teal-500 border-teal-300 border-b-teal-700 text-white shadow-emerald-200"
                         : isWobble
                         ? "bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300 border-b-rose-700 text-white"
                         : isHighlightedHint
-                        ? "bg-gradient-to-b from-amber-300 to-yellow-400 border-amber-300 border-b-amber-600 text-amber-950 ring-3 ring-amber-300/80 shadow-amber-200"
+                        ? "bg-gradient-to-b from-amber-300 to-yellow-400 border-amber-300 border-b-amber-600 text-amber-950 ring-4 ring-amber-300/80 shadow-amber-200"
                         : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.glow} active:translate-y-1`
                     }`}
                     style={{ color: palette.text }}

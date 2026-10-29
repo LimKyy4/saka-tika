@@ -313,7 +313,7 @@ export default function MenulisHurufView() {
                 <LetterCanvas
                   letterObj={letterObj}
                   onNextLetter={handleNextLetter}
-                  hasNextLetter={selectedIdx < ALPHABET_DATA.length - 1}
+                  hasNextLetter={true}
                   onProgressUpdate={handleProgressUpdate}
                   onStrokeUpdate={handleStrokeUpdate}
                   onLetterCompleted={handleLetterCompleted}
