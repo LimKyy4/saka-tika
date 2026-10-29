@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#BFE2FF" />
+      <stop offset="100%" stop-color="#E8F4FF" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#1B4965" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded canvas -->
+  <rect width="512" height="512" rx="128" fill="url(#skyGrad)" />
+
+  <!-- Smiling Sun corner -->
+  <circle cx="420" cy="90" r="45" fill="#FFD95A" />
+  <circle cx="408" cy="82" r="4" fill="#1B4965" />
+  <circle cx="432" cy="82" r="4" fill="#1B4965" />
+  <path d="M410,95 Q420,105 430,95" stroke="#1B4965" stroke-width="3" fill="none" stroke-linecap="round" />
+
+  <!-- Rolling Hills at base -->
+  <path d="M0,420 C140,380 280,450 512,390 L512,512 L0,512 Z" fill="#C5E5A5" />
+
+  <!-- Letter Block 'S' (Sky Blue) -->
+  <g filter="url(#shadow)">
+    <rect x="96" y="160" width="150" height="150" rx="28" fill="#64A6E8" />
+    <rect x="96" y="296" width="150" height="14" rx="7" fill="#4A8FD6" />
+    <text x="171" y="272" font-family="'Fredoka', sans-serif" font-weight="700" font-size="108" fill="#FFFFFF" text-anchor="middle">S</text>
+  </g>
+
+  <!-- Letter Block 'T' (Coral Pink) -->
+  <g filter="url(#shadow)">
+    <rect x="266" y="210" width="150" height="150" rx="28" fill="#F48B94" />
+    <rect x="266" y="346" width="150" height="14" rx="7" fill="#DE8B8B" />
+    <text x="341" y="322" font-family="'Fredoka', sans-serif" font-weight="700" font-size="108" fill="#FFFFFF" text-anchor="middle">T</text>
+  </g>
+
+  <!-- Small playful spark/star -->
+  <polygon points="256,120 262,136 278,142 262,148 256,164 250,148 234,142 250,136" fill="#F9D968" />
+</svg>
