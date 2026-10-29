@@ -1,23 +1,29 @@
 // src/components/layout/TopControlBar.jsx
 // Studio Arcade-grade Game HUD with Real Client Button Sprites (Home, Suara, Pengaturan) & Zero Scrollbars.
+// Strictly adheres to Tier 1: Top HUD Bar (Height: 10% - 12%, max 64px)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext.jsx";
 import { useAudio } from "../../context/AudioContext.jsx";
 import { usePWAInstall } from "../../hooks/usePWAInstall.js";
 import InstallModal from "../ui/InstallModal.jsx";
 import ConfirmResetModal from "../ui/ConfirmResetModal.jsx";
-import { MonitorDown, RotateCcw } from "lucide-react";
+import { MonitorDown, RotateCcw, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TopControlBar() {
+  const location = useLocation();
   const { stars, navigateTo, resetProgress } = useGame();
   const { isBgmEnabled, toggleBgm, playSfx } = useAudio();
   const { isInstalled, triggerInstall, showManualModal, setShowManualModal } = usePWAInstall();
 
   const [showResetModal, setShowResetModal] = useState(false);
   const [starHovered, setStarHovered] = useState(false);
+
+  const isHome = location.pathname === "/";
+  const isMenu = location.pathname === "/menu";
 
   const handleConfirmReset = () => {
     playSfx("click");
@@ -27,35 +33,53 @@ export default function TopControlBar() {
 
   return (
     <>
-      <header className="relative z-40 flex-shrink-0 px-3 sm:px-4 pt-2 sm:pt-3 pointer-events-auto select-none">
+      <header className="h-[10%] sm:h-[12%] max-h-[64px] min-h-[48px] relative z-40 flex-shrink-0 px-3 sm:px-6 pt-1 sm:pt-2 pointer-events-auto select-none flex items-center justify-center w-full">
         {/* Floating Glossy Arcade HUD Capsule */}
-        <div className="bg-white/92 backdrop-blur-md border-b-4 border-slate-300 shadow-xl rounded-full px-3.5 sm:px-6 py-2 mx-auto max-w-5xl flex items-center justify-between gap-2 transition-all">
+        <div className="bg-white/92 backdrop-blur-md border-b-4 border-slate-300 shadow-lg rounded-full px-3 sm:px-5 py-1.5 mx-auto max-w-5xl w-full flex items-center justify-between gap-2 transition-all">
           
-          {/* ── Left: Brand & Real Home Button Sprite ──────────── */}
+          {/* ── Left: Dynamic Navigation (Brand on Home/Menu, Back on Sub-games) ── */}
           <div className="flex items-center gap-2">
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.08, y: -2 }}
-              whileTap={{ scale: 0.92, y: 2 }}
-              transition={{ type: "spring", stiffness: 450, damping: 16 }}
-              onClick={() => {
-                playSfx("click");
-                navigateTo("/");
-              }}
-              aria-label="Kembali ke Beranda"
-              className="p-0 bg-transparent border-0 outline-none cursor-pointer flex items-center gap-2"
-            >
-              <img
-                src="/assets/buttons/home.png"
-                alt="Beranda"
-                draggable="false"
-                className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow pointer-events-none select-none"
-                style={{ imageRendering: "-webkit-optimize-contrast" }}
-              />
-              <span className="font-display font-bold text-base sm:text-lg text-[#1B4965] hidden sm:inline-block tracking-tight hover:opacity-85 transition-opacity">
-                Saka Tika
-              </span>
-            </motion.button>
+            {!isHome && !isMenu ? (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.06, y: -2 }}
+                whileTap={{ scale: 0.94, y: 2 }}
+                transition={{ type: "spring", stiffness: 450, damping: 16 }}
+                onClick={() => {
+                  playSfx("click");
+                  navigateTo("/menu");
+                }}
+                aria-label="Kembali ke Menu Utama"
+                className="flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-2xl bg-gradient-to-b from-[#FFFDF9] to-[#F1F5F9] border-b-3 border-[#CBD5E1] text-[#1B4965] font-display font-bold text-xs sm:text-sm shadow-sm active:border-b-0 cursor-pointer"
+              >
+                <ArrowLeft size={16} className="text-[#1B4965]" />
+                <span>Menu</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08, y: -2 }}
+                whileTap={{ scale: 0.92, y: 2 }}
+                transition={{ type: "spring", stiffness: 450, damping: 16 }}
+                onClick={() => {
+                  playSfx("click");
+                  navigateTo("/");
+                }}
+                aria-label="Kembali ke Beranda"
+                className="p-0 bg-transparent border-0 outline-none cursor-pointer flex items-center gap-2"
+              >
+                <img
+                  src="/assets/buttons/home.png"
+                  alt="Beranda"
+                  draggable="false"
+                  className="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow pointer-events-none select-none"
+                  style={{ imageRendering: "-webkit-optimize-contrast" }}
+                />
+                <span className="font-display font-bold text-sm sm:text-base text-[#1B4965] hidden sm:inline-block tracking-tight hover:opacity-85 transition-opacity">
+                  Saka Tika
+                </span>
+              </motion.button>
+            )}
           </div>
 
           {/* ── Center / Right: Star Vault & Real Controls ─────── */}
@@ -67,7 +91,7 @@ export default function TopControlBar() {
                 playSfx("hover");
               }}
               onMouseLeave={() => setStarHovered(false)}
-              className="relative flex items-center gap-2 bg-gradient-to-b from-[#FFFBEA] to-[#FEF3C7] border-2 border-[#F59E0B] rounded-full px-3.5 py-1 shadow-md cursor-default"
+              className="relative flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-[#FFFBEA] to-[#FEF3C7] border-2 border-[#F59E0B] rounded-full px-3 py-0.5 sm:py-1 shadow-xs cursor-default"
             >
               {/* Pulsing Star Sparkle Ring */}
               <motion.div
@@ -75,7 +99,7 @@ export default function TopControlBar() {
                 transition={{ duration: 0.6 }}
                 className="relative flex items-center justify-center"
               >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 fill-[#F59E0B] stroke-[#D97706] stroke-1 drop-shadow-xs" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 fill-[#F59E0B] stroke-[#D97706] stroke-1 drop-shadow-xs" viewBox="0 0 24 24">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
               </motion.div>
@@ -85,7 +109,7 @@ export default function TopControlBar() {
                 initial={{ scale: 1.4 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 450 }}
-                className="font-display font-bold text-sm sm:text-base text-[#92400E] min-w-[1.2rem] text-center"
+                className="font-display font-bold text-xs sm:text-sm text-[#92400E] min-w-[1rem] text-center"
               >
                 {stars}
               </motion.span>
@@ -100,10 +124,10 @@ export default function TopControlBar() {
                   setShowResetModal(true);
                 }}
                 aria-label="Atur Ulang Bintang"
-                className="p-1 text-[#B45309] hover:text-[#78350F] rounded-full hover:bg-[#FDE68A]/60 transition-colors ml-0.5 cursor-pointer"
+                className="p-0.5 text-[#B45309] hover:text-[#78350F] rounded-full hover:bg-[#FDE68A]/60 transition-colors ml-0.5 cursor-pointer"
                 title="Atur Ulang Bintang"
               >
-                <RotateCcw size={12} strokeWidth={2.5} />
+                <RotateCcw size={11} strokeWidth={2.5} />
               </motion.button>
             </div>
 
@@ -126,7 +150,7 @@ export default function TopControlBar() {
                 src="/assets/buttons/suara.png"
                 alt="Suara"
                 draggable="false"
-                className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow pointer-events-none select-none"
+                className="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow pointer-events-none select-none"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
@@ -148,7 +172,7 @@ export default function TopControlBar() {
                 src="/assets/buttons/pengaturan.png"
                 alt="Pengaturan"
                 draggable="false"
-                className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow pointer-events-none select-none"
+                className="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow pointer-events-none select-none"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
@@ -164,9 +188,9 @@ export default function TopControlBar() {
                   triggerInstall();
                 }}
                 aria-label="Pasang Aplikasi di Desktop"
-                className="hidden md:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-b from-[#34D399] to-[#10B981] border-b-[3px] border-[#047857] text-white font-display font-bold text-xs shadow-md cursor-pointer active:border-b-0 transition-all"
+                className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-b from-[#34D399] to-[#10B981] border-b-[3px] border-[#047857] text-white font-display font-bold text-xs shadow-sm cursor-pointer active:border-b-0 transition-all"
               >
-                <MonitorDown size={14} />
+                <MonitorDown size={13} />
                 <span>Pasang</span>
               </motion.button>
             )}

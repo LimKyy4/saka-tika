@@ -9,7 +9,7 @@ export default function TikaMascot({ className = "", isCheering = true }) {
   return (
     <motion.svg
       viewBox="0 0 160 220"
-      className={`w-28 sm:w-36 h-auto drop-shadow-md select-none ${className}`}
+      className={`drop-shadow-md select-none ${className || "w-28 sm:w-36 h-auto"}`}
       initial={{ scale: 1 }}
       animate={{ y: [0, -5, 0] }}
       transition={{ repeat: Infinity, duration: 2.9, ease: "easeInOut", delay: 0.2 }}

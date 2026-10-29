@@ -33,7 +33,7 @@ export default function App() {
     <Router>
       <GameProvider>
         <AudioProvider>
-          <div className="w-screen h-screen overflow-hidden flex flex-col select-none relative bg-[#FFFDF9]">
+          <div className="w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between select-none relative bg-[#FFFDF9]">
             {/* Fullscreen Video Splash Screen (Runs once per session) */}
             <AnimatePresence>
               {showSplash && (
@@ -54,7 +54,7 @@ export default function App() {
                   initial={showSplash ? { opacity: 0 } : false}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="flex-1 overflow-hidden flex flex-col"
+                  className="flex-1 min-h-0 overflow-hidden flex flex-col justify-between"
                 >
                   <Routes>
                     <Route path="/"                  element={<HomeView />} />

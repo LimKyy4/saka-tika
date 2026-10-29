@@ -1,10 +1,14 @@
 // src/views/HomeView.jsx
 // SAKA TIKA: Definitive Edition Home View with Living Landscape, 3D Arcade CTAs & Interactive Mascots.
+// Strictly adheres to Global 3-Tier Height Budgeting:
+// Tier 1: Floating Game HUD (TopControlBar)
+// Tier 2: Middle Stage (flex-1 min-h-0 flex items-center justify-around px-8 max-h-[60vh])
+// Tier 3: Bottom Tier (Rolling lawn and flowers resting cleanly along screen base)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, MonitorDown } from "lucide-react";
+import { MonitorDown } from "lucide-react";
 import { useGame } from "../context/GameContext.jsx";
 import { useAudio } from "../context/AudioContext.jsx";
 import { usePWAInstall } from "../hooks/usePWAInstall.js";
@@ -92,9 +96,9 @@ export default function HomeView() {
   return (
     <main
       onClick={handleSceneClick}
-      className="relative flex-1 overflow-hidden flex flex-col justify-between select-none"
+      className="relative z-10 flex flex-col h-full w-full max-h-screen overflow-hidden justify-between select-none"
     >
-      {/* ── 1. Master Modular Living Landscape ────────────────── */}
+      {/* ── 1. Master Modular Living Landscape (Layer 0) ─────── */}
       <GameLandscapeBackground />
 
       {/* ── 2. Click Sparkles Particle Layer ──────────────────── */}
@@ -114,31 +118,31 @@ export default function HomeView() {
         ))}
       </div>
 
-      {/* ── 3. Main Foreground Play Area ──────────────────────── */}
-      <div className="relative z-20 flex-1 overflow-hidden flex flex-col justify-center px-4 sm:px-8 md:px-12 py-1">
-        <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 scale-[0.84] sm:scale-90 md:scale-95 lg:scale-100 origin-center transition-transform">
+      {/* ── 3. Middle Stage: Hero Welcome Stage & Mascot Podium (flex-1 min-h-0 flex items-center justify-around px-8 max-h-[60vh]) ── */}
+      <div className="relative z-10 flex-1 min-h-0 flex items-center justify-around px-4 sm:px-8 max-h-[60vh] my-auto w-full max-w-6xl mx-auto">
+        <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8">
           
-          {/* ── Left Hero Stage: Branding & 3D Arcade CTAs ──────── */}
-          <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-lg z-20">
+          {/* ── Left Hero Column: Candy 3D Title "SAKA TIKA", Subtitle & Play CTA (max-w-md) ── */}
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-md z-20">
             
             {/* Candy-Style Embossed Title Letters */}
-            <div className="flex items-center flex-wrap justify-center lg:justify-start gap-1 sm:gap-1.5 mb-2.5">
+            <div className="flex items-center flex-wrap justify-center lg:justify-start gap-1 sm:gap-1.5 mb-2">
               {CANDY_TITLE.map((item, idx) => {
                 if (item.char === " ") {
-                  return <div key={idx} className="w-3 sm:w-4" />;
+                  return <div key={idx} className="w-2.5 sm:w-3.5" />;
                 }
                 return (
                   <motion.div
                     key={idx}
-                    whileHover={{ scale: 1.18, y: -4 }}
+                    whileHover={{ scale: 1.15, y: -3 }}
                     transition={{ type: "spring", stiffness: 450, damping: 15 }}
                     style={{
                       backgroundColor: item.color,
                       borderColor: item.border,
                     }}
-                    className={`w-9 h-11 sm:w-12 sm:h-14 rounded-2xl border-b-[5px] flex items-center justify-center shadow-[0_6px_0_rgba(0,0,0,0.12)] cursor-default ${item.tilt}`}
+                    className={`w-8 h-10 sm:w-11 sm:h-13 rounded-2xl border-b-[4px] sm:border-b-[5px] flex items-center justify-center shadow-[0_5px_0_rgba(0,0,0,0.12)] cursor-default ${item.tilt}`}
                   >
-                    <span className="font-display font-black text-white text-2xl sm:text-3xl leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]">
+                    <span className="font-display font-black text-white text-xl sm:text-2xl leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]">
                       {item.char}
                     </span>
                   </motion.div>
@@ -148,28 +152,28 @@ export default function HomeView() {
 
             {/* Deep Navy Subtitle Headline with White Glow */}
             <h1
-              className="font-display font-black text-3xl sm:text-4xl md:text-5xl text-[#1B4965] mb-3 leading-tight tracking-tight"
+              className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#1B4965] mb-2 leading-tight tracking-tight"
               style={{
-                filter: "drop-shadow(0 2px 14px rgba(255,255,255,0.95))",
+                filter: "drop-shadow(0 2px 12px rgba(255,255,255,0.95))",
               }}
             >
               Mengenal Huruf
             </h1>
 
             {/* Friendly Subtitle Pill Badge */}
-            <div className="bg-[#FEF3C7]/95 border-2 border-[#FDE68A] px-4 py-1.5 rounded-full shadow-sm mb-6 max-w-md">
+            <div className="bg-[#FEF3C7]/95 border-2 border-[#FDE68A] px-3.5 py-1 rounded-full shadow-xs mb-4 max-w-md">
               <p className="font-sans font-bold text-xs sm:text-sm text-[#92400E]">
                 Belajar huruf jadi seru, mudah, dan menyenangkan!
               </p>
             </div>
 
             {/* Real Client Sprite CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               {/* Primary 3D Play Button using real client asset play.png */}
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.06, y: -3 }}
-                whileTap={{ scale: 0.94, y: 3 }}
+                whileHover={{ scale: 1.06, y: -2 }}
+                whileTap={{ scale: 0.94, y: 2 }}
                 transition={{ type: "spring", stiffness: 450, damping: 16 }}
                 onClick={handleStart}
                 aria-label="Mulai Bermain"
@@ -179,7 +183,7 @@ export default function HomeView() {
                   src="/assets/buttons/play.png"
                   alt="Mulai Bermain"
                   draggable="false"
-                  className="h-16 sm:h-20 md:h-22 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.22)] pointer-events-none select-none"
+                  className="h-14 sm:h-18 md:h-20 w-auto object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.2)] pointer-events-none select-none"
                   style={{ imageRendering: "-webkit-optimize-contrast" }}
                 />
               </motion.button>
@@ -193,17 +197,17 @@ export default function HomeView() {
                   transition={{ type: "spring", stiffness: 400, damping: 15 }}
                   onClick={triggerInstall}
                   aria-label="Pasang Aplikasi di Desktop"
-                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-b from-[#2DD4BF] to-[#0D9488] border-b-[5px] border-[#0F766E] shadow-lg active:border-b-0 cursor-pointer flex items-center justify-center gap-2 text-white font-display font-bold text-sm sm:text-base select-none"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-gradient-to-b from-[#2DD4BF] to-[#0D9488] border-b-[4px] border-[#0F766E] shadow-md active:border-b-0 cursor-pointer flex items-center justify-center gap-2 text-white font-display font-bold text-xs sm:text-sm select-none"
                 >
-                  <MonitorDown size={18} />
+                  <MonitorDown size={16} />
                   <span>Pasang di Desktop</span>
                 </motion.button>
               )}
             </div>
           </div>
 
-          {/* ── Right Stage: Grassy Podium & Mascots ────────────── */}
-          <div className="flex flex-col items-center justify-end z-20 flex-shrink-0 relative">
+          {/* ── Right Mascot Podium: Grassy pedestal with Saka, Tika, and ABC toy blocks (max-h-[48vh]) ── */}
+          <div className="flex flex-col items-center justify-end z-20 flex-shrink-0 relative max-h-[48vh]">
             
             {/* Pop-up Comic Speech Bubble */}
             <AnimatePresence>
@@ -213,13 +217,13 @@ export default function HomeView() {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.8, opacity: 0, y: 10 }}
                   transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                  className="absolute -top-16 z-30 bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-4 py-2 shadow-xl max-w-xs text-center"
+                  className="absolute -top-14 z-30 bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-3.5 py-1.5 shadow-lg max-w-xs text-center"
                 >
                   <p className="font-sans font-bold text-xs sm:text-sm text-[#1B4965] leading-snug">
                     Halo kawan! Ayo kita belajar huruf bersama!
                   </p>
                   {/* Speech bubble tail pointer */}
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -231,13 +235,13 @@ export default function HomeView() {
               title="Ketuk Saka dan Tika untuk menyapa!"
             >
               {/* Mascots standing side by side */}
-              <div className="flex items-end justify-center gap-1 sm:gap-4 relative z-10 -mb-3">
+              <div className="flex items-end justify-center gap-2 sm:gap-4 relative z-10 -mb-2">
                 {/* Saka Mascot */}
                 <motion.div
                   animate={
                     mascotsJumping
-                      ? { y: [-24, 0], scale: [1.08, 1] }
-                      : { y: [0, -6, 0] }
+                      ? { y: [-20, 0], scale: [1.08, 1] }
+                      : { y: [0, -5, 0] }
                   }
                   transition={
                     mascotsJumping
@@ -245,15 +249,15 @@ export default function HomeView() {
                       : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
                   }
                 >
-                  <SakaMascot isWaving={true} />
+                  <SakaMascot isWaving={true} className="h-24 sm:h-28 md:h-32 w-auto object-contain" />
                 </motion.div>
 
                 {/* Tika Mascot */}
                 <motion.div
                   animate={
                     mascotsJumping
-                      ? { y: [-24, 0], scale: [1.08, 1] }
-                      : { y: [0, -6, 0] }
+                      ? { y: [-20, 0], scale: [1.08, 1] }
+                      : { y: [0, -5, 0] }
                   }
                   transition={
                     mascotsJumping
@@ -261,14 +265,14 @@ export default function HomeView() {
                       : { duration: 3.0, repeat: Infinity, ease: "easeInOut", delay: 0.25 }
                   }
                 >
-                  <TikaMascot isCheering={true} />
+                  <TikaMascot isCheering={true} className="h-24 sm:h-28 md:h-32 w-auto object-contain" />
                 </motion.div>
               </div>
 
               {/* Two-Tier Grassy Mound Pedestal SVG */}
               <svg
                 viewBox="0 0 320 80"
-                className="w-64 sm:w-80 md:w-96 h-auto drop-shadow-lg overflow-visible"
+                className="w-56 sm:w-72 md:w-84 h-auto drop-shadow-md overflow-visible"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <defs>
@@ -310,13 +314,16 @@ export default function HomeView() {
             </div>
 
             {/* Musical ABC Toy Blocks at the Foot of the Podium */}
-            <div className="-mt-3 relative z-20">
+            <div className="-mt-2 relative z-20">
               <LetterBlocks />
             </div>
           </div>
 
         </div>
       </div>
+
+      {/* ── 4. Bottom Tier: Rolling lawn and flowers resting cleanly along screen base ── */}
+      <div className="h-4 w-full flex-shrink-0" />
     </main>
   );
 }

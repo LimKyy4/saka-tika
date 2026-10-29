@@ -1,1 +1,0 @@
-import{a as e}from"./index-C-9c-jgY.js";var t=e(`ArrowLeft`,[[`path`,{d:`m12 19-7-7 7-7`,key:`1l729n`}],[`path`,{d:`M19 12H5`,key:`x3x0zl`}]]),n=e(`Star`,[[`polygon`,{points:`12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2`,key:`8f66p6`}]]);export{t as n,n as t};

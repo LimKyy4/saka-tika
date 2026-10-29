@@ -1,5 +1,9 @@
 // src/views/MainMenuView.jsx
 // SAKA TIKA: Spotlight Square Carousel (Cover Flow) Refactor & Living Desktop Stage
+// Strictly adheres to Global 3-Tier Height Budgeting:
+// Tier 1: Header Tier (h-[12%] flex items-center px-6)
+// Tier 2: Middle Carousel Stage Tier (flex-1 min-h-0 flex flex-col items-center justify-center max-h-[54vh] relative my-auto)
+// Tier 3: Bottom Mascot & Terrain Tier (h-[24%] relative flex justify-between items-end px-8 pb-2 pointer-events-none)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -145,18 +149,18 @@ export default function MainMenuView() {
   }, [activeIndex, prevModule, nextModule, handlePlay]);
 
   return (
-    <main className="relative flex-1 overflow-hidden flex flex-col justify-between select-none">
-      {/* ── 1. Persistent Living Vector Landscape ────────────── */}
+    <main className="relative z-10 flex flex-col h-full w-full max-h-screen overflow-hidden justify-between select-none">
+      {/* ── 1. Persistent Living Vector Landscape (Layer 0) ── */}
       <GameLandscapeBackground />
 
       {/* ── 2. Subtle Glassmorphism Contrast Tint ────────────── */}
-      <div className="absolute inset-0 bg-sky-950/10 backdrop-blur-[1px] pointer-events-none z-10" />
+      <div className="fixed inset-0 bg-sky-950/10 backdrop-blur-[0.5px] pointer-events-none z-0" />
 
-      {/* ── 3. Widescreen 16:9 Adventure Stage Content ───────── */}
-      <div className="relative z-20 flex-1 overflow-hidden flex flex-col justify-between px-3 sm:px-6 md:px-10 py-2 sm:py-3">
+      {/* ── 3. Interactive Widescreen Adventure Stage Content ── */}
+      <div className="relative z-10 flex flex-col h-full w-full justify-between overflow-hidden">
         
-        {/* ── Top Bar: Compact Tactile "Beranda" Pill Only ───── */}
-        <div className="flex items-center justify-between w-full max-w-6xl mx-auto flex-shrink-0">
+        {/* ── Tier 1: Header Tier (h-[12%] flex items-center px-6) ── */}
+        <div className="h-[12%] max-h-12 flex items-center justify-between px-6 w-full max-w-6xl mx-auto flex-shrink-0">
           <motion.button
             type="button"
             whileHover={{ scale: 1.06, y: -2 }}
@@ -173,14 +177,15 @@ export default function MainMenuView() {
             <span>Beranda</span>
           </motion.button>
           
-          {/* Symmetrical empty balance spacer */}
+          {/* Symmetrical balance spacer while TopControlBar handles stars and sound above */}
           <div className="w-16 sm:w-24" />
         </div>
 
-        {/* ── Center Stage: Spotlight Square Carousel (Cover Flow) ── */}
-        <div className="flex-1 overflow-hidden flex flex-col justify-center items-center my-auto py-1 sm:py-2 z-20 w-full max-w-5xl mx-auto">
+        {/* ── Tier 2: Middle Carousel Stage Tier (flex-1 min-h-0 flex flex-col items-center justify-center max-h-[54vh] relative my-auto) ── */}
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center max-h-[54vh] relative my-auto w-full px-4">
           
-          <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-8 w-full">
+          {/* Carousel Track Container with Flanking Arrows */}
+          <div className="relative max-w-4xl w-full flex items-center justify-center gap-3 sm:gap-6">
             
             {/* ── Left Navigation Arrow Sprite (kiri.png) ──────── */}
             <motion.button
@@ -196,22 +201,22 @@ export default function MainMenuView() {
                 src="/assets/buttons/kiri.png"
                 alt="Sebelumnya"
                 draggable="false"
-                className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-xl select-none"
+                className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain drop-shadow-xl select-none"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
 
             {/* ── Carousel Cards Track with Swipe Support ─────── */}
-            <div className="relative flex items-center justify-center gap-4 sm:gap-6 flex-1 max-w-3xl">
+            <div className="relative flex items-center justify-center gap-3 sm:gap-5 flex-1 max-w-3xl">
               
               {/* Left Flanking Inactive Dimmed Card */}
               <motion.div
                 type="button"
-                whileHover={{ scale: 0.9, opacity: 0.7 }}
-                whileTap={{ scale: 0.82 }}
+                whileHover={{ scale: 0.84, opacity: 0.6 }}
+                whileTap={{ scale: 0.78 }}
                 onClick={prevModule}
                 aria-label={`Pilih ${prevModuleData.title}`}
-                className={`hidden md:flex flex-col justify-between p-3.5 sm:p-4 rounded-3xl bg-gradient-to-b ${prevModuleData.bgGradient} border-b-6 ${prevModuleData.borderBottom} shadow-lg opacity-45 cursor-pointer select-none w-48 h-48 lg:w-56 lg:h-56 flex-shrink-0 ${prevModuleData.textColor}`}
+                className={`hidden md:flex flex-col justify-between p-3.5 rounded-3xl bg-gradient-to-b ${prevModuleData.bgGradient} border-b-6 ${prevModuleData.borderBottom} shadow-lg scale-80 opacity-40 select-none pointer-events-auto cursor-pointer w-48 h-48 lg:w-56 lg:h-56 max-h-[42vh] flex-shrink-0 ${prevModuleData.textColor}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="p-1 rounded-2xl bg-white/20 backdrop-blur-xs">
@@ -249,14 +254,14 @@ export default function MainMenuView() {
                   <motion.div
                     key={activeModule.id}
                     initial={{ scale: 0.92, opacity: 0, y: 12 }}
-                    animate={{ scale: 1.05, opacity: 1, y: 0 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.92, opacity: 0, y: -12 }}
                     transition={{ type: "spring", stiffness: 450, damping: 24 }}
                     onClick={() => handlePlay(activeModule.route)}
                     style={{
-                      boxShadow: `0 24px 48px -12px ${activeModule.glowColor}`,
+                      boxShadow: `0 20px 40px -10px ${activeModule.glowColor}`,
                     }}
-                    className={`relative overflow-hidden group w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-3xl p-4 sm:p-5 bg-gradient-to-b ${activeModule.bgGradient} border-b-[8px] ${activeModule.borderBottom} shadow-2xl cursor-pointer flex flex-col justify-between ${activeModule.textColor} select-none transition-transform`}
+                    className={`relative overflow-hidden group w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 max-h-[46vh] rounded-3xl p-4 bg-gradient-to-b ${activeModule.bgGradient} border-b-[8px] ${activeModule.borderBottom} shadow-xl cursor-pointer flex flex-col justify-between items-center text-center ${activeModule.textColor} select-none transition-transform`}
                   >
                     {/* Top Gloss Light Reflex Line */}
                     <div className="absolute top-1.5 inset-x-4 h-[2px] bg-white/40 rounded-full pointer-events-none" />
@@ -265,19 +270,19 @@ export default function MainMenuView() {
                     <span className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none group-hover:animate-shimmer" />
 
                     {/* Card Top: Custom Icon & Star Badge */}
-                    <div className="flex items-start justify-between gap-2 z-10">
+                    <div className="w-full flex items-start justify-between gap-2 z-10">
                       <div className="p-1.5 sm:p-2 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                         {activeModule.icon}
                       </div>
 
-                      <div className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full border text-[10px] sm:text-xs font-sans font-bold shadow-xs ${activeModule.badgeBg}`}>
+                      <div className={`flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border text-[10px] sm:text-xs font-sans font-bold shadow-xs ${activeModule.badgeBg}`}>
                         <Star size={12} className="fill-current text-[#FCD34D]" />
                         <span>{activeModule.badge}</span>
                       </div>
                     </div>
 
                     {/* Card Center: Title & Subtext */}
-                    <div className="my-auto z-10">
+                    <div className="my-auto z-10 px-1">
                       <h2 className="font-display font-black text-xl sm:text-2xl leading-tight drop-shadow-xs">
                         {activeModule.title}
                       </h2>
@@ -287,7 +292,7 @@ export default function MainMenuView() {
                     </div>
 
                     {/* Card Bottom: Tactile 3D "MAINKAN" CTA Button */}
-                    <div className="z-10 mt-2">
+                    <div className="w-full z-10">
                       <motion.button
                         type="button"
                         whileHover={{ scale: 1.04 }}
@@ -296,13 +301,13 @@ export default function MainMenuView() {
                           e.stopPropagation();
                           handlePlay(activeModule.route);
                         }}
-                        className={`w-full py-2.5 sm:py-3 px-4 rounded-2xl ${activeModule.ctaBg} font-display font-black text-sm sm:text-base shadow-lg flex items-center justify-center gap-2 cursor-pointer active:border-b-0`}
+                        className={`w-full py-2 sm:py-2.5 px-4 rounded-2xl ${activeModule.ctaBg} font-display font-black text-xs sm:text-sm md:text-base shadow-md flex items-center justify-center gap-2 cursor-pointer active:border-b-0`}
                       >
                         <motion.div
                           animate={{ x: [0, 3, 0] }}
                           transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                         >
-                          <Play size={18} className="fill-current" />
+                          <Play size={16} className="fill-current" />
                         </motion.div>
                         <span>MAINKAN</span>
                       </motion.button>
@@ -314,11 +319,11 @@ export default function MainMenuView() {
               {/* Right Flanking Inactive Dimmed Card */}
               <motion.div
                 type="button"
-                whileHover={{ scale: 0.9, opacity: 0.7 }}
-                whileTap={{ scale: 0.82 }}
+                whileHover={{ scale: 0.84, opacity: 0.6 }}
+                whileTap={{ scale: 0.78 }}
                 onClick={nextModule}
                 aria-label={`Pilih ${nextModuleData.title}`}
-                className={`hidden md:flex flex-col justify-between p-3.5 sm:p-4 rounded-3xl bg-gradient-to-b ${nextModuleData.bgGradient} border-b-6 ${nextModuleData.borderBottom} shadow-lg opacity-45 cursor-pointer select-none w-48 h-48 lg:w-56 lg:h-56 flex-shrink-0 ${nextModuleData.textColor}`}
+                className={`hidden md:flex flex-col justify-between p-3.5 rounded-3xl bg-gradient-to-b ${nextModuleData.bgGradient} border-b-6 ${nextModuleData.borderBottom} shadow-lg scale-80 opacity-40 select-none pointer-events-auto cursor-pointer w-48 h-48 lg:w-56 lg:h-56 max-h-[42vh] flex-shrink-0 ${nextModuleData.textColor}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="p-1 rounded-2xl bg-white/20 backdrop-blur-xs">
@@ -354,7 +359,7 @@ export default function MainMenuView() {
                 src="/assets/buttons/kanan.png"
                 alt="Selanjutnya"
                 draggable="false"
-                className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-xl select-none"
+                className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain drop-shadow-xl select-none"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
@@ -362,7 +367,7 @@ export default function MainMenuView() {
           </div>
 
           {/* ── 5 Candy Indicator Dots ───────────────────────── */}
-          <div className="flex items-center justify-center gap-2.5 mt-3 sm:mt-4 z-30">
+          <div className="flex items-center justify-center gap-2 mt-2 z-30">
             {MODULES.map((mod, idx) => {
               const isActive = idx === activeIndex;
               return (
@@ -376,8 +381,8 @@ export default function MainMenuView() {
                   aria-label={`Pilih tantangan ${mod.title}`}
                   className={`transition-all duration-300 rounded-full cursor-pointer ${
                     isActive
-                      ? "w-8 sm:w-10 h-3 bg-[#F59E0B] border-2 border-white shadow-md"
-                      : "w-3 h-3 bg-white/70 hover:bg-white border border-[#1B4965]/20 shadow-xs"
+                      ? "w-7 sm:w-8 h-2.5 bg-[#F59E0B] border-2 border-white shadow-sm"
+                      : "w-2.5 h-2.5 bg-white/70 hover:bg-white border border-[#1B4965]/20 shadow-2xs"
                   }`}
                 />
               );
@@ -386,12 +391,12 @@ export default function MainMenuView() {
 
         </div>
 
-        {/* ── Bottom Stage: Flanking Animated Mascots & Dynamic Speech ── */}
-        <div className="relative w-full max-w-6xl mx-auto flex items-end justify-between px-2 sm:px-6 pointer-events-none z-20 flex-shrink-0">
+        {/* ── Tier 3: Bottom Mascot & Terrain Tier (h-[24%] relative flex justify-between items-end px-8 pb-2 pointer-events-none) ── */}
+        <div className="h-[24%] relative flex justify-between items-end px-8 pb-2 pointer-events-none w-full max-w-6xl mx-auto flex-shrink-0">
           
           {/* ── Left Flank: Saka Mascot on Grassy Mound ────────── */}
           <div className="relative pointer-events-auto flex flex-col items-center">
-            {/* Saka Speech Bubble (Synchronized with Active Carousel Module) */}
+            {/* Saka Speech Bubble (Positioned neatly above Saka's head without obscuring carousel card) */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeModule.id}
@@ -399,38 +404,36 @@ export default function MainMenuView() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.8, opacity: 0, y: -6 }}
                 transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                className="absolute -top-16 sm:-top-20 left-4 sm:left-8 z-30 bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-3.5 py-1.5 sm:py-2 shadow-xl max-w-[200px] sm:max-w-[240px] text-center pointer-events-none"
+                className="absolute -top-14 sm:-top-16 left-2 sm:left-4 z-30 bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-3 py-1.5 shadow-lg max-w-[180px] sm:max-w-[210px] text-center pointer-events-none"
               >
-                <p className="font-sans font-bold text-xs sm:text-sm text-[#1B4965] leading-snug">
+                <p className="font-sans font-bold text-xs text-[#1B4965] leading-snug">
                   {activeModule.dialogue}
                 </p>
-                <div className="absolute -bottom-2 left-8 w-3.5 h-3.5 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
+                <div className="absolute -bottom-2 left-6 w-3 h-3 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
               </motion.div>
             </AnimatePresence>
 
-            {/* Saka Jump Reaction on Module Change */}
+            {/* Saka Mascot with Height Locked to h-28 md:h-32 lg:h-36 */}
             <motion.div
               key={`saka-${activeIndex}`}
-              initial={{ y: -16, scale: 1.08 }}
+              initial={{ y: -12, scale: 1.05 }}
               animate={{ y: 0, scale: 1 }}
               transition={{ type: "spring", stiffness: 450, damping: 15 }}
-              className="scale-75 sm:scale-90 md:scale-95 origin-bottom"
             >
-              <SakaMascot isWaving={true} />
+              <SakaMascot isWaving={true} className="h-28 md:h-32 lg:h-36 w-auto object-contain" />
             </motion.div>
           </div>
 
           {/* ── Right Flank: Tika Mascot on Grassy Mound ───────── */}
           <div className="relative pointer-events-auto flex flex-col items-center">
-            {/* Tika Cheering Jump Reaction on Module Change */}
+            {/* Tika Mascot with Height Locked to h-28 md:h-32 lg:h-36 */}
             <motion.div
               key={`tika-${activeIndex}`}
-              initial={{ y: -16, scale: 1.08 }}
+              initial={{ y: -12, scale: 1.05 }}
               animate={{ y: 0, scale: 1 }}
               transition={{ type: "spring", stiffness: 450, damping: 15, delay: 0.05 }}
-              className="scale-75 sm:scale-90 md:scale-95 origin-bottom"
             >
-              <TikaMascot isCheering={true} />
+              <TikaMascot isCheering={true} className="h-28 md:h-32 lg:h-36 w-auto object-contain" />
             </motion.div>
           </div>
 
@@ -441,10 +444,10 @@ export default function MainMenuView() {
   );
 }
 
-// ── Custom High-Craft SVG Icons for 5 Modules ──────────────────────
+// ── Custom Vector Icons for 5 Modules (ZERO EMOJIS) ──────────────────
 function AlphabetBlocksIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-10 sm:h-10 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="6" y="14" width="28" height="28" rx="8" fill="#38BDF8" stroke="#0284C7" strokeWidth="2" />
       <rect x="6" y="38" width="28" height="4" rx="2" fill="#0369A1" />
       <text x="20" y="35" textAnchor="middle" fill="#FFFFFF" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="20">A</text>
@@ -458,7 +461,7 @@ function AlphabetBlocksIcon() {
 
 function PencilTraceIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-10 sm:h-10 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M14,48 L32,14 L50,48" stroke="#92400E" strokeWidth="4.5" strokeLinecap="round" strokeDasharray="4 4" fill="none" opacity="0.6" />
       <path d="M22,36 L42,36" stroke="#92400E" strokeWidth="4.5" strokeLinecap="round" strokeDasharray="4 4" fill="none" opacity="0.6" />
       <g transform="translate(26, 6) rotate(35)">
@@ -474,7 +477,7 @@ function PencilTraceIcon() {
 
 function SearchBubblesIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-10 sm:h-10 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="18" cy="22" r="13" fill="#FECDD3" opacity="0.5" />
       <text x="18" y="27" textAnchor="middle" fill="#E11D48" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="15">C</text>
       
@@ -491,7 +494,7 @@ function SearchBubblesIcon() {
 
 function TactileKeyboardIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-10 sm:h-10 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="4" y="16" width="56" height="36" rx="8" fill="#FCE7F3" stroke="#BE185D" strokeWidth="2.5" />
       <rect x="4" y="48" width="56" height="4" rx="2" fill="#9D174D" />
       
@@ -511,7 +514,7 @@ function TactileKeyboardIcon() {
 
 function WordPuzzleIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="w-9 h-9 sm:w-10 sm:h-10 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="6" y="22" width="14" height="20" rx="4" fill="#6EE7B7" stroke="#047857" strokeWidth="1.5" />
       <text x="13" y="36" textAnchor="middle" fill="#065F46" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="13">B</text>
       

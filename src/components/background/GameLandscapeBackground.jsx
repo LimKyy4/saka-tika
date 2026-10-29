@@ -12,7 +12,7 @@ import ForegroundScenery from "./ForegroundScenery.jsx";
 
 export default function GameLandscapeBackground() {
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
       {/* ── 1. Sky Gradient Base ──────────────────────────────── */}
       <div
         className="absolute inset-0 w-full h-full"
