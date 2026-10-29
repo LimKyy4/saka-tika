@@ -186,15 +186,8 @@ const MODULES = [
 
 export default function MainMenuView() {
   const { navigateTo } = useGame();
-  const { playSfx, playMenuVoice } = useAudio();
+  const { playSfx } = useAudio();
   const [activeIndex, setActiveIndex] = useState(0);
-
-  // Studio voice prompt played safely once on menu entrance
-  useEffect(() => {
-    if (typeof playMenuVoice === "function") {
-      playMenuVoice();
-    }
-  }, [playMenuVoice]);
 
   const activeModule = MODULES[activeIndex] || MODULES[0];
   const prevIndex = (activeIndex - 1 + MODULES.length) % MODULES.length;
@@ -344,10 +337,10 @@ export default function MainMenuView() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeModule.id}
-                  initial={{ scale: 0.92, opacity: 0, y: 12 }}
+                  initial={{ scale: 0.95, opacity: 1, y: 4 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.92, opacity: 0, y: -12 }}
-                  transition={{ type: "spring", stiffness: 450, damping: 24 }}
+                  exit={{ scale: 0.95, opacity: 0.85, y: -4 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   onClick={() => handlePlay(activeModule.route)}
                   style={{
                     boxShadow: `0 20px 40px -10px ${activeModule.glowColor}`,
@@ -491,10 +484,10 @@ export default function MainMenuView() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeModule.id}
-              initial={{ scale: 0.8, opacity: 0, y: 10 }}
+              initial={{ scale: 0.9, opacity: 1, y: 4 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: -6 }}
-              transition={{ type: "spring", stiffness: 450, damping: 20 }}
+              exit={{ scale: 0.9, opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className="absolute -top-14 sm:-top-16 left-2 sm:left-4 z-30 bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-3 py-1.5 shadow-lg max-w-[180px] sm:max-w-[210px] text-center pointer-events-none"
             >
               <p className="font-sans font-bold text-xs text-[#1B4965] leading-snug">
@@ -506,9 +499,9 @@ export default function MainMenuView() {
 
           <motion.div
             key={`saka-${activeIndex}`}
-            initial={{ y: -12, scale: 1.05 }}
-            animate={{ y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 450, damping: 15 }}
+            initial={{ y: 0, scale: 1 }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
           >
             <SakaMascot isWaving={true} className="h-28 md:h-36 w-auto object-contain" />
           </motion.div>
@@ -518,9 +511,9 @@ export default function MainMenuView() {
         <div className="relative pointer-events-auto flex flex-col items-center">
           <motion.div
             key={`tika-${activeIndex}`}
-            initial={{ y: -12, scale: 1.05 }}
-            animate={{ y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 450, damping: 15, delay: 0.05 }}
+            initial={{ y: 0, scale: 1 }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 0.35, ease: "easeOut", delay: 0.04 }}
           >
             <TikaMascot isCheering={true} className="h-28 md:h-36 w-auto object-contain" />
           </motion.div>

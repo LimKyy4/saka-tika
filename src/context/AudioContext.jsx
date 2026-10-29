@@ -173,7 +173,7 @@ export function AudioProvider({ children }) {
     }
   }, [isSfxEnabled]);
 
-  // Play studio voice prompt for Main Menu
+  // Play studio voice prompt for Main Menu (strictly user-triggered, zero autoplay on mount)
   const playMenuVoice = useCallback(() => {
     if (!isSfxEnabled) return;
 
@@ -187,17 +187,14 @@ export function AudioProvider({ children }) {
       const voiceHowl = new Howl({
         src: ["/audio/voice/menu_voice.wav"],
         volume: 0.85,
-        autoplay: true,
+        autoplay: false,
         html5: false,
         onloaderror: () => {},
-        onplayerror: () => {
-          voiceHowl.once("unlock", () => {
-            voiceHowl.play();
-          });
-        },
+        onplayerror: () => {},
       });
 
       menuVoiceHowlRef.current = voiceHowl;
+      voiceHowl.play();
     } catch {
       // Gracefully silent on audio errors
     }

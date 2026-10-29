@@ -50,12 +50,7 @@ export default function App() {
               }
             >
               <PageTransition>
-                <motion.div
-                  initial={showSplash ? { opacity: 0 } : false}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="flex-1 min-h-0 overflow-hidden flex flex-col justify-between"
-                >
+                <div className="flex-1 min-h-0 overflow-hidden flex flex-col justify-between">
                   <Routes>
                     <Route path="/"                  element={<HomeView />} />
                     <Route path="/menu"               element={<MainMenuView />} />
@@ -67,7 +62,7 @@ export default function App() {
                     <Route path="/mengetik"           element={<MengetikHurufView />} />
                     <Route path="*"                   element={<Navigate to="/" replace />} />
                   </Routes>
-                </motion.div>
+                </div>
               </PageTransition>
             </Suspense>
           </div>
