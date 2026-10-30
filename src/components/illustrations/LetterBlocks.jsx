@@ -71,12 +71,19 @@ export default function LetterBlocks({ className = "" }) {
           transition={{ type: "spring", stiffness: 450, damping: 15 }}
           onClick={(e) => handleBlockClick(block, e)}
           aria-label={`Balok Huruf ${block.letter} Nada ${block.label}`}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-b ${block.bgGrad} border-b-[5px] ${block.border} shadow-lg ${block.shadow} flex flex-col items-center justify-center cursor-pointer ${block.tilt} transition-transform active:border-b-0`}
+          className={`relative overflow-hidden w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-b ${block.bgGrad} border-b-[5px] ${block.border} shadow-lg ${block.shadow} flex flex-col items-center justify-center cursor-pointer ${block.tilt} transition-transform active:border-b-0`}
         >
-          <span className="font-display font-bold text-white text-2xl sm:text-3xl leading-none drop-shadow-md">
+          {/* Authentic 3D Wooden Block Texture */}
+          <img
+            src="/assets/balok-kayu-3d.png"
+            alt="Balok Kayu 3D"
+            draggable="false"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-40 select-none"
+          />
+          <span className="relative z-10 font-display font-bold text-white text-2xl sm:text-3xl leading-none drop-shadow-md">
             {block.letter}
           </span>
-          <span className="font-sans font-bold text-[9px] text-white/80 leading-none mt-0.5">
+          <span className="relative z-10 font-sans font-bold text-[9px] text-white/90 leading-none mt-0.5">
             {block.label}
           </span>
         </motion.button>

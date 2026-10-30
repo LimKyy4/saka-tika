@@ -13,8 +13,6 @@ import { useGame } from "../context/GameContext.jsx";
 import { useAudio } from "../context/AudioContext.jsx";
 import { usePWAInstall } from "../hooks/usePWAInstall.js";
 import GameLandscapeBackground from "../components/background/GameLandscapeBackground.jsx";
-import SakaMascot from "../components/illustrations/SakaMascot.jsx";
-import TikaMascot from "../components/illustrations/TikaMascot.jsx";
 import LetterBlocks from "../components/illustrations/LetterBlocks.jsx";
 
 // Candy letter definitions for SAKA TIKA title
@@ -206,10 +204,10 @@ export default function HomeView() {
             </div>
           </div>
 
-          {/* ── Right Mascot Podium: Grassy pedestal with Saka, Tika, and ABC toy blocks (max-h-[48vh]) ── */}
-          <div className="flex flex-col items-center justify-end z-20 flex-shrink-0 relative max-h-[48vh]">
+          {/* ── Right Mascot Zone: Seamless Interactive Greeting & Musical Blocks ── */}
+          <div className="flex flex-col items-center justify-end z-20 flex-shrink-0 relative max-h-[50vh] w-64 sm:w-80 md:w-96">
             
-            {/* Pop-up Comic Speech Bubble */}
+            {/* Pop-up Comic Speech Bubble over Background Mascots */}
             <AnimatePresence>
               {showSpeechBubble && (
                 <motion.div
@@ -228,94 +226,16 @@ export default function HomeView() {
               )}
             </AnimatePresence>
 
-            {/* Elevated Two-Tier Grassy Hill Podium */}
+            {/* Interactive Hotspot over Background Mascots */}
             <div
               onClick={handleMascotInteraction}
-              className="relative flex flex-col items-center cursor-pointer group"
+              className="w-full h-48 sm:h-56 cursor-pointer flex flex-col items-center justify-end"
               title="Ketuk Saka dan Tika untuk menyapa!"
             >
-              {/* Mascots standing side by side */}
-              <div className="flex items-end justify-center gap-2 sm:gap-4 relative z-10 -mb-2">
-                {/* Saka Mascot */}
-                <motion.div
-                  animate={
-                    mascotsJumping
-                      ? { y: [-20, 0], scale: [1.08, 1] }
-                      : { y: [0, -5, 0] }
-                  }
-                  transition={
-                    mascotsJumping
-                      ? { duration: 0.45, type: "spring", stiffness: 450 }
-                      : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
-                  }
-                >
-                  <SakaMascot isWaving={true} className="h-24 sm:h-28 md:h-32 w-auto object-contain" />
-                </motion.div>
-
-                {/* Tika Mascot */}
-                <motion.div
-                  animate={
-                    mascotsJumping
-                      ? { y: [-20, 0], scale: [1.08, 1] }
-                      : { y: [0, -5, 0] }
-                  }
-                  transition={
-                    mascotsJumping
-                      ? { duration: 0.45, type: "spring", stiffness: 450, delay: 0.08 }
-                      : { duration: 3.0, repeat: Infinity, ease: "easeInOut", delay: 0.25 }
-                  }
-                >
-                  <TikaMascot isCheering={true} className="h-24 sm:h-28 md:h-32 w-auto object-contain" />
-                </motion.div>
+              {/* Musical ABC Toy Blocks on the table */}
+              <div className="relative z-20 mb-3">
+                <LetterBlocks />
               </div>
-
-              {/* Two-Tier Grassy Mound Pedestal SVG */}
-              <svg
-                viewBox="0 0 320 80"
-                className="w-56 sm:w-72 md:w-84 h-auto drop-shadow-md overflow-visible"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <defs>
-                  {/* Top Tier Lawn Gradient */}
-                  <linearGradient id="podiumTopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#C5E58F" />
-                    <stop offset="60%" stopColor="#A8DA65" />
-                    <stop offset="100%" stopColor="#89BD44" />
-                  </linearGradient>
-
-                  {/* Bottom Tier Lawn Gradient */}
-                  <linearGradient id="podiumBaseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#89BD44" />
-                    <stop offset="100%" stopColor="#6C9E32" />
-                  </linearGradient>
-
-                  {/* Contact Ground Shadow */}
-                  <radialGradient id="podiumShadow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#2E4A1E" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#2E4A1E" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-
-                {/* Ground Shadow under the podium */}
-                <ellipse cx="160" cy="74" rx="150" ry="12" fill="url(#podiumShadow)" />
-
-                {/* Lower Tier Hill */}
-                <ellipse cx="160" cy="52" rx="146" ry="24" fill="url(#podiumBaseGrad)" />
-
-                {/* Upper Tier Hill */}
-                <ellipse cx="160" cy="40" rx="124" ry="20" fill="url(#podiumTopGrad)" />
-
-                {/* Little Yellow & Pink Daisy accents on the podium */}
-                <circle cx="68" cy="42" r="3" fill="#FFF176" />
-                <circle cx="68" cy="42" r="1.5" fill="#F57C00" />
-                <circle cx="250" cy="44" r="3" fill="#FF8BA7" />
-                <circle cx="250" cy="44" r="1.5" fill="#FFE082" />
-              </svg>
-            </div>
-
-            {/* Musical ABC Toy Blocks at the Foot of the Podium */}
-            <div className="-mt-2 relative z-20">
-              <LetterBlocks />
             </div>
           </div>
 

@@ -220,7 +220,7 @@ export default function MengenalHurufView() {
                 }
                 className="origin-bottom"
               >
-                <SakaMascot isWaving={true} className="h-24 sm:h-28 w-auto object-contain" />
+                <SakaMascot isWaving={true} className="w-20 h-24 sm:w-24 sm:h-28" />
               </motion.div>
 
               {/* Grassy Mound Vector Base */}

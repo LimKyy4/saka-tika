@@ -503,7 +503,7 @@ export default function MainMenuView() {
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 0.35, ease: "easeOut" }}
           >
-            <SakaMascot isWaving={true} className="h-28 md:h-36 w-auto object-contain" />
+            <SakaMascot isWaving={true} className="w-20 h-26 sm:w-24 sm:h-30 md:w-28 md:h-34" />
           </motion.div>
         </div>
 
@@ -515,7 +515,7 @@ export default function MainMenuView() {
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 0.35, ease: "easeOut", delay: 0.04 }}
           >
-            <TikaMascot isCheering={true} className="h-28 md:h-36 w-auto object-contain" />
+            <TikaMascot isCheering={true} className="w-20 h-26 sm:w-24 sm:h-30 md:w-28 md:h-34" />
           </motion.div>
         </div>
 

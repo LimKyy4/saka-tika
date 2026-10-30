@@ -1,8 +1,10 @@
 // src/views/modules/MelengkapiKataView.jsx
-// SAKA TIKA: Visual Overhaul for "Melengkapi Kata" (Mini-Game 3)
+// SAKA TIKA: High-End Commercial Children's Toy Workshop for "Melengkapi Kata" (Mini-Game 3)
 // Strictly adheres to Global 3-Tier Height Budgeting:
-// - Central puzzle board & stage wrapped with flex-1 min-h-0 max-h-[55vh] flex flex-col justify-center items-center
-// - Bottom mascots remain anchored in lower zones without intruding into game puzzle hitboxes
+// - Top clean, readable question header plaque with WordIllustration & controls
+// - Central handcrafted 3D wooden tray with chunky toy blocks & missing letter slot
+// - Large, colorful, rounded 3D toy tile answer options at bottom
+// - Mascots remain anchored in lower zones without intruding into game puzzle hitboxes
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -31,8 +33,6 @@ import {
 import { ShuffleQueue } from "../../utils/shuffleQueue.js";
 import GameLandscapeBackground from "../../components/background/GameLandscapeBackground.jsx";
 import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
-import SakaMascot from "../../components/illustrations/SakaMascot.jsx";
-import TikaMascot from "../../components/illustrations/TikaMascot.jsx";
 
 // 4 vibrant chunky 3D square toy block palettes with thick tactile bottom borders
 const TOY_CHOICE_PALETTES = [
@@ -91,8 +91,6 @@ export default function MelengkapiKataView() {
   const [wobbleLetter, setWobbleLetter] = useState(null);
   const [showHint, setShowHint] = useState(false);
   const [scoreStreak, setScoreStreak] = useState(0);
-  const [isSakaJumping, setIsSakaJumping] = useState(false);
-  const [isTikaJumping, setIsTikaJumping] = useState(false);
   const [speechBubbleText, setSpeechBubbleText] = useState("");
 
   const autoAdvanceTimer = useRef(null);
@@ -142,8 +140,6 @@ export default function MelengkapiKataView() {
     setIsCorrect(false);
     setWobbleLetter(null);
     setShowHint(false);
-    setIsSakaJumping(false);
-    setIsTikaJumping(false);
     setSpeechBubbleText(`Ayo lengkapi kata ${currentItem.word.toUpperCase()}!`);
     clearTimeout(autoAdvanceTimer.current);
 
@@ -165,14 +161,12 @@ export default function MelengkapiKataView() {
       playSuccessSound();
       playFanfareSound();
 
-      setIsSakaJumping(true);
-      setIsTikaJumping(true);
       setSpeechBubbleText(`Hebat! Kata ${currentItem.word.toUpperCase()} berhasil dilengkapi!`);
 
       confetti({
-        particleCount: 85,
+        particleCount: 90,
         spread: 80,
-        origin: { y: 0.58 },
+        origin: { y: 0.55 },
         colors: ["#38BDF8", "#34D399", "#FBBF24", "#F472B6", "#A78BFA"],
       });
 
@@ -231,13 +225,13 @@ export default function MelengkapiKataView() {
       {/* ── Interactive Content Wrapper ── */}
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between max-w-5xl w-full mx-auto">
         
-        {/* ── High-Visibility Word Challenge Card Banner ── */}
+        {/* ── Top Tier: Clean, Readable Question Header Plaque ── */}
         <div className="w-full px-2 mt-1 flex justify-center flex-shrink-0">
           <motion.div
-            initial={{ y: -12, opacity: 0 }}
+            initial={{ y: -14, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 450, damping: 20 }}
-            className="bg-white/95 backdrop-blur-md border-3 border-emerald-300 border-b-4 border-b-emerald-400 rounded-3xl px-3 sm:px-4 py-1.5 shadow-md flex items-center justify-between gap-2.5 sm:gap-4 max-w-2xl w-full max-h-14"
+            transition={{ type: "spring", stiffness: 450, damping: 22 }}
+            className="bg-white/95 backdrop-blur-md border-3 border-emerald-300 border-b-5 border-b-emerald-500 rounded-3xl px-3 sm:px-5 py-1.5 sm:py-2 shadow-xl flex items-center justify-between gap-3 sm:gap-6 max-w-3xl w-full"
           >
             {/* Object Illustration Card (Clickable Pronunciation) */}
             <motion.button
@@ -246,10 +240,10 @@ export default function MelengkapiKataView() {
               whileTap={{ scale: 0.94 }}
               onClick={handleReplayAudio}
               aria-label={`Dengarkan contoh kata ${currentItem.word}`}
-              className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl px-2 py-0.5 shadow-2xs cursor-pointer group flex-shrink-0"
+              className="flex items-center gap-2 bg-gradient-to-b from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl px-2.5 py-1 shadow-xs cursor-pointer group flex-shrink-0"
               title="Klik untuk mendengarkan pengucapan kata"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <WordIllustration
                   illustrationKey={currentItem.illustrationKey}
                   wordKey={currentItem.illustrationKey}
@@ -258,7 +252,7 @@ export default function MelengkapiKataView() {
                   className="w-full h-full object-contain drop-shadow-xs"
                 />
               </div>
-              <div className="text-left hidden sm:block">
+              <div className="text-left hidden xs:block">
                 <span className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight block">
                   {currentItem.word}
                 </span>
@@ -268,29 +262,33 @@ export default function MelengkapiKataView() {
               </div>
             </motion.button>
 
-            {/* Instruction */}
-            <div className="flex flex-col text-center flex-1">
-              <h2 className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight">
-                Lengkapi Huruf yang Hilang!
-              </h2>
-              <span className="font-sans font-semibold text-[10px] sm:text-xs text-[#1B4965]/70 leading-none mt-0.5 capitalize">
-                Kata: <strong className="text-[#059669] font-black">{currentItem.word}</strong>
+            {/* Center: Clean Question Plaque */}
+            <div className="flex flex-col items-center justify-center flex-1 text-center min-w-0">
+              <h1 className="font-display font-black text-sm sm:text-base md:text-lg text-[#1B4965] tracking-wide leading-tight">
+                LENGKAPI HURUF YANG HILANG!
+              </h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="bg-emerald-100/80 text-emerald-800 border border-emerald-200 font-display font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full capitalize">
+                  Kata: <strong className="text-[#059669] font-black">{currentItem.word}</strong>
+                </span>
                 {scoreStreak > 0 && (
-                  <span className="ml-2 text-amber-600 font-bold">({scoreStreak} Kata)</span>
+                  <span className="bg-amber-100 text-amber-700 border border-amber-300 font-display font-bold text-[10px] sm:text-xs px-2 py-0.5 rounded-full">
+                    {scoreStreak} Kata
+                  </span>
                 )}
-              </span>
+              </div>
             </div>
 
             {/* Quick Audio & Controls */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 type="button"
                 onClick={handleReplayAudio}
                 aria-label="Dengarkan Suara Kata"
-                className="p-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-[#059669] cursor-pointer transition-colors shadow-2xs"
+                className="p-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-[#059669] cursor-pointer transition-colors shadow-2xs"
                 title="Dengarkan pengucapan kata"
               >
-                <Volume2 size={14} />
+                <Volume2 size={15} />
               </button>
 
               <motion.button
@@ -300,14 +298,14 @@ export default function MelengkapiKataView() {
                 onClick={handleToggleHint}
                 disabled={showHint || isAnswered}
                 aria-label="Petunjuk Huruf"
-                className={`p-1 rounded-xl border shadow-2xs cursor-pointer transition-colors ${
+                className={`p-1.5 rounded-xl border shadow-2xs cursor-pointer transition-colors ${
                   showHint
                     ? "bg-amber-100 border-amber-300 text-amber-700"
                     : "bg-white hover:bg-stone-50 border-stone-200 text-stone-600"
                 }`}
                 title="Tampilkan petunjuk huruf yang hilang"
               >
-                <Lightbulb size={14} className={showHint ? "text-amber-500 fill-amber-300" : "text-stone-400"} />
+                <Lightbulb size={15} className={showHint ? "text-amber-500 fill-amber-300" : "text-stone-400"} />
               </motion.button>
 
               <motion.button
@@ -316,10 +314,10 @@ export default function MelengkapiKataView() {
                 whileTap={{ scale: 0.92 }}
                 onClick={handleResetCurrentQuestion}
                 aria-label="Mainkan Ulang Kata"
-                className="p-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer"
+                className="p-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer"
                 title="Mainkan ulang kata ini dari awal"
               >
-                <RotateCcw size={14} />
+                <RotateCcw size={15} />
               </motion.button>
 
               <motion.button
@@ -328,17 +326,35 @@ export default function MelengkapiKataView() {
                 whileTap={{ scale: 0.92 }}
                 onClick={handleNext}
                 aria-label="Kata Berikutnya"
-                className="p-1 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-[#059669] border border-emerald-300 shadow-2xs cursor-pointer"
+                className="p-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-[#059669] border border-emerald-300 shadow-2xs cursor-pointer"
                 title="Lanjut ke kata berikutnya"
               >
-                <ChevronRight size={15} />
+                <ChevronRight size={16} />
               </motion.button>
             </div>
           </motion.div>
+
+          {/* Friendly Guidance Pill */}
+          <AnimatePresence mode="wait">
+            {speechBubbleText && (
+              <motion.div
+                key={speechBubbleText}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.2 }}
+                className="mt-1 px-3 py-0.5 rounded-full bg-white/90 border border-emerald-200 shadow-2xs flex items-center gap-1.5 text-center"
+              >
+                <span className="font-sans font-bold text-[11px] text-[#1B4965]">
+                  {speechBubbleText}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* ── Central Stage: flex-1 min-h-0 max-h-[55vh] flex flex-col justify-center items-center ── */}
-        <section className="flex-1 min-h-0 max-h-[55vh] flex flex-col justify-center items-center my-auto w-full relative px-2">
+        {/* ── Central Stage: Chunky 3D Wooden Slot Blocks Embedded in Warm Wooden Tray ── */}
+        <section className="flex-1 min-h-0 flex flex-col justify-center items-center w-full relative px-2 py-2">
           
           {/* Floating Celebration Toast */}
           <AnimatePresence>
@@ -348,7 +364,7 @@ export default function MelengkapiKataView() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.8, opacity: 0, y: -10 }}
                 transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                className="absolute -top-9 inset-x-0 mx-auto w-fit bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-1 rounded-2xl shadow-lg border border-white flex items-center gap-1.5 z-30 pointer-events-none"
+                className="absolute -top-7 inset-x-0 mx-auto w-fit bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-1 rounded-2xl shadow-lg border border-white flex items-center gap-1.5 z-30 pointer-events-none"
               >
                 <Sparkles size={14} className="text-yellow-300" />
                 <span className="font-display font-black text-xs sm:text-sm">
@@ -361,16 +377,19 @@ export default function MelengkapiKataView() {
           {/* 3D Handcrafted Wooden Toy Puzzle Tray */}
           <motion.div
             layout
-            className="relative bg-gradient-to-b from-[#E7C495] via-[#D5A570] to-[#B8824C] border-3 sm:border-4 border-[#875525] border-b-8 border-b-[#54300E] rounded-3xl shadow-2xl p-2.5 sm:p-4"
+            className="relative bg-gradient-to-b from-[#EED5B7] via-[#D8AB77] to-[#BC864E] border-3 sm:border-4 border-[#8B5829] border-b-6 sm:border-b-8 border-b-[#5B330F] rounded-3xl shadow-xl p-2.5 sm:p-4 max-w-2xl w-full"
           >
+            {/* Top Gloss Light Reflex */}
+            <div className="absolute top-1 inset-x-6 h-1 bg-white/30 rounded-full pointer-events-none" />
+
             {/* Corner Joinery Pegs */}
-            <div className="absolute top-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
-            <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
-            <div className="absolute bottom-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
-            <div className="absolute bottom-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-[#54300E] opacity-60 shadow-inner" />
+            <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#5B330F] opacity-60 shadow-inner" />
+            <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#5B330F] opacity-60 shadow-inner" />
+            <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-[#5B330F] opacity-60 shadow-inner" />
+            <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-[#5B330F] opacity-60 shadow-inner" />
 
             {/* Inset Felt Inlay */}
-            <div className="bg-gradient-to-b from-[#4A2609]/40 to-black/30 rounded-2xl p-2 sm:p-3.5 border border-[#54300E]/50 shadow-inner flex items-center justify-center gap-2.5 sm:gap-3.5 flex-wrap">
+            <div className="bg-gradient-to-b from-[#4A2609]/40 to-black/30 rounded-2xl p-2 sm:p-3 border border-[#5B330F]/50 shadow-inner flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
               {wordChars.map((char, index) => {
                 const isMissing = index === missingIndex;
                 const isFilled = isMissing && isCorrect;
@@ -382,9 +401,9 @@ export default function MelengkapiKataView() {
                       animate={
                         isFilled
                           ? {
-                              scale: [0.8, 1.2, 1],
-                              rotate: [0, 6, -6, 0],
-                              y: [10, -6, 0],
+                              scale: [0.8, 1.15, 1],
+                              rotate: [0, 5, -5, 0],
+                              y: [8, -4, 0],
                             }
                           : {
                               scale: [1, 1.05, 1],
@@ -396,9 +415,9 @@ export default function MelengkapiKataView() {
                           ? { duration: 0.5, ease: "easeOut" }
                           : { duration: 2.0, repeat: Infinity, ease: "easeInOut" }
                       }
-                      className={`relative w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl transition-all shadow-xl select-none aspect-square ${
+                      className={`relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl md:text-4xl transition-all shadow-xl select-none aspect-square ${
                         isFilled
-                          ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-teal-200 border-b-6 border-b-[#065F46] text-white shadow-emerald-200"
+                          ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-teal-200 border-b-6 border-b-[#065F46] text-white shadow-emerald-200/50"
                           : "bg-gradient-to-b from-amber-200 via-amber-300 to-amber-400 border-amber-300 border-b-6 border-b-amber-600 text-amber-950 shadow-xl ring-4 ring-amber-300/80 animate-pulse"
                       }`}
                     >
@@ -421,7 +440,7 @@ export default function MelengkapiKataView() {
                   );
                 }
 
-                // Fixed Known Letters
+                // Fixed Known Letters (Chunky 3D wooden toy blocks)
                 return (
                   <motion.div
                     key={`known-${index}`}
@@ -443,9 +462,16 @@ export default function MelengkapiKataView() {
                           }
                         : {}
                     }
-                    className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl bg-gradient-to-b from-[#FFFFFF] to-[#F7EFE5] border-2 sm:border-3 border-[#E3D1BE] border-b-6 border-b-[#C2AB92] flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#1B4965] shadow-md select-none aspect-square"
+                    className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-gradient-to-b from-[#FFFFFF] to-[#F7EFE5] border-2 sm:border-3 border-[#E3D1BE] border-b-6 border-b-[#C2AB92] flex flex-col items-center justify-center font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#1B4965] shadow-md select-none aspect-square"
                   >
-                    <span>{char}</span>
+                    {/* Client Authentic 3D Wooden Block Asset (balok-kayu-3d.png) */}
+                    <img
+                      src="/assets/balok-kayu-3d.png"
+                      alt="Balok Kayu"
+                      draggable="false"
+                      className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80"
+                    />
+                    <span className="relative z-10">{char}</span>
                   </motion.div>
                 );
               })}
@@ -454,130 +480,83 @@ export default function MelengkapiKataView() {
 
         </section>
 
-        {/* ── Bottom Tier: Mascots Anchored Without Intruding on Puzzle Hitboxes (h-[24%] max-h-[140px]) ── */}
-        <footer className="h-[24%] max-h-[140px] relative flex items-end justify-between px-4 pb-1 pointer-events-none w-full max-w-4xl mx-auto flex-shrink-0">
+        {/* ── Bottom Tier: Keyboard Pilihan Huruf yang Hilang (4 Chunky 3D Toy Choice Tiles) ── */}
+        <footer className="w-full max-w-xl sm:max-w-2xl mx-auto flex flex-col items-center justify-center pb-3 px-2 flex-shrink-0 z-20">
           
-          {/* Left Side: Saka Mascot */}
-          <div className="flex flex-col items-center pointer-events-auto origin-bottom-left pb-1 flex-shrink-0">
-            {/* Dynamic Speech Bubble */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={speechBubbleText}
-                initial={{ scale: 0.8, opacity: 0, y: 8 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.8, opacity: 0, y: -6 }}
-                transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                className="bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-2.5 py-1 shadow-md w-[135px] sm:w-[160px] text-center mb-1 pointer-events-none relative z-30"
-              >
-                <p className="font-sans font-bold text-[11px] text-[#1B4965] leading-snug">
-                  {speechBubbleText}
-                </p>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Saka Mascot (Height locked to h-24 sm:h-28) */}
-            <motion.div
-              animate={isSakaJumping ? { y: [-16, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
-              transition={
-                isSakaJumping
-                  ? { duration: 0.45, type: "spring", stiffness: 500 }
-                  : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
-              }
-              className="origin-bottom"
-            >
-              <SakaMascot isWaving={isSakaJumping || isCorrect} className="h-24 sm:h-28 w-auto object-contain" />
-            </motion.div>
-
-            {/* Grassy Mound Base */}
-            <div className="w-20 sm:w-28 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1.5" />
+          {/* Section Plaque Label */}
+          <div className="flex items-center gap-1.5 mb-2 bg-white/90 backdrop-blur-xs px-3.5 py-1 rounded-full border border-emerald-200/90 shadow-2xs">
+            <span className="font-display font-black text-xs sm:text-sm text-[#1B4965] tracking-wide">
+              PILIH HURUF YANG TEPAT:
+            </span>
           </div>
 
-          {/* Center: 4 Chunky 3D Square Toy Choice Tiles */}
-          <div className="flex-1 flex items-center justify-center pb-1 pointer-events-auto z-20 px-2 sm:px-4">
-            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-              {options.map((letter, optIdx) => {
-                const isMatchingTarget = isCorrect && letter === targetLetter;
-                const isWobble = wobbleLetter === letter;
-                const isHighlightedHint = showHint && letter === targetLetter && !isCorrect;
-                const palette = TOY_CHOICE_PALETTES[optIdx % TOY_CHOICE_PALETTES.length];
+          {/* 4 Chunky 3D Square Toy Choice Tiles */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
+            {options.map((letter, optIdx) => {
+              const isMatchingTarget = isCorrect && letter === targetLetter;
+              const isWobble = wobbleLetter === letter;
+              const isHighlightedHint = showHint && letter === targetLetter && !isCorrect;
+              const palette = TOY_CHOICE_PALETTES[optIdx % TOY_CHOICE_PALETTES.length];
 
-                return (
-                  <motion.button
-                    key={letter}
-                    type="button"
-                    disabled={isAnswered}
-                    whileHover={!isAnswered ? { scale: 1.08, y: -3 } : {}}
-                    whileTap={{ scale: 0.92, y: 3 }}
-                    animate={
-                      isWobble
-                        ? {
-                            rotate: [-10, 10, -7, 7, 0],
-                            scale: [1, 1.15, 0.9, 1.08, 1],
-                          }
-                        : isMatchingTarget
-                        ? {
-                            scale: [1, 1.2, 1],
-                            y: [0, -18, 0],
-                          }
-                        : isHighlightedHint
-                        ? {
-                            scale: [1, 1.06, 1],
-                            y: [0, -3, 0],
-                          }
-                        : {}
-                    }
-                    transition={
-                      isHighlightedHint
-                        ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
-                        : { duration: 0.35 }
-                    }
-                    onClick={() => handleSelectOption(letter)}
-                    className={`w-13 h-13 sm:w-15 sm:h-15 lg:w-18 lg:h-18 rounded-2xl font-display font-black text-2xl sm:text-3xl lg:text-4xl border-2 border-b-6 active:border-b-0 active:translate-y-1.5 transition-all flex items-center justify-center select-none cursor-pointer shadow-lg relative aspect-square ${
-                      isMatchingTarget
-                        ? "bg-gradient-to-b from-emerald-400 to-teal-500 border-teal-300 border-b-teal-700 text-white shadow-emerald-200"
-                        : isWobble
-                        ? "bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300 border-b-rose-700 text-white"
-                        : isHighlightedHint
-                        ? "bg-gradient-to-b from-amber-300 to-yellow-400 border-amber-300 border-b-amber-600 text-amber-950 ring-4 ring-amber-300/80 shadow-amber-200"
-                        : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.glow} active:translate-y-1`
-                    }`}
-                    style={{ color: palette.text }}
-                  >
-                    <span>{letter}</span>
+              return (
+                <motion.button
+                  key={letter}
+                  type="button"
+                  disabled={isAnswered}
+                  whileHover={!isAnswered ? { scale: 1.12, y: -4 } : {}}
+                  whileTap={{ scale: 0.9, y: 3 }}
+                  animate={
+                    isWobble
+                      ? {
+                          rotate: [-10, 10, -7, 7, 0],
+                          scale: [1, 1.15, 0.9, 1.08, 1],
+                        }
+                      : isMatchingTarget
+                      ? {
+                          scale: [1, 1.2, 1],
+                          y: [0, -16, 0],
+                        }
+                      : isHighlightedHint
+                      ? {
+                          scale: [1, 1.06, 1],
+                          y: [0, -3, 0],
+                        }
+                      : {}
+                  }
+                  transition={
+                    isHighlightedHint
+                      ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                      : { duration: 0.3 }
+                  }
+                  onClick={() => handleSelectOption(letter)}
+                  className={`w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-2xl sm:rounded-3xl font-display font-black text-2xl sm:text-3xl md:text-4xl border-2 sm:border-3 border-b-6 sm:border-b-8 active:border-b-0 active:translate-y-1.5 transition-all flex items-center justify-center select-none cursor-pointer shadow-lg relative aspect-square ${
+                    isMatchingTarget
+                      ? "bg-gradient-to-b from-emerald-400 to-teal-500 border-teal-300 border-b-teal-700 text-white shadow-emerald-300"
+                      : isWobble
+                      ? "bg-gradient-to-b from-rose-400 to-rose-500 border-rose-300 border-b-rose-700 text-white"
+                      : isHighlightedHint
+                      ? "bg-gradient-to-b from-amber-300 to-yellow-400 border-amber-300 border-b-amber-600 text-amber-950 ring-4 ring-amber-300/80 shadow-amber-200"
+                      : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.glow}`
+                  }`}
+                  style={{ color: palette.text }}
+                >
+                  {/* Top Gloss Light Reflex */}
+                  <div className="absolute top-1 inset-x-2.5 h-1.5 bg-white/40 rounded-full pointer-events-none" />
 
-                    {isMatchingTarget && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-300 border border-white flex items-center justify-center shadow-xs"
-                      >
-                        <Check size={9} strokeWidth={3} className="text-white" />
-                      </motion.div>
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
+                  <span>{letter}</span>
 
-          {/* Right Side: Tika Mascot */}
-          <div className="flex flex-col items-center pointer-events-auto origin-bottom-right pb-1 flex-shrink-0">
-            {/* Tika Mascot (Height locked to h-24 sm:h-28) */}
-            <motion.div
-              animate={isTikaJumping ? { y: [-16, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
-              transition={
-                isTikaJumping
-                  ? { duration: 0.45, type: "spring", stiffness: 500, delay: 0.05 }
-                  : { duration: 3.0, repeat: Infinity, ease: "easeInOut", delay: 0.2 }
-              }
-              className="origin-bottom"
-            >
-              <TikaMascot isCheering={isTikaJumping || isCorrect} className="h-24 sm:h-28 w-auto object-contain" />
-            </motion.div>
-
-            {/* Grassy Mound Base */}
-            <div className="w-20 sm:w-28 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1.5" />
+                  {isMatchingTarget && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-300 border border-white flex items-center justify-center shadow-xs"
+                    >
+                      <Check size={11} strokeWidth={3} className="text-white" />
+                    </motion.div>
+                  )}
+                </motion.button>
+              );
+            })}
           </div>
 
         </footer>

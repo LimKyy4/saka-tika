@@ -1,8 +1,10 @@
 // src/views/modules/TemukanHurufView.jsx
-// SAKA TIKA: Floating Glass Bubble Arena Overhaul for "Temukan Huruf" (Mini-Game 1 Refactor)
+// SAKA TIKA: High-End Commercial 3D Soap Bubble Arena for "Temukan Huruf" (Mini-Game 1)
 // Strictly adheres to Global 3-Tier Height Budgeting:
+// - Top spotlight target instruction banner: "CARI HURUF: [ A ]" with 3 golden star progress slots & WordIllustration
 // - Central glass bubble arena stage wrapped with flex-1 min-h-0 max-h-[55vh]
-// - Bottom mascots remain anchored in lower zones without intruding into game puzzle hitboxes
+// - Glossy 3D soap bubbles with translucent iridescent gradients, white gloss reflections & bouncy jelly hover reactions
+// - Mascots remain anchored in lower zones without intruding into game puzzle hitboxes
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -24,17 +26,44 @@ import {
 import { ShuffleQueue } from "../../utils/shuffleQueue.js";
 import GameLandscapeBackground from "../../components/background/GameLandscapeBackground.jsx";
 import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
-import SakaMascot from "../../components/illustrations/SakaMascot.jsx";
-import TikaMascot from "../../components/illustrations/TikaMascot.jsx";
 
-// Glass bubble pastel themes with soft translucent tints and matching specular rings
-const GLASS_BUBBLE_THEMES = [
-  { name: "sky", tint: "from-white/70 via-sky-200/40 to-blue-300/30", border: "border-sky-300/80", glow: "shadow-sky-300/40", text: "#0F172A" },
-  { name: "rose", tint: "from-white/70 via-rose-200/40 to-pink-300/30", border: "border-rose-300/80", glow: "shadow-rose-300/40", text: "#0F172A" },
-  { name: "emerald", tint: "from-white/70 via-emerald-200/40 to-teal-300/30", border: "border-emerald-300/80", glow: "shadow-emerald-300/40", text: "#0F172A" },
-  { name: "amber", tint: "from-white/70 via-amber-200/40 to-orange-300/30", border: "border-amber-300/80", glow: "shadow-amber-300/40", text: "#0F172A" },
-  { name: "purple", tint: "from-white/70 via-purple-200/40 to-indigo-300/30", border: "border-purple-300/80", glow: "shadow-purple-300/40", text: "#0F172A" },
-  { name: "teal", tint: "from-white/70 via-teal-200/40 to-cyan-300/30", border: "border-teal-300/80", glow: "shadow-teal-300/40", text: "#0F172A" },
+// 3D Soap bubble iridescent color themes with soft multi-layer refraction tints
+const SOAP_BUBBLE_THEMES = [
+  {
+    name: "iridescent-cyan",
+    tint: "bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.9)_0%,rgba(240,249,255,0.45)_35%,rgba(224,242,254,0.35)_60%,rgba(244,114,182,0.25)_85%,rgba(56,189,248,0.45)_100%)]",
+    border: "border-sky-300/80",
+    glow: "shadow-[inset_0_0_14px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(192,132,252,0.2),0_8px_20px_rgba(56,189,248,0.25)]",
+    reflex: "bg-pink-300/40",
+  },
+  {
+    name: "iridescent-rose",
+    tint: "bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.9)_0%,rgba(255,241,242,0.45)_35%,rgba(254,205,211,0.35)_60%,rgba(165,243,252,0.25)_85%,rgba(244,114,182,0.45)_100%)]",
+    border: "border-rose-300/80",
+    glow: "shadow-[inset_0_0_14px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(147,197,253,0.2),0_8px_20px_rgba(244,114,182,0.25)]",
+    reflex: "bg-sky-300/40",
+  },
+  {
+    name: "iridescent-amber",
+    tint: "bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.9)_0%,rgba(254,249,195,0.45)_35%,rgba(254,215,170,0.35)_60%,rgba(196,181,253,0.25)_85%,rgba(251,191,36,0.45)_100%)]",
+    border: "border-amber-300/80",
+    glow: "shadow-[inset_0_0_14px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(167,243,208,0.2),0_8px_20px_rgba(251,191,36,0.25)]",
+    reflex: "bg-emerald-300/40",
+  },
+  {
+    name: "iridescent-mint",
+    tint: "bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.9)_0%,rgba(236,253,245,0.45)_35%,rgba(167,243,208,0.35)_60%,rgba(244,114,182,0.25)_85%,rgba(52,211,153,0.45)_100%)]",
+    border: "border-emerald-300/80",
+    glow: "shadow-[inset_0_0_14px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(196,181,253,0.2),0_8px_20px_rgba(52,211,153,0.25)]",
+    reflex: "bg-indigo-300/40",
+  },
+  {
+    name: "iridescent-lavender",
+    tint: "bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.9)_0%,rgba(245,243,255,0.45)_35%,rgba(221,214,254,0.35)_60%,rgba(254,215,170,0.25)_85%,rgba(167,139,250,0.45)_100%)]",
+    border: "border-purple-300/80",
+    glow: "shadow-[inset_0_0_14px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(125,211,252,0.2),0_8px_20px_rgba(167,139,250,0.25)]",
+    reflex: "bg-amber-300/40",
+  },
 ];
 
 // Natural, non-overlapping anchor positions across the 16:9 arena (leaving banner & mascots clear)
@@ -93,7 +122,7 @@ export default function TemukanHurufView() {
 
     // 3 Target bubbles
     for (let i = 0; i < targetCount; i++) {
-      const theme = GLASS_BUBBLE_THEMES[Math.floor(Math.random() * GLASS_BUBBLE_THEMES.length)];
+      const theme = SOAP_BUBBLE_THEMES[Math.floor(Math.random() * SOAP_BUBBLE_THEMES.length)];
       items.push({
         id: `target-${i}-${Date.now()}`,
         letter: target,
@@ -105,7 +134,7 @@ export default function TemukanHurufView() {
     // 9 Distractor bubbles
     for (let i = 0; i < distractorCount; i++) {
       const dLetter = shuffledPool[i % shuffledPool.length];
-      const theme = GLASS_BUBBLE_THEMES[Math.floor(Math.random() * GLASS_BUBBLE_THEMES.length)];
+      const theme = SOAP_BUBBLE_THEMES[Math.floor(Math.random() * SOAP_BUBBLE_THEMES.length)];
       items.push({
         id: `distractor-${i}-${Date.now()}`,
         letter: dLetter,
@@ -121,7 +150,7 @@ export default function TemukanHurufView() {
       const jitterX = (Math.random() - 0.5) * 4;
       const jitterY = (Math.random() - 0.5) * 3;
       const floatDuration = 2.8 + Math.random() * 1.4;
-      const floatDistance = 7 + Math.random() * 6;
+      const floatDistance = 6 + Math.random() * 5;
       const floatDelay = Math.random() * 1.5;
 
       return {
@@ -164,7 +193,7 @@ export default function TemukanHurufView() {
       // Spawn burst of 8 water droplet splash particles around the popped bubble
       const newDroplets = Array.from({ length: 8 }).map((_, i) => {
         const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.4;
-        const dist = 3 + Math.random() * 4.5;
+        const dist = 3.5 + Math.random() * 4.5;
         return {
           id: `${bubble.id}-drop-${i}-${Date.now()}`,
           startX: bubble.x,
@@ -204,7 +233,7 @@ export default function TemukanHurufView() {
         addStars(1);
 
         confetti({
-          particleCount: 85,
+          particleCount: 90,
           spread: 80,
           origin: { y: 0.55 },
           colors: ["#38BDF8", "#34D399", "#FBBF24", "#F472B6", "#A78BFA"],
@@ -257,25 +286,25 @@ export default function TemukanHurufView() {
       {/* ── Content Wrapper ── */}
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between max-w-7xl w-full mx-auto">
         
-        {/* ── Target Spotlight Mission Banner: High Visibility Marquee Card ── */}
+        {/* ── Top Tier: Spotlight Target Instruction Banner ("CARI HURUF: [ A ]") ── */}
         <div className="w-full px-2 mt-1 flex justify-center flex-shrink-0">
           <motion.div
-            initial={{ y: -12, opacity: 0 }}
+            initial={{ y: -14, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 450, damping: 20 }}
-            className="bg-white/95 backdrop-blur-md border-3 border-amber-300 border-b-4 border-b-amber-400 rounded-3xl px-3 sm:px-4 py-1.5 shadow-md flex items-center justify-between gap-2.5 sm:gap-4 max-w-2xl w-full max-h-14"
+            transition={{ type: "spring", stiffness: 450, damping: 22 }}
+            className="bg-white/95 backdrop-blur-md border-3 border-amber-300 border-b-5 border-b-amber-500 rounded-3xl px-3 sm:px-5 py-1.5 sm:py-2 shadow-xl flex items-center justify-between gap-3 sm:gap-6 max-w-3xl w-full"
           >
-            {/* Target Word Illustration Card */}
+            {/* Target Word Illustration Card with Speaker Action */}
             <motion.button
               type="button"
               whileHover={{ scale: 1.08, rotate: -2 }}
               whileTap={{ scale: 0.94 }}
               onClick={handleSpeakWord}
               aria-label={`Dengarkan contoh kata ${currentTarget.word}`}
-              className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-2 py-0.5 shadow-2xs cursor-pointer group flex-shrink-0"
+              className="flex items-center gap-2 bg-gradient-to-b from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-2.5 py-1 shadow-xs cursor-pointer group flex-shrink-0"
               title="Klik untuk mendengarkan pengucapan kata"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <WordIllustration
                   illustrationKey={currentTarget.illustrationKey}
                   word={currentTarget.word}
@@ -283,7 +312,7 @@ export default function TemukanHurufView() {
                   className="w-full h-full object-contain drop-shadow-xs"
                 />
               </div>
-              <div className="text-left hidden sm:block">
+              <div className="text-left hidden xs:block">
                 <span className="font-display font-black text-xs sm:text-sm text-[#1B4965] leading-tight block">
                   {currentTarget.word}
                 </span>
@@ -293,76 +322,84 @@ export default function TemukanHurufView() {
               </div>
             </motion.button>
 
-            {/* Target Letter Spotlight Mission */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-center">
-              <motion.div
-                animate={{ scale: [1, 1.06, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                onClick={handleSpeakTarget}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-b from-white to-amber-50 border-3 border-amber-400 flex items-center justify-center font-display font-black text-2xl sm:text-3xl text-amber-600 shadow-sm cursor-pointer active:scale-95 transition-transform flex-shrink-0"
-                title="Klik untuk mendengarkan bunyi huruf"
-              >
-                {targetLetter}
-              </motion.div>
+            {/* Center: Spotlight Target Mission Banner ("CARI HURUF: [ A ]") */}
+            <div className="flex items-center gap-3 sm:gap-4 flex-1 justify-center min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-display font-black text-sm sm:text-base md:text-lg text-[#1B4965] tracking-wide uppercase">
+                  CARI HURUF:
+                </span>
 
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display font-black text-xs sm:text-sm text-[#1B4965]">
-                    TEMUKAN 3 GELEMBUNG HURUF <span className="text-[#D97706] font-black underline decoration-2 decoration-amber-400 underline-offset-2">{targetLetter}</span>!
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleSpeakTarget}
-                    aria-label="Bunyikan Huruf"
-                    className="p-1 rounded-md bg-sky-100 hover:bg-sky-200 text-[#0284C7] cursor-pointer transition-colors"
-                  >
-                    <Volume2 size={13} />
-                  </button>
-                </div>
+                {/* Glowing 3D Target Letter Tile */}
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.1, rotate: 3 }}
+                  whileTap={{ scale: 0.92 }}
+                  animate={{ scale: [1, 1.06, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                  onClick={handleSpeakTarget}
+                  aria-label={`Dengarkan bunyi huruf target ${targetLetter}`}
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-orange-400 text-white font-display font-black text-2xl sm:text-3xl flex items-center justify-center border-2 border-white shadow-lg ring-3 ring-amber-300/80 cursor-pointer flex-shrink-0"
+                  title="Klik untuk mendengarkan bunyi huruf target"
+                >
+                  {targetLetter}
+                </motion.button>
 
-                {/* 3 Golden Star Progress Slots */}
-                <div className="flex items-center gap-2 mt-0.5">
-                  {[0, 1, 2].map((slotIdx) => {
-                    const isSlotFilled = slotIdx < foundIds.length;
-                    return (
-                      <motion.div
-                        key={slotIdx}
-                        initial={false}
-                        animate={isSlotFilled ? { scale: [1.3, 1] } : { scale: 1 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                        className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
-                          isSlotFilled
-                            ? "bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border-2 border-[#D97706] shadow-xs"
-                            : "bg-white/80 border-2 border-stone-200 border-dashed"
-                        }`}
-                      >
-                        <Star
-                          size={11}
-                          className={
-                            isSlotFilled
-                              ? "fill-[#F59E0B] text-[#B45309]"
-                              : "text-stone-300 fill-transparent"
-                          }
+                <button
+                  type="button"
+                  onClick={handleSpeakTarget}
+                  aria-label="Bunyikan Huruf"
+                  className="p-1 rounded-lg bg-sky-100 hover:bg-sky-200 text-[#0284C7] cursor-pointer transition-colors"
+                >
+                  <Volume2 size={14} />
+                </button>
+              </div>
+
+              {/* 3 Golden Star Progress Slots */}
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-amber-50/80 border border-amber-200 px-2 sm:px-2.5 py-1 rounded-2xl shadow-inner">
+                {[0, 1, 2].map((slotIdx) => {
+                  const isSlotFilled = slotIdx < foundIds.length;
+                  return (
+                    <motion.div
+                      key={slotIdx}
+                      initial={false}
+                      animate={isSlotFilled ? { scale: [1.35, 1], rotate: [0, 15, 0] } : { scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        isSlotFilled
+                          ? "bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border-2 border-[#D97706] shadow-xs"
+                          : "bg-white/80 border-2 border-stone-200 border-dashed"
+                      }`}
+                    >
+                      {isSlotFilled ? (
+                        <img
+                          src="/assets/bintang-emas.png"
+                          alt="Bintang Emas"
+                          className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain pointer-events-none drop-shadow-xs"
                         />
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                      ) : (
+                        <Star
+                          size={12}
+                          className="text-stone-300 fill-transparent"
+                        />
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Quick Toolbar */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={handleResetCurrentRound}
                 aria-label="Acak Ulang Gelembung"
-                className="p-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer flex-shrink-0"
+                className="p-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-[#1B4965] border border-stone-200 shadow-2xs cursor-pointer"
                 title="Acak ulang posisi gelembung"
               >
-                <RotateCcw size={14} />
+                <RotateCcw size={15} />
               </motion.button>
 
               <motion.button
@@ -371,17 +408,35 @@ export default function TemukanHurufView() {
                 whileTap={{ scale: 0.92 }}
                 onClick={handleNextRound}
                 aria-label="Ganti Huruf Berikutnya"
-                className="p-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#92400E] border border-amber-300 shadow-2xs cursor-pointer flex-shrink-0"
+                className="p-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-[#92400E] border border-amber-300 shadow-2xs cursor-pointer"
                 title="Lanjut ke Huruf Berikutnya"
               >
-                <ChevronRight size={15} />
+                <ChevronRight size={16} />
               </motion.button>
             </div>
           </motion.div>
+
+          {/* Friendly Guidance Pill */}
+          <AnimatePresence mode="wait">
+            {speechBubbleText && (
+              <motion.div
+                key={speechBubbleText}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.2 }}
+                className="mt-1.5 px-3 py-0.5 rounded-full bg-white/90 border border-amber-200 shadow-2xs flex items-center gap-1.5 text-center"
+              >
+                <span className="font-sans font-bold text-[11px] text-[#1B4965]">
+                  {speechBubbleText}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* ── Central Glass Bubble Arena Stage (flex-1 min-h-0 max-h-[55vh]) ── */}
-        <section className="relative z-20 flex-1 min-h-0 max-h-[55vh] w-full max-w-6xl mx-auto px-4 my-auto overflow-hidden">
+        {/* ── Central Glass Bubble Arena Stage: Floating 3D Soap Bubbles ── */}
+        <section className="relative z-20 flex-1 min-h-0 w-full max-w-6xl mx-auto px-4 my-auto overflow-hidden">
           
           {/* Water Droplet Splash Particles */}
           {splashDroplets.map((d) => (
@@ -423,8 +478,12 @@ export default function TemukanHurufView() {
                   top: `${b.y}%`,
                   transform: "translate(-50%, -50%)",
                 }}
-                whileHover={{ scale: 1.15, filter: "brightness(1.1)" }}
-                whileTap={{ scale: 0.88 }}
+                whileHover={{
+                  scale: 1.18,
+                  rotate: [0, -4, 4, 0],
+                  transition: { type: "spring", stiffness: 450, damping: 10 },
+                }}
+                whileTap={{ scale: 0.86 }}
                 animate={
                   isPopping
                     ? {
@@ -438,6 +497,7 @@ export default function TemukanHurufView() {
                       }
                     : {
                         y: [-b.floatDistance, b.floatDistance, -b.floatDistance],
+                        x: [-2, 2, -2],
                         rotate: [-3, 3, -3],
                       }
                 }
@@ -453,14 +513,27 @@ export default function TemukanHurufView() {
                         delay: b.floatDelay,
                       }
                 }
-                className={`w-13 h-13 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-full border-2 ${b.theme.border} bg-gradient-to-br ${b.theme.tint} backdrop-blur-sm ${b.theme.glow} shadow-lg flex items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl select-none cursor-pointer relative active:scale-90 transition-transform`}
+                className={`w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-full border-2 ${b.theme.border} ${b.theme.tint} backdrop-blur-xs ${b.theme.glow} flex items-center justify-center font-display font-black text-2xl sm:text-3xl lg:text-4xl select-none cursor-pointer relative active:scale-90 transition-transform overflow-hidden`}
               >
-                {/* Curved Glass Specular Highlight */}
-                <div className="absolute top-1.5 left-2 w-4 h-2 bg-white/85 rounded-full rotate-[-35deg] pointer-events-none" />
-                <div className="absolute bottom-1.5 right-2 w-2 h-1 bg-white/50 rounded-full rotate-[-35deg] pointer-events-none" />
+                {/* ── Client Authentic 3D Soap Bubble Asset (gelembung.png) ── */}
+                <img
+                  src="/assets/gelembung.png"
+                  alt="Gelembung"
+                  draggable="false"
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none rounded-full select-none"
+                />
 
-                {/* Letter Glyph */}
-                <span className="text-slate-800 drop-shadow-xs">
+                {/* ── Primary Top-Left Curved Gloss Highlight ── */}
+                <div className="absolute top-1.5 left-2 w-4 sm:w-5 h-2 sm:h-2.5 bg-white/90 rounded-full rotate-[-45deg] blur-[0.3px] shadow-[0_0_4px_rgba(255,255,255,0.9)] pointer-events-none z-10" />
+
+                {/* ── Secondary Tiny Specular Point ── */}
+                <div className="absolute top-3.5 left-1 w-1.5 h-1.5 bg-white/85 rounded-full pointer-events-none z-10" />
+
+                {/* ── Bottom-Right Soft Iridescent Rim Reflex ── */}
+                <div className={`absolute bottom-1.5 right-2 w-3 sm:w-3.5 h-1.5 sm:h-2 ${b.theme.reflex} rounded-full rotate-[-40deg] blur-[0.4px] pointer-events-none z-10`} />
+
+                {/* ── High-Contrast Letter Glyph ── */}
+                <span className="text-[#0F172A] drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)] z-10">
                   {b.letter}
                 </span>
               </motion.button>
@@ -468,85 +541,25 @@ export default function TemukanHurufView() {
           })}
         </section>
 
-        {/* ── Bottom Tier: Mascots Anchored in Lower Zones (h-[20%] sm:h-[22%] max-h-[140px]) ── */}
-        <footer className="h-[20%] sm:h-[22%] max-h-[140px] relative flex items-end justify-between px-4 pb-1 pointer-events-none w-full max-w-7xl mx-auto flex-shrink-0">
-          
-          {/* Left Side: Saka Mascot */}
-          <div className="flex flex-col items-center pointer-events-auto origin-bottom-left pb-1">
-            {/* Dynamic Speech Bubble */}
-            <AnimatePresence mode="wait">
+        {/* ── Bottom Tier: Floating Completion Message Toast ── */}
+        <div className="relative flex items-center justify-center px-4 pb-3 pointer-events-none w-full max-w-2xl mx-auto flex-shrink-0 min-h-[48px]">
+          <AnimatePresence>
+            {roundComplete && (
               <motion.div
-                key={speechBubbleText}
-                initial={{ scale: 0.8, opacity: 0, y: 8 }}
+                initial={{ scale: 0.8, opacity: 0, y: 15 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.8, opacity: 0, y: -6 }}
+                exit={{ scale: 0.8, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                className="bg-white/95 border-2 border-[#1B4965]/20 rounded-2xl px-2.5 py-1 shadow-md w-[140px] sm:w-[170px] text-center mb-1 pointer-events-none relative z-30"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-2 pointer-events-auto"
               >
-                <p className="font-sans font-bold text-[11px] text-[#1B4965] leading-snug">
-                  {speechBubbleText}
-                </p>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-r-2 border-b-2 border-[#1B4965]/20 rotate-45" />
+                <Sparkles size={18} className="text-yellow-300" />
+                <span className="font-display font-black text-xs sm:text-sm">
+                  Luar Biasa! Semua Huruf {targetLetter} Ditemukan! (+1 Bintang)
+                </span>
               </motion.div>
-            </AnimatePresence>
-
-            {/* Saka Mascot (Height locked to h-24 sm:h-28) */}
-            <motion.div
-              animate={isSakaJumping ? { y: [-16, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
-              transition={
-                isSakaJumping
-                  ? { duration: 0.45, type: "spring", stiffness: 500 }
-                  : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
-              }
-              className="origin-bottom"
-            >
-              <SakaMascot isWaving={isSakaJumping || roundComplete} className="h-24 sm:h-28 w-auto object-contain" />
-            </motion.div>
-
-            {/* Grassy Mound Base */}
-            <div className="w-20 sm:w-28 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1.5" />
-          </div>
-
-          {/* Center: Completion Message Toast */}
-          <div className="flex-1 flex justify-center pb-2 pointer-events-auto">
-            <AnimatePresence>
-              {roundComplete && (
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0, y: 15 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-1.5 rounded-2xl shadow-lg border border-white flex items-center gap-1.5"
-                >
-                  <Sparkles size={16} className="text-yellow-300" />
-                  <span className="font-display font-black text-xs sm:text-sm">
-                    Luar Biasa! Semua Huruf {targetLetter} Ditemukan! (+1 Bintang)
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Right Side: Tika Mascot */}
-          <div className="flex flex-col items-center pointer-events-auto origin-bottom-right pb-1">
-            {/* Tika Mascot (Height locked to h-24 sm:h-28) */}
-            <motion.div
-              animate={isTikaJumping ? { y: [-16, 0], scale: [1.08, 1] } : { y: [0, -3, 0] }}
-              transition={
-                isTikaJumping
-                  ? { duration: 0.45, type: "spring", stiffness: 500, delay: 0.05 }
-                  : { duration: 3.0, repeat: Infinity, ease: "easeInOut", delay: 0.2 }
-              }
-              className="origin-bottom"
-            >
-              <TikaMascot isCheering={isTikaJumping || roundComplete} className="h-24 sm:h-28 w-auto object-contain" />
-            </motion.div>
-
-            {/* Grassy Mound Base */}
-            <div className="w-20 sm:w-28 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-80 -mt-1.5" />
-          </div>
-
-        </footer>
+            )}
+          </AnimatePresence>
+        </div>
 
       </div>
     </main>

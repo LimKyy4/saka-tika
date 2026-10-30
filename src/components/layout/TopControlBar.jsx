@@ -93,15 +93,18 @@ export default function TopControlBar() {
               onMouseLeave={() => setStarHovered(false)}
               className="relative flex items-center gap-1.5 sm:gap-2 bg-gradient-to-b from-[#FFFBEA] to-[#FEF3C7] border-2 border-[#F59E0B] rounded-full px-3 py-0.5 sm:py-1 shadow-xs cursor-default"
             >
-              {/* Pulsing Star Sparkle Ring */}
+              {/* Pulsing Star Sparkle Ring (bintang-emas.jfif) */}
               <motion.div
                 animate={starHovered ? { scale: [1, 1.25, 1], rotate: [0, 15, -15, 0] } : {}}
                 transition={{ duration: 0.6 }}
-                className="relative flex items-center justify-center"
+                className="relative flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 fill-[#F59E0B] stroke-[#D97706] stroke-1 drop-shadow-xs" viewBox="0 0 24 24">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
+                <img
+                  src="/assets/bintang-emas.png"
+                  alt="Bintang Emas"
+                  draggable="false"
+                  className="w-full h-full object-contain pointer-events-none drop-shadow-xs"
+                />
               </motion.div>
 
               <motion.span

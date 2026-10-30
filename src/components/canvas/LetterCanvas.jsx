@@ -191,14 +191,15 @@ export default function LetterCanvas({
   const letterPathData = ALPHABET_PATHS[letterObj.letter] || ALPHABET_PATHS.A;
   const totalStrokes = letterPathData.paths.length;
 
-  // Proportional uniform scaling: target letter coordinate bounds occupy 70% to 75% of canvas easel height
-  // In alphabetPaths.js, cap line is at Y=16, baseline at Y=100 -> letter stroke height is 84 units.
-  // Center is at X=50, Y=58.
+  // Proportional uniform scaling: target letter coordinate bounds fit comfortably within 4-line writing guidelines with generous safety padding
+  // Coordinates in alphabetPaths:
+  // Top Ascender Line at Y=16, Midline at Y=58, Baseline at Y=100, Descender at Y=114
+  // Using (0.50 * h) / 98 ensures ~25% top padding and ~25% bottom padding, avoiding any touch or overflow with the wooden easel frame!
   const getScaleAndOffset = useCallback((w, h) => {
-    const scale = Math.min((0.72 * h) / 84, (0.75 * w) / 80);
+    const scale = Math.min((0.50 * h) / 98, (0.58 * w) / 80);
     const offsetX = (w / 2) - 50 * scale;
     const offsetY = (h / 2) - 58 * scale;
-    return { scaleX: scale, scaleY: scale, offsetX, offsetY, drawW: 80 * scale, drawH: 84 * scale };
+    return { scaleX: scale, scaleY: scale, offsetX, offsetY, drawW: 80 * scale, drawH: 98 * scale };
   }, []);
 
   // Clear scratch user drawing canvas
@@ -345,7 +346,7 @@ export default function LetterCanvas({
     if (activeMs?.end && !isHolding && !isCompleted) {
       const ex = offsetX + activeMs.end.x * scaleX;
       const ey = offsetY + activeMs.end.y * scaleY;
-      const endR = 12 * Math.min(scaleX, scaleY);
+      const endR = Math.max(9, 10 * Math.min(scaleX, scaleY));
 
       if (milestoneHits.current.end) {
         // Destination touched: solid emerald green check badge
@@ -397,10 +398,10 @@ export default function LetterCanvas({
 
       const nx = offsetX + activeNode.x * scaleX;
       const ny = offsetY + activeNode.y * scaleY;
-      const badgeR = 14 * Math.min(scaleX, scaleY);
+      const badgeR = Math.max(10, 11 * Math.min(scaleX, scaleY));
 
       // Pulsing outer halo ring
-      const pulseR = badgeR + 4 + Math.sin(performance.now() * 0.006) * 2.5;
+      const pulseR = badgeR + 3 + Math.sin(performance.now() * 0.006) * 2;
       ctx.beginPath();
       ctx.arc(nx, ny, pulseR, 0, Math.PI * 2);
       ctx.fillStyle = milestoneHits.current.start
@@ -688,9 +689,8 @@ export default function LetterCanvas({
     speakInstruction(`Hebat! Huruf ${letterObj.letter} selesai!`);
 
     // Hold the completed drawing for exactly 1.8 seconds so the child can appreciate their artwork,
-    // then smoothly auto-advance to the next letter in sequence
+    // then smoothly and instantly auto-advance to the next letter in sequence
     completionHoldTimer.current = setTimeout(() => {
-      handleFullReset();
       onNextLetterRef.current?.();
     }, 1800);
   };

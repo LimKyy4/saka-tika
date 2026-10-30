@@ -243,7 +243,11 @@ export default function MenulisHurufView() {
 
           {/* Right: Golden Star Completion Badge */}
           <div className="bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7] border-2 border-[#F59E0B] rounded-2xl px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-2xs flex items-center gap-1.5 flex-shrink-0">
-            <Star size={14} className="fill-[#F59E0B] text-[#D97706]" />
+            <img
+              src="/assets/bintang-emas.png"
+              alt="Bintang Emas"
+              className="w-4 h-4 sm:w-5 sm:h-5 object-contain pointer-events-none drop-shadow-xs"
+            />
             <span className="font-display font-bold text-xs sm:text-sm text-[#92400E]">
               {completedLetters.length} / 26
             </span>
@@ -276,18 +280,8 @@ export default function MenulisHurufView() {
               </motion.div>
             </AnimatePresence>
 
-            {/* Saka Mascot Pinned to Bottom-Left Corner with max-h-[140px] */}
-            <motion.div
-              animate={isSakaJumping ? { y: [-12, 0], scale: [1.06, 1] } : { y: [0, -3, 0] }}
-              transition={
-                isSakaJumping
-                  ? { duration: 0.45, type: "spring", stiffness: 450 }
-                  : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
-              }
-              className="origin-bottom"
-            >
-              <SakaMascot isWaving={true} className="max-h-[140px] h-28 sm:h-32 w-auto object-contain" />
-            </motion.div>
+            {/* Saka Mascot Pinned to Bottom-Left Corner */}
+            <SakaMascot isWaving={isSakaJumping || accuracy === 100} className="w-20 h-24 sm:w-24 sm:h-28" />
 
             {/* Grassy Mound Vector Base */}
             <div className="w-24 sm:w-30 h-2.5 bg-[#4ADE80] rounded-full blur-[1px] opacity-75 -mt-1.5" />
