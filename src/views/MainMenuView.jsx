@@ -1,111 +1,34 @@
 // src/views/MainMenuView.jsx
-// SAKA TIKA: Spotlight Square Carousel (Cover Flow) Refactor & Living Desktop Stage
+// SAKA TIKA: Spotlight Module Cover Overhaul & Supreme Tactile "MAINKAN" Button Refinement
+// Two-Tier "Jendela Ilustrasi" (Diorama Window) Architecture:
+// - Upper Zone: Bespoke scalable 3D toy-style micro-world diorama
+// - Lower Zone: Information stage with progress badge, Fredoka title, subtext & 3D arcade MAINKAN button
 // Strictly adheres to Zero-Collision App Shell:
 // - Outer wrapper: relative w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between bg-transparent select-none
 // - Background: fixed inset-0 pointer-events-none z-0
-// - Carousel Stage: relative z-10 flex-1 w-full flex flex-col items-center justify-center my-auto
-// - Bottom Mascots: relative z-10 w-full flex justify-between items-end px-8 pb-3 pointer-events-none
+// - Middle Carousel Stage: relative z-10 flex-1 w-full flex flex-col items-center justify-center my-auto px-4
+// - Bottom Mascots: relative z-10 w-full flex justify-between items-end px-8 pb-3 pointer-events-none (Mascots proudly anchored on bottom terrain)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
+// Mascots are strictly excluded from inside the cards.
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Star, Play } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 import { useGame } from "../context/GameContext.jsx";
 import { useAudio } from "../context/AudioContext.jsx";
 import GameLandscapeBackground from "../components/background/GameLandscapeBackground.jsx";
 import SakaMascot from "../components/illustrations/SakaMascot.jsx";
 import TikaMascot from "../components/illustrations/TikaMascot.jsx";
 
-// ── Custom Vector Icons for 5 Modules (ZERO EMOJIS) ──────────────────
-// Declared BEFORE MODULES to ensure no undefined component references at runtime
-function AlphabetBlocksIcon() {
-  return (
-    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="14" width="28" height="28" rx="8" fill="#38BDF8" stroke="#0284C7" strokeWidth="2" />
-      <rect x="6" y="38" width="28" height="4" rx="2" fill="#0369A1" />
-      <text x="20" y="35" textAnchor="middle" fill="#FFFFFF" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="20">A</text>
-      
-      <rect x="28" y="22" width="28" height="28" rx="8" fill="#FBBF24" stroke="#D97706" strokeWidth="2" />
-      <rect x="28" y="46" width="28" height="4" rx="2" fill="#B45309" />
-      <text x="42" y="43" textAnchor="middle" fill="#78350F" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="18">a</text>
-    </svg>
-  );
-}
+// ── 5 Living Micro-World Diorama Components (ZERO EMOJIS, ZERO MASCOTS) ──
+import AlphabetStorybookDiorama from "../components/illustrations/dioramas/AlphabetStorybookDiorama.jsx";
+import EaselTracingDiorama from "../components/illustrations/dioramas/EaselTracingDiorama.jsx";
+import BubblePrismDiorama from "../components/illustrations/dioramas/BubblePrismDiorama.jsx";
+import PopKeysDiorama from "../components/illustrations/dioramas/PopKeysDiorama.jsx";
+import WordPuzzleTrayDiorama from "../components/illustrations/dioramas/WordPuzzleTrayDiorama.jsx";
+import TactilePlayButton from "../components/ui/TactilePlayButton.jsx";
 
-function PencilTraceIcon() {
-  return (
-    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14,48 L32,14 L50,48" stroke="#92400E" strokeWidth="4.5" strokeLinecap="round" strokeDasharray="4 4" fill="none" opacity="0.6" />
-      <path d="M22,36 L42,36" stroke="#92400E" strokeWidth="4.5" strokeLinecap="round" strokeDasharray="4 4" fill="none" opacity="0.6" />
-      <g transform="translate(26, 6) rotate(35)">
-        <polygon points="10,0 16,0 16,36 10,36" fill="#F43F5E" />
-        <polygon points="10,36 16,36 13,44" fill="#FDE047" />
-        <polygon points="12,41 14,41 13,44" fill="#1E293B" />
-        <rect x="10" y="0" width="6" height="5" fill="#CBD5E1" />
-        <rect x="10" y="-4" width="6" height="4" rx="2" fill="#F472B6" />
-      </g>
-    </svg>
-  );
-}
-
-function SearchBubblesIcon() {
-  return (
-    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="18" cy="22" r="13" fill="#FECDD3" opacity="0.5" />
-      <text x="18" y="27" textAnchor="middle" fill="#E11D48" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="15">C</text>
-      
-      <circle cx="48" cy="42" r="11" fill="#FED7AA" opacity="0.5" />
-      <text x="48" y="47" textAnchor="middle" fill="#EA580C" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="13">D</text>
-      
-      <circle cx="30" cy="30" r="17" fill="none" stroke="#FFFFFF" strokeWidth="3.5" />
-      <circle cx="30" cy="30" r="14" fill="#FFFFFF" fillOpacity="0.2" />
-      <line x1="42" y1="42" x2="56" y2="56" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" />
-      <path d="M22,22 A10 10 0 0 1 32,18" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-    </svg>
-  );
-}
-
-function TactileKeyboardIcon() {
-  return (
-    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="16" width="56" height="36" rx="8" fill="#FCE7F3" stroke="#BE185D" strokeWidth="2.5" />
-      <rect x="4" y="48" width="56" height="4" rx="2" fill="#9D174D" />
-      
-      <rect x="10" y="22" width="10" height="10" rx="3" fill="#60A5FA" />
-      <text x="15" y="30" textAnchor="middle" fill="#FFFFFF" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="9">A</text>
-      <rect x="23" y="22" width="10" height="10" rx="3" fill="#F87171" />
-      <text x="28" y="30" textAnchor="middle" fill="#FFFFFF" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="9">S</text>
-      <rect x="36" y="22" width="10" height="10" rx="3" fill="#FBBF24" />
-      <text x="41" y="30" textAnchor="middle" fill="#78350F" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="9">D</text>
-      <rect x="49" y="22" width="10" height="10" rx="3" fill="#34D399" />
-      <text x="54" y="30" textAnchor="middle" fill="#065F46" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="9">F</text>
-      
-      <rect x="18" y="36" width="28" height="8" rx="3" fill="#CBD5E1" />
-    </svg>
-  );
-}
-
-function WordPuzzleIcon() {
-  return (
-    <svg viewBox="0 0 64 64" className="w-8 h-8 sm:w-9 sm:h-9 overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="22" width="14" height="20" rx="4" fill="#6EE7B7" stroke="#047857" strokeWidth="1.5" />
-      <text x="13" y="36" textAnchor="middle" fill="#065F46" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="13">B</text>
-      
-      <rect x="24" y="22" width="14" height="20" rx="4" fill="#A7F3D0" stroke="#059669" strokeWidth="2" strokeDasharray="3 2" />
-      <text x="31" y="36" textAnchor="middle" fill="#047857" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="14">?</text>
-      
-      <rect x="42" y="22" width="14" height="20" rx="4" fill="#6EE7B7" stroke="#047857" strokeWidth="1.5" />
-      <text x="49" y="36" textAnchor="middle" fill="#065F46" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="13">L</text>
-      
-      <g transform="translate(31, 10)">
-        <circle cx="0" cy="0" r="7.5" fill="#FCD34D" stroke="#D97706" strokeWidth="1.5" />
-        <text x="0" y="3.5" textAnchor="middle" fill="#78350F" fontFamily="Fredoka, sans-serif" fontWeight="bold" fontSize="10">O</text>
-      </g>
-    </svg>
-  );
-}
-
-// ── 5 Core Educational Game Modules ─────────────────────────────────
+// ── 5 Core Educational Game Modules with Rich Two-Tier Styling ────────
 const MODULES = [
   {
     id: "mengenal",
@@ -113,14 +36,19 @@ const MODULES = [
     subtext: "Kenali 26 huruf dan dengarkan bunyinya!",
     badge: "26 Huruf Siap Belajar",
     route: "/mengenal-huruf",
-    bgGradient: "from-[#4DA7F0] to-[#2B88DC]",
-    borderBottom: "border-[#1B6BB8]",
-    glowColor: "rgba(43, 136, 220, 0.45)",
+    bgGradient: "from-[#38BDF8] via-[#0284C7] to-[#0369A1]",
+    borderBottom: "border-[#075985]",
+    windowBg: "from-[#0369A1]/40 to-[#0C4A6E]/70",
+    windowBorder: "border-[#7DD3FC]/50",
+    glowColor: "rgba(2, 132, 199, 0.45)",
     textColor: "text-white",
-    badgeBg: "bg-[#1B6BB8]/40 border-white/30 text-white",
-    ctaBg: "bg-white text-[#1B6BB8] border-b-4 border-[#BAE6FD]",
+    badgeBg: "bg-white/20 border-white/40 text-white",
+    btnGrad: "from-[#FDE047] via-[#FBBF24] to-[#F59E0B]",
+    btnText: "text-[#78350F]",
+    btnBorder: "border-[#B45309]",
+    btnShadow: "rgba(245, 158, 11, 0.45)",
     dialogue: "Ayo kenalan sama huruf A sampai Z!",
-    IconComponent: AlphabetBlocksIcon,
+    DioramaComponent: AlphabetStorybookDiorama,
   },
   {
     id: "menulis",
@@ -128,14 +56,19 @@ const MODULES = [
     subtext: "Latihan menebalkan garis huruf dari A sampai Z!",
     badge: "Latihan Goresan A-Z",
     route: "/menulis-huruf",
-    bgGradient: "from-[#FCD34D] to-[#F59E0B]",
-    borderBottom: "border-[#B45309]",
+    bgGradient: "from-[#FDE047] via-[#F59E0B] to-[#D97706]",
+    borderBottom: "border-[#92400E]",
+    windowBg: "from-[#B45309]/30 to-[#78350F]/50",
+    windowBorder: "border-[#FEF08A]/60",
     glowColor: "rgba(245, 158, 11, 0.45)",
     textColor: "text-[#78350F]",
-    badgeBg: "bg-[#B45309]/20 border-[#B45309]/40 text-[#78350F]",
-    ctaBg: "bg-[#78350F] text-white border-b-4 border-[#451A03]",
+    badgeBg: "bg-[#78350F]/15 border-[#78350F]/30 text-[#78350F]",
+    btnGrad: "from-[#38BDF8] via-[#0284C7] to-[#0369A1]",
+    btnText: "text-white",
+    btnBorder: "border-[#075985]",
+    btnShadow: "rgba(2, 132, 199, 0.45)",
     dialogue: "Yuk, kita belajar menulis huruf yang rapi!",
-    IconComponent: PencilTraceIcon,
+    DioramaComponent: EaselTracingDiorama,
   },
   {
     id: "temukan",
@@ -143,51 +76,68 @@ const MODULES = [
     subtext: "Cari dan tangkap gelembung huruf yang tersembunyi!",
     badge: "Tantangan Gelembung",
     route: "/temukan-huruf",
-    bgGradient: "from-[#F87171] to-[#EF4444]",
-    borderBottom: "border-[#B91C1C]",
+    bgGradient: "from-[#F87171] via-[#EF4444] to-[#DC2626]",
+    borderBottom: "border-[#991B1B]",
+    windowBg: "from-[#B91C1C]/40 to-[#7F1D1D]/70",
+    windowBorder: "border-[#FECDD3]/50",
     glowColor: "rgba(239, 68, 68, 0.45)",
     textColor: "text-white",
-    badgeBg: "bg-[#B91C1C]/40 border-white/30 text-white",
-    ctaBg: "bg-white text-[#EF4444] border-b-4 border-[#FECDD3]",
+    badgeBg: "bg-white/20 border-white/40 text-white",
+    btnGrad: "from-[#FEF08A] via-[#FDE047] to-[#FACC15]",
+    btnText: "text-[#854D0E]",
+    btnBorder: "border-[#A16207]",
+    btnShadow: "rgba(234, 179, 8, 0.45)",
     dialogue: "Bisakah kamu temukan huruf yang tersembunyi?",
-    IconComponent: SearchBubblesIcon,
+    DioramaComponent: BubblePrismDiorama,
   },
   {
     id: "mengetik",
     title: "Mengetik Huruf",
     subtext: "Latihan mengetik kata sesuai gambar yang muncul!",
-    badge: "Master Refleks Keyboard",
+    badge: "Refleks Keyboard",
     route: "/mengetik-huruf",
-    bgGradient: "from-[#F472B6] to-[#DB2777]",
+    bgGradient: "from-[#F472B6] via-[#EC4899] to-[#DB2777]",
     borderBottom: "border-[#9D174D]",
+    windowBg: "from-[#BE185D]/40 to-[#831843]/70",
+    windowBorder: "border-[#FBCFE8]/50",
     glowColor: "rgba(219, 39, 119, 0.45)",
     textColor: "text-white",
-    badgeBg: "bg-[#9D174D]/40 border-white/30 text-white",
-    ctaBg: "bg-white text-[#DB2777] border-b-4 border-[#FCE7F3]",
+    badgeBg: "bg-white/20 border-white/40 text-white",
+    btnGrad: "from-[#5EEAD4] via-[#14B8A6] to-[#0D9488]",
+    btnText: "text-white",
+    btnBorder: "border-[#115E59]",
+    btnShadow: "rgba(20, 184, 166, 0.45)",
     dialogue: "Ayo latih jarimu mengetik di keyboard!",
-    IconComponent: TactileKeyboardIcon,
+    DioramaComponent: PopKeysDiorama,
   },
   {
     id: "melengkapi",
     title: "Melengkapi Kata",
     subtext: "Tebak dan pasang huruf yang hilang dengan tepat!",
-    badge: "Susun Kata Buah & Benda",
+    badge: "Susun Kata Buah",
     route: "/melengkapi-kata",
-    bgGradient: "from-[#34D399] to-[#059669]",
+    bgGradient: "from-[#34D399] via-[#10B981] to-[#059669]",
     borderBottom: "border-[#065F46]",
-    glowColor: "rgba(5, 150, 105, 0.45)",
+    windowBg: "from-[#047857]/40 to-[#064E3B]/70",
+    windowBorder: "border-[#A7F3D0]/50",
+    glowColor: "rgba(16, 185, 129, 0.45)",
     textColor: "text-white",
-    badgeBg: "bg-[#065F46]/40 border-white/30 text-white",
-    ctaBg: "bg-white text-[#059669] border-b-4 border-[#A7F3D0]",
+    badgeBg: "bg-white/20 border-white/40 text-white",
+    btnGrad: "from-[#FDBA74] via-[#FB923C] to-[#EA580C]",
+    btnText: "text-white",
+    btnBorder: "border-[#C2410C]",
+    btnShadow: "rgba(234, 88, 12, 0.45)",
     dialogue: "Bantu lengkapi huruf yang hilang ya!",
-    IconComponent: WordPuzzleIcon,
+    DioramaComponent: WordPuzzleTrayDiorama,
   },
 ];
 
 export default function MainMenuView() {
-  const { navigateTo } = useGame();
+  const { navigateTo, activeCarouselIndex, setActiveCarouselIndex } = useGame();
   const { playSfx } = useAudio();
-  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Centralized carousel index from GameContext as single source of truth
+  const activeIndex = typeof activeCarouselIndex === "number" ? activeCarouselIndex : 0;
 
   const activeModule = MODULES[activeIndex] || MODULES[0];
   const prevIndex = (activeIndex - 1 + MODULES.length) % MODULES.length;
@@ -195,27 +145,28 @@ export default function MainMenuView() {
   const prevModuleData = MODULES[prevIndex] || MODULES[0];
   const nextModuleData = MODULES[nextIndex] || MODULES[0];
 
-  const ActiveIcon = activeModule.IconComponent;
-  const PrevIcon = prevModuleData.IconComponent;
-  const NextIcon = nextModuleData.IconComponent;
+  const ActiveDiorama = activeModule.DioramaComponent;
+  const PrevDiorama = prevModuleData.DioramaComponent;
+  const NextDiorama = nextModuleData.DioramaComponent;
 
-  // Carousel navigation handlers
+  // Carousel navigation handlers - synchronize directly with GameContext
   const prevModule = useCallback(() => {
     if (typeof playSfx === "function") playSfx("hover");
-    setActiveIndex((prev) => (prev - 1 + MODULES.length) % MODULES.length);
-  }, [playSfx]);
+    setActiveCarouselIndex((activeIndex - 1 + MODULES.length) % MODULES.length);
+  }, [playSfx, activeIndex, setActiveCarouselIndex]);
 
   const nextModule = useCallback(() => {
     if (typeof playSfx === "function") playSfx("hover");
-    setActiveIndex((prev) => (prev + 1) % MODULES.length);
-  }, [playSfx]);
+    setActiveCarouselIndex((activeIndex + 1) % MODULES.length);
+  }, [playSfx, activeIndex, setActiveCarouselIndex]);
 
   const handlePlay = useCallback(
     (route) => {
-      if (typeof playSfx === "function") playSfx("click");
+      setActiveCarouselIndex(activeIndex);
+      if (typeof playSfx === "function") playSfx("fanfare");
       if (typeof navigateTo === "function") navigateTo(route);
     },
-    [playSfx, navigateTo]
+    [activeIndex, setActiveCarouselIndex, playSfx, navigateTo]
   );
 
   // Keyboard navigation (Arrow keys + Enter/Space)
@@ -252,7 +203,7 @@ export default function MainMenuView() {
           whileTap={{ scale: 0.94, y: 2 }}
           transition={{ type: "spring", stiffness: 450, damping: 16 }}
           onClick={() => {
-            playSfx("click");
+            if (typeof playSfx === "function") playSfx("click");
             navigateTo("/");
           }}
           aria-label="Kembali ke Beranda"
@@ -265,11 +216,11 @@ export default function MainMenuView() {
         <div className="w-16 sm:w-24" />
       </header>
 
-      {/* ── 3. Middle Carousel Stage Tier (Unconstrained Real Space) ── */}
+      {/* ── 3. Middle Carousel Stage Tier (Two-Tier Jendela Ilustrasi) ── */}
       <div className="relative z-10 flex-1 w-full flex flex-col items-center justify-center my-auto px-4">
         
         {/* Carousel Track Container with Flanking Arrows */}
-        <div className="relative max-w-4xl w-full flex items-center justify-center gap-3 sm:gap-6">
+        <div className="relative max-w-5xl w-full flex items-center justify-center gap-3 sm:gap-6">
           
           {/* Left Navigation Arrow Sprite (kiri.png) */}
           <motion.button
@@ -291,36 +242,43 @@ export default function MainMenuView() {
           </motion.button>
 
           {/* Carousel Cards Track with Swipe Support */}
-          <div className="relative flex items-center justify-center gap-3 sm:gap-5 flex-1 max-w-3xl">
+          <div className="relative flex items-center justify-center gap-3 sm:gap-5 flex-1 max-w-4xl">
             
             {/* Left Flanking Inactive Dimmed Card */}
             <motion.div
               type="button"
-              whileHover={{ scale: 0.84, opacity: 0.6 }}
+              whileHover={{ scale: 0.84, opacity: 0.65 }}
               whileTap={{ scale: 0.78 }}
               onClick={prevModule}
               aria-label={`Pilih ${prevModuleData.title}`}
-              className={`hidden md:flex flex-col justify-between p-3.5 rounded-3xl bg-gradient-to-b ${prevModuleData.bgGradient} border-b-6 ${prevModuleData.borderBottom} shadow-lg scale-80 opacity-40 select-none pointer-events-auto cursor-pointer w-48 h-48 lg:w-56 lg:h-56 flex-shrink-0 ${prevModuleData.textColor}`}
+              className={`hidden md:flex flex-col justify-between p-3 sm:p-3.5 rounded-3xl bg-gradient-to-b ${prevModuleData.bgGradient} border-b-[6px] ${prevModuleData.borderBottom} shadow-xl scale-75 lg:scale-80 opacity-40 select-none pointer-events-auto cursor-pointer w-56 h-[330px] lg:w-60 lg:h-[355px] flex-shrink-0 ${prevModuleData.textColor} transition-all`}
             >
-              <div className="flex items-start justify-between">
-                <div className="p-1 rounded-2xl bg-white/20 backdrop-blur-xs">
-                  <PrevIcon />
-                </div>
-                <div className={`px-2 py-0.5 rounded-full border text-[10px] font-sans font-bold ${prevModuleData.badgeBg}`}>
-                  {prevModuleData.badge}
-                </div>
+              {/* Upper Diorama Preview Window (Idle / Paused Animation) */}
+              <div className={`relative w-full h-[54%] rounded-2xl overflow-hidden bg-gradient-to-b ${prevModuleData.windowBg} border border-white/30 shadow-inner flex items-center justify-center p-1`}>
+                <PrevDiorama isActive={false} />
               </div>
-              <div>
-                <h3 className="font-display font-black text-sm lg:text-base leading-tight">
-                  {prevModuleData.title}
-                </h3>
-                <p className="font-sans text-[11px] opacity-80 line-clamp-1 mt-0.5">
-                  {prevModuleData.subtext}
-                </p>
+
+              {/* Lower Info Stage */}
+              <div className="flex-1 flex flex-col justify-between pt-2">
+                <div>
+                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-sans font-bold ${prevModuleData.badgeBg}`}>
+                    <Star size={10} className="fill-current text-[#FCD34D]" />
+                    <span>{prevModuleData.badge}</span>
+                  </div>
+                  <h3 className="font-display font-black text-sm lg:text-base leading-tight mt-1">
+                    {prevModuleData.title}
+                  </h3>
+                  <p className="font-sans text-[11px] opacity-80 line-clamp-1 mt-0.5">
+                    {prevModuleData.subtext}
+                  </p>
+                </div>
+                <div className="w-full py-1.5 px-3 rounded-xl bg-white/20 text-center font-display font-bold text-xs opacity-90">
+                  Lihat Modul
+                </div>
               </div>
             </motion.div>
 
-            {/* Active Center Spotlight Square Card */}
+            {/* Active Center Spotlight Card (Two-Tier Jendela Ilustrasi) */}
             <motion.div
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
@@ -337,64 +295,60 @@ export default function MainMenuView() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeModule.id}
-                  initial={{ scale: 0.95, opacity: 1, y: 4 }}
+                  initial={{ scale: 0.94, opacity: 1, y: 6 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0.85, y: -4 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  onClick={() => handlePlay(activeModule.route)}
+                  exit={{ scale: 0.94, opacity: 0.85, y: -6 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
                   style={{
-                    boxShadow: `0 20px 40px -10px ${activeModule.glowColor}`,
+                    boxShadow: `0 24px 48px -12px ${activeModule.glowColor}`,
                   }}
-                  className={`relative overflow-hidden group w-72 h-72 md:w-80 md:h-80 rounded-3xl p-5 bg-gradient-to-b ${activeModule.bgGradient} border-b-[8px] ${activeModule.borderBottom} shadow-2xl cursor-pointer flex flex-col justify-between items-center text-center ${activeModule.textColor} select-none transition-transform`}
+                  className={`relative overflow-hidden group w-[300px] sm:w-[330px] md:w-[350px] lg:w-[365px] h-[390px] sm:h-[415px] md:h-[430px] rounded-[28px] sm:rounded-[32px] p-3.5 sm:p-4 bg-gradient-to-b ${activeModule.bgGradient} border-b-[8px] sm:border-b-[10px] ${activeModule.borderBottom} shadow-2xl flex flex-col justify-between items-center text-center ${activeModule.textColor} select-none transition-shadow`}
                 >
                   {/* Top Gloss Light Reflex Line */}
-                  <div className="absolute top-1.5 inset-x-4 h-[2px] bg-white/40 rounded-full pointer-events-none" />
+                  <div className="absolute top-1.5 inset-x-6 h-[2px] bg-white/50 rounded-full pointer-events-none" />
 
                   {/* Subtle Diagonal Shimmer Highlight */}
-                  <span className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none group-hover:animate-shimmer" />
+                  <span className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none group-hover:animate-shimmer" />
 
-                  {/* Card Top: Custom Icon & Star Badge */}
-                  <div className="w-full flex items-start justify-between gap-2 z-10">
-                    <div className="p-2 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                      <ActiveIcon />
+                  {/* ── 1. Upper Zone: Jendela Ilustrasi (Diorama Window) ── */}
+                  <div className={`relative w-full h-[53%] sm:h-[55%] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b ${activeModule.windowBg} border-2 ${activeModule.windowBorder} shadow-[inset_0_4px_12px_rgba(0,0,0,0.25)] flex items-center justify-center p-1`}>
+                    {/* Top Window Gloss Arc */}
+                    <div className="absolute top-1 inset-x-4 h-[2px] bg-white/40 rounded-full pointer-events-none z-10" />
+
+                    {/* Floating Category Star Badge inside Window Top-Right */}
+                    <div className="absolute top-2.5 right-2.5 z-20">
+                      <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] sm:text-xs font-sans font-bold shadow-sm backdrop-blur-xs ${activeModule.badgeBg}`}>
+                        <Star size={12} className="fill-current text-[#FCD34D]" />
+                        <span>{activeModule.badge}</span>
+                      </div>
                     </div>
 
-                    <div className={`flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-sans font-bold shadow-xs ${activeModule.badgeBg}`}>
-                      <Star size={13} className="fill-current text-[#FCD34D]" />
-                      <span>{activeModule.badge}</span>
+                    {/* Living Bespoke 3D Toy Diorama */}
+                    <ActiveDiorama isActive={true} />
+                  </div>
+
+                  {/* ── 2. Lower Zone: Information & Action Stage ── */}
+                  <div className="relative w-full flex-1 flex flex-col justify-between pt-2 sm:pt-2.5 pb-0.5 px-1 z-10">
+                    {/* Title & Concise Subtext */}
+                    <div>
+                      <h2 className="font-display font-black text-2xl sm:text-3xl leading-tight drop-shadow-sm tracking-tight">
+                        {activeModule.title}
+                      </h2>
+                      <p className="font-sans font-semibold text-xs sm:text-[13px] opacity-95 mt-1 leading-snug line-clamp-2 px-1">
+                        {activeModule.subtext}
+                      </p>
                     </div>
-                  </div>
 
-                  {/* Card Center: Title & Subtext */}
-                  <div className="my-auto z-10 px-1">
-                    <h2 className="font-display font-black text-2xl sm:text-3xl leading-tight drop-shadow-xs">
-                      {activeModule.title}
-                    </h2>
-                    <p className="font-sans font-semibold text-xs sm:text-sm opacity-95 mt-1.5 leading-snug line-clamp-2">
-                      {activeModule.subtext}
-                    </p>
-                  </div>
-
-                  {/* Card Bottom: Tactile 3D "MAINKAN" CTA Button */}
-                  <div className="w-full z-10">
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.94 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlay(activeModule.route);
-                      }}
-                      className={`w-full py-2.5 sm:py-3 px-4 rounded-2xl ${activeModule.ctaBg} font-display font-black text-sm sm:text-base md:text-lg shadow-md flex items-center justify-center gap-2 cursor-pointer active:border-b-0`}
-                    >
-                      <motion.div
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                      >
-                        <Play size={18} className="fill-current" />
-                      </motion.div>
-                      <span>MAINKAN</span>
-                    </motion.button>
+                    {/* Supreme Tactile "MAINKAN" Action Button */}
+                    <div className="w-full mt-2">
+                      <TactilePlayButton
+                        onClick={() => handlePlay(activeModule.route)}
+                        bgGradient={activeModule.btnGrad}
+                        textColor={activeModule.btnText}
+                        borderColor={activeModule.btnBorder}
+                        glowColor={activeModule.btnShadow}
+                      />
+                    </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
@@ -403,27 +357,34 @@ export default function MainMenuView() {
             {/* Right Flanking Inactive Dimmed Card */}
             <motion.div
               type="button"
-              whileHover={{ scale: 0.84, opacity: 0.6 }}
+              whileHover={{ scale: 0.84, opacity: 0.65 }}
               whileTap={{ scale: 0.78 }}
               onClick={nextModule}
               aria-label={`Pilih ${nextModuleData.title}`}
-              className={`hidden md:flex flex-col justify-between p-3.5 rounded-3xl bg-gradient-to-b ${nextModuleData.bgGradient} border-b-6 ${nextModuleData.borderBottom} shadow-lg scale-80 opacity-40 select-none pointer-events-auto cursor-pointer w-48 h-48 lg:w-56 lg:h-56 flex-shrink-0 ${nextModuleData.textColor}`}
+              className={`hidden md:flex flex-col justify-between p-3 sm:p-3.5 rounded-3xl bg-gradient-to-b ${nextModuleData.bgGradient} border-b-[6px] ${nextModuleData.borderBottom} shadow-xl scale-75 lg:scale-80 opacity-40 select-none pointer-events-auto cursor-pointer w-56 h-[330px] lg:w-60 lg:h-[355px] flex-shrink-0 ${nextModuleData.textColor} transition-all`}
             >
-              <div className="flex items-start justify-between">
-                <div className="p-1 rounded-2xl bg-white/20 backdrop-blur-xs">
-                  <NextIcon />
-                </div>
-                <div className={`px-2 py-0.5 rounded-full border text-[10px] font-sans font-bold ${nextModuleData.badgeBg}`}>
-                  {nextModuleData.badge}
-                </div>
+              {/* Upper Diorama Preview Window (Idle / Paused Animation) */}
+              <div className={`relative w-full h-[54%] rounded-2xl overflow-hidden bg-gradient-to-b ${nextModuleData.windowBg} border border-white/30 shadow-inner flex items-center justify-center p-1`}>
+                <NextDiorama isActive={false} />
               </div>
-              <div>
-                <h3 className="font-display font-black text-sm lg:text-base leading-tight">
-                  {nextModuleData.title}
-                </h3>
-                <p className="font-sans text-[11px] opacity-80 line-clamp-1 mt-0.5">
-                  {nextModuleData.subtext}
-                </p>
+
+              {/* Lower Info Stage */}
+              <div className="flex-1 flex flex-col justify-between pt-2">
+                <div>
+                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-sans font-bold ${nextModuleData.badgeBg}`}>
+                    <Star size={10} className="fill-current text-[#FCD34D]" />
+                    <span>{nextModuleData.badge}</span>
+                  </div>
+                  <h3 className="font-display font-black text-sm lg:text-base leading-tight mt-1">
+                    {nextModuleData.title}
+                  </h3>
+                  <p className="font-sans text-[11px] opacity-80 line-clamp-1 mt-0.5">
+                    {nextModuleData.subtext}
+                  </p>
+                </div>
+                <div className="w-full py-1.5 px-3 rounded-xl bg-white/20 text-center font-display font-bold text-xs opacity-90">
+                  Lihat Modul
+                </div>
               </div>
             </motion.div>
 
@@ -451,7 +412,7 @@ export default function MainMenuView() {
         </div>
 
         {/* ── 5 Candy Indicator Dots ───────────────────────── */}
-        <div className="flex items-center justify-center gap-2 mt-3 z-30">
+        <div className="flex items-center justify-center gap-2 mt-2.5 sm:mt-3 z-30">
           {MODULES.map((mod, idx) => {
             const isActive = idx === activeIndex;
             return (
@@ -459,8 +420,8 @@ export default function MainMenuView() {
                 key={mod.id}
                 type="button"
                 onClick={() => {
-                  playSfx("click");
-                  setActiveIndex(idx);
+                  if (typeof playSfx === "function") playSfx("click");
+                  setActiveCarouselIndex(idx);
                 }}
                 aria-label={`Pilih tantangan ${mod.title}`}
                 className={`transition-all duration-300 rounded-full cursor-pointer ${
