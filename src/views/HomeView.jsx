@@ -8,10 +8,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MonitorDown } from "lucide-react";
 import { useGame } from "../context/GameContext.jsx";
 import { useAudio } from "../context/AudioContext.jsx";
-import { usePWAInstall } from "../hooks/usePWAInstall.js";
 import GameLandscapeBackground from "../components/background/GameLandscapeBackground.jsx";
 import LetterBlocks from "../components/illustrations/LetterBlocks.jsx";
 
@@ -31,7 +29,6 @@ const CANDY_TITLE = [
 export default function HomeView() {
   const { navigateTo } = useGame();
   const { playSfx, playMenuVoice } = useAudio();
-  const { triggerInstall, isInstalled } = usePWAInstall();
 
   // Mascots reaction state
   const [mascotsJumping, setMascotsJumping] = useState(false);
@@ -165,8 +162,8 @@ export default function HomeView() {
               </p>
             </div>
 
-            {/* Real Client Sprite CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            {/* Real Client Sprite CTA Button */}
+            <div className="flex items-center justify-center lg:justify-start w-full sm:w-auto mt-1 sm:mt-2">
               {/* Primary 3D Play Button using real client asset play.png */}
               <motion.button
                 type="button"
@@ -185,22 +182,6 @@ export default function HomeView() {
                   style={{ imageRendering: "-webkit-optimize-contrast" }}
                 />
               </motion.button>
-
-              {/* Secondary Desktop Install Button */}
-              {!isInstalled && (
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95, y: 2 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                  onClick={triggerInstall}
-                  aria-label="Pasang Aplikasi di Desktop"
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-gradient-to-b from-[#2DD4BF] to-[#0D9488] border-b-[4px] border-[#0F766E] shadow-md active:border-b-0 cursor-pointer flex items-center justify-center gap-2 text-white font-display font-bold text-xs sm:text-sm select-none"
-                >
-                  <MonitorDown size={16} />
-                  <span>Pasang di Desktop</span>
-                </motion.button>
-              )}
             </div>
           </div>
 

@@ -7,17 +7,14 @@ import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext.jsx";
 import { useAudio } from "../../context/AudioContext.jsx";
-import { usePWAInstall } from "../../hooks/usePWAInstall.js";
-import InstallModal from "../ui/InstallModal.jsx";
 import ConfirmResetModal from "../ui/ConfirmResetModal.jsx";
-import { MonitorDown, RotateCcw, ArrowLeft } from "lucide-react";
+import { RotateCcw, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TopControlBar() {
   const location = useLocation();
   const { stars, navigateTo, resetProgress } = useGame();
   const { isBgmEnabled, toggleBgm, playSfx } = useAudio();
-  const { isInstalled, triggerInstall, showManualModal, setShowManualModal } = usePWAInstall();
 
   const [showResetModal, setShowResetModal] = useState(false);
   const [starHovered, setStarHovered] = useState(false);
@@ -179,30 +176,11 @@ export default function TopControlBar() {
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
-
-            {/* Desktop Install Action (Arcade Mint-Green Pill) */}
-            {!isInstalled && (
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.05, y: -1 }}
-                whileTap={{ scale: 0.95, y: 2 }}
-                onClick={() => {
-                  playSfx("click");
-                  triggerInstall();
-                }}
-                aria-label="Pasang Aplikasi di Desktop"
-                className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-b from-[#34D399] to-[#10B981] border-b-[3px] border-[#047857] text-white font-display font-bold text-xs shadow-sm cursor-pointer active:border-b-0 transition-all"
-              >
-                <MonitorDown size={13} />
-                <span>Pasang</span>
-              </motion.button>
-            )}
           </div>
         </div>
       </header>
 
       {/* Modals */}
-      <InstallModal isOpen={showManualModal} onClose={() => setShowManualModal(false)} />
       <ConfirmResetModal
         isOpen={showResetModal}
         onConfirm={handleConfirmReset}
