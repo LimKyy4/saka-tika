@@ -2,7 +2,6 @@
 // Studio-grade tactile button supporting both vector CSS 3D physics and client PNG button sprites.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 import { useAudio } from "../../context/AudioContext.jsx";
 

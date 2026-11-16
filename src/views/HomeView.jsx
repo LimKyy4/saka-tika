@@ -2,7 +2,7 @@
 // SAKA TIKA: Welcome Home View with Centered Title, 3D Play & Exit CTAs, and Flanking Mascots.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, Play, Heart } from "lucide-react";
 import { useGame } from "../context/GameContext.jsx";

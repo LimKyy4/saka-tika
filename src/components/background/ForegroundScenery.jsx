@@ -2,7 +2,6 @@
 // Studio-grade lush foreground landscape with rolling hills, wooden cartoon fence, trees & swaying flowers.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 function SwayingFlower({ cx, cy, petalColor, centerColor = "#FFE066", delay = 0 }) {

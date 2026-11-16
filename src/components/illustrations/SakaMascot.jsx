@@ -5,7 +5,6 @@
 // - /assets/saka-maskot-utama2.png (action / waving / cheering pose)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 export default function SakaMascot({ className = "", isWaving = false }) {

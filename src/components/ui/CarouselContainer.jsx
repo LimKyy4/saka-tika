@@ -1,6 +1,6 @@
 // src/components/ui/CarouselContainer.jsx
 // Supports both uncontrolled (internal state) and controlled (externalPage prop) modes.
-import React, { useState, useEffect, useCallback, Children } from "react";
+import { useState, useEffect, useCallback, useRef, Children } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import IconButton from "./IconButton.jsx";
 
@@ -26,7 +26,7 @@ export default function CarouselContainer({
   const currentPage  = isControlled ? controlledPage : internalPage;
 
   // Keep direction in sync when controlled page changes externally
-  const prevPageRef = React.useRef(currentPage);
+  const prevPageRef = useRef(currentPage);
   useEffect(() => {
     if (prevPageRef.current !== currentPage) {
       setDirection(currentPage > prevPageRef.current ? 1 : -1);

@@ -8,7 +8,7 @@
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons and custom vector assets.
 
-import React, { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, RotateCcw, Pencil, Check, CheckCircle2, Lock } from "lucide-react";
 
@@ -861,7 +861,7 @@ export default function MenulisHurufView() {
               whileTap={{ scale: 0.95 }}
               onClick={handleSpeakLetter}
               aria-label={`Dengarkan bunyi huruf ${currentLetterChar}`}
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-b from-[#38BDF8] to-[#0284C7] border-b-3 border-[#0369A1] text-white shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:border-b-0"
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-b from-[#38BDF8] to-[#0284C7] border-b-[3px] border-[#0369A1] text-white shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:border-b-0"
             >
               <Volume2 size={15} />
               <span className="font-display font-bold text-xs sm:text-sm">Suara</span>
@@ -874,7 +874,7 @@ export default function MenulisHurufView() {
               whileTap={{ scale: 0.95 }}
               onClick={handleEraserClick}
               aria-label="Hapus dan bersihkan kanvas"
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border-b-3 border-[#B45309] text-[#78350F] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:border-b-0"
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border-b-[3px] border-[#B45309] text-[#78350F] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:border-b-0"
             >
               <RotateCcw size={14} />
               <span className="font-display font-bold text-xs sm:text-sm">Hapus</span>

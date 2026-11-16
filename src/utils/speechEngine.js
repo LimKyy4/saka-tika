@@ -21,15 +21,20 @@ function getIndonesianVoice() {
 
 function speak(text) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "id-ID";
-  utter.pitch = 1.1;
-  utter.rate = 0.9;
-  utter.volume = 1;
-  const voice = getIndonesianVoice();
-  if (voice) utter.voice = voice;
-  window.speechSynthesis.speak(utter);
+  try {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "id-ID";
+    utter.pitch = 1.1;
+    utter.rate = 0.9;
+    utter.volume = 1;
+    utter.onerror = () => {};
+    const voice = getIndonesianVoice();
+    if (voice) utter.voice = voice;
+    window.speechSynthesis.speak(utter);
+  } catch {
+    // Ignore speech errors gracefully
+  }
 }
 
 /**

@@ -21,6 +21,10 @@ export default {
           canvas: "#FFFDF9",
         },
       },
+      borderWidth: {
+        3: '3px',
+        6: '6px',
+      },
     },
   },
   plugins: [],

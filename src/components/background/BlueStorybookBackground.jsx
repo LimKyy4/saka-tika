@@ -9,7 +9,7 @@
 // 6. Faint storybook ABC blocks and alphabet silhouettes in background corners
 // STRICT ZERO EMOJIS POLICY: Only bespoke vector paths and CSS.
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 
 export default function BlueStorybookBackground() {
@@ -266,7 +266,7 @@ export default function BlueStorybookBackground() {
 
         {/* Subtle Scattered White Daisy Flowers along Meadow Edge */}
         <div className="absolute bottom-2 inset-x-0 flex justify-around opacity-40 px-6">
-          {[12, 28, 45, 62, 78, 91].map((pos, i) => (
+          {[12, 28, 45, 62, 78, 91].map((_, i) => (
             <svg key={i} viewBox="0 0 24 24" className="w-4 h-4 text-white">
               <circle cx="12" cy="7" r="3" fill="currentColor" />
               <circle cx="17" cy="12" r="3" fill="currentColor" />

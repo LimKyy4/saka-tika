@@ -2,7 +2,6 @@
 // High-detail 2D cartoon vector illustrations for all 78 alphabet vocabulary words + mini-game extras.
 // STRICT ZERO EMOJIS POLICY: Only bespoke multi-layered SVG paths.
 
-import React from "react";
 
 // ── 1. Original 26 Primary Illustrations ───────────────────────────
 

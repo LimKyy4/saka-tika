@@ -2,7 +2,6 @@
 // Studio-grade 7-band pastel rainbow arc with soft ambient glow.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 const BANDS = [

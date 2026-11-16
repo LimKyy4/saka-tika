@@ -1,7 +1,6 @@
 // src/components/ui/InstallModal.jsx
-import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Download, Monitor } from "lucide-react";
+import { X, Monitor } from "lucide-react";
 import TactileButton from "./TactileButton.jsx";
 
 export default function InstallModal({ isOpen, onClose }) {

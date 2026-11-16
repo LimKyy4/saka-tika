@@ -4,7 +4,7 @@
 
 import React, { useState, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { GameProvider } from "./context/GameContext.jsx";
 import { AudioProvider } from "./context/AudioContext.jsx";
 import TopControlBar from "./components/layout/TopControlBar.jsx";

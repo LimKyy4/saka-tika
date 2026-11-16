@@ -2,7 +2,6 @@
 // Studio-grade dual-layer cartoon mountain ridges with atmospheric pastel depth.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 
 export default function MountainRange({ className = "" }) {
   return (

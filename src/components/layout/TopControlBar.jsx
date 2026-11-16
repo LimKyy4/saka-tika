@@ -3,7 +3,6 @@
 // Strictly adheres to Tier 1: Top HUD Bar (Height: 10% - 12%, max 64px)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext.jsx";
 import { useAudio } from "../../context/AudioContext.jsx";
@@ -34,7 +33,7 @@ export default function TopControlBar() {
                 navigateTo("/menu");
               }}
               aria-label="Kembali ke Menu Utama"
-              className="flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-2xl bg-gradient-to-b from-[#FFFDF9] to-[#F1F5F9] border-b-3 border-[#CBD5E1] text-[#1B4965] font-display font-bold text-xs sm:text-sm shadow-sm active:border-b-0 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-2xl bg-gradient-to-b from-[#FFFDF9] to-[#F1F5F9] border-b-[3px] border-[#CBD5E1] text-[#1B4965] font-display font-bold text-xs sm:text-sm shadow-sm active:border-b-0 cursor-pointer"
             >
               <ArrowLeft size={16} className="text-[#1B4965]" />
               <span>Menu</span>

@@ -2,7 +2,6 @@
 // Studio-grade sprite icon button with 3D press physics and responsive audio feedback.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 import { useAudio } from "../../context/AudioContext.jsx";
 

@@ -2,7 +2,7 @@
 // SAKA TIKA: 5-Column Single-Row Horizontal Arcade Deck
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useGame } from "../context/GameContext.jsx";

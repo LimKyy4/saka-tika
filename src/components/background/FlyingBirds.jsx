@@ -2,7 +2,6 @@
 // Studio-grade animated cartoon songbirds with flapping wings and click chirps.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 import { useAudio } from "../../context/AudioContext.jsx";
 

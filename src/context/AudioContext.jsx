@@ -3,7 +3,7 @@
 // Features studio BGM rotation using Howler, automated synth fallback, and voice guidance.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { createContext, useState, useEffect, useCallback, useRef } from "react";
+import { createContext, useState, useEffect, useCallback, useRef, useContext } from "react";
 import { Howl, Howler } from "howler";
 import * as synth from "../utils/soundSynthesizer.js";
 
@@ -271,7 +271,7 @@ export function AudioProvider({ children }) {
 }
 
 export function useAudio() {
-  const context = React.useContext(AudioContext);
+  const context = useContext(AudioContext);
   if (!context) {
     throw new Error("useAudio must be used within an AudioProvider");
   }

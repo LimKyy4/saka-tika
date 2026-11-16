@@ -2,7 +2,7 @@
 // SAKA TIKA Centralized Game State & Carousel Active Module Memory
 // STRICT ZERO EMOJIS POLICY: Only custom vector graphics or lucide-react.
 
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const GameContext = createContext();
@@ -141,4 +141,4 @@ export function GameProvider({ children }) {
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
-export const useGame = () => React.useContext(GameContext);
+export const useGame = () => useContext(GameContext);

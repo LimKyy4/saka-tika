@@ -3,7 +3,6 @@
 // STRICT ZERO EMOJIS POLICY: Only custom vector graphics.
 // Mascots are strictly excluded per architectural directive.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 export default function PopKeysDiorama({ isActive = true, className = "" }) {

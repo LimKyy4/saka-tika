@@ -1,5 +1,4 @@
 // src/components/ui/ConfirmResetModal.jsx
-import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, X } from "lucide-react";
 import TactileButton from "./TactileButton.jsx";

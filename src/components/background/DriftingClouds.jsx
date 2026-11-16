@@ -2,7 +2,6 @@
 // Studio-grade multi-layer parallax drifting cartoon clouds strictly constrained to upper 25% sky band.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 function CloudPuff({ width = 140, height = 75, className = "" }) {

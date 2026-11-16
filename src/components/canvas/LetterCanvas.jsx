@@ -4,10 +4,10 @@
 // Forgiving Mid-Stroke Resume, 60 FPS Render Loop & Mandatory 1.8s Grand Completion Hold.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { getLetterPath } from "../../data/alphabetPaths.js";
 import {
   playSuccessSound,

@@ -4,7 +4,7 @@
 // with subtle parallax clouds and birds for living 60 FPS motion.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { useState } from "react";
+import { useState } from "react";
 import DriftingClouds from "./DriftingClouds.jsx";
 import FlyingBirds from "./FlyingBirds.jsx";
 

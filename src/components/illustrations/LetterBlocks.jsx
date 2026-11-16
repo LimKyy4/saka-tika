@@ -2,7 +2,6 @@
 // Studio-grade musical 3D toy alphabet blocks with xylophone notes & confetti burst.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useAudio } from "../../context/AudioContext.jsx";

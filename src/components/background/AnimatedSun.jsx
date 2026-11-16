@@ -2,7 +2,7 @@
 // Studio-grade smiling cartoon sun with rotating petal rays, breathing face & chime on hover.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "../../context/AudioContext.jsx";
 

@@ -5,7 +5,6 @@
 // - /assets/tika-maskot-utama2.png (action / cheering pose)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 export default function TikaMascot({ className = "", isCheering = false }) {

@@ -10,7 +10,7 @@
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons and custom vector assets.
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
@@ -1035,7 +1035,7 @@ function LetterDetailModal({ letterObj, maxUnlockedIndex, onClose, onNavigate, p
             whileTap={{ scale: 0.95, y: 1 }}
             onClick={handlePlayAllSequence}
             aria-label="Dengarkan nama huruf dan semua contoh kata secara berurutan"
-            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-2xl font-display font-bold text-xs sm:text-sm shadow-md cursor-pointer transition-all border-b-3 ${
+            className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-2xl font-display font-bold text-xs sm:text-sm shadow-md cursor-pointer transition-all border-b-[3px] ${
               isSpeakingSequence
                 ? "bg-gradient-to-b from-[#10B981] to-[#059669] text-white border-[#047857] animate-pulse"
                 : "bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white border-[#0369A1]"

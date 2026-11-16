@@ -2,12 +2,12 @@
 // Studio Intro Video Screen with Fullscreen Autoplay Video and Seamless Transition.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Howler } from "howler";
 import { unlockAudio } from "../../utils/soundSynthesizer.js";
 
-export default function SplashScreen({ onFinish, onComplete }) {
+export default function SplashScreen({ onFinish = () => {}, onComplete = () => {} }) {
   const triggerFinish = onFinish || onComplete;
   const videoRef = useRef(null);
   const [isFadingOut, setIsFadingOut] = useState(false);

@@ -4,7 +4,6 @@
 // with high-satisfaction 3D arcade tactile physics, gloss shimmer, and acoustic chime triggers.
 // STRICT ZERO EMOJIS POLICY: Only custom vector graphics and client assets.
 
-import React from "react";
 import { motion } from "framer-motion";
 import { useAudio } from "../../context/AudioContext.jsx";
 

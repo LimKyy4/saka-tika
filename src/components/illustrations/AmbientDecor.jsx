@@ -2,7 +2,6 @@
 // Ambient animated background decor: fluttering butterflies, gliding birds, and drifting clouds.
 // ZERO EMOJIS anywhere in this file.
 
-import React from "react";
 import { motion } from "framer-motion";
 
 // Friendly Animated Butterfly
