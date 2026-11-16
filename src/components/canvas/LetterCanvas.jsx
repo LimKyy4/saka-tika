@@ -1,13 +1,14 @@
 // src/components/canvas/LetterCanvas.jsx
-// SAKA TIKA: Robust Letter Tracing Engine (Immediate Guide & Sketch Rendering, Single Active Node Sequencing)
-// Forgiving Checkpoint Progression, Zero Stroke Interruption, 60 FPS Immune Render Loop & Mandatory 1.8s Hold.
+// SAKA TIKA: Robust Letter Tracing Engine (Dual Mode, Slim Brush, No Stroke Numbers, Dense Checkpoints)
+// Dense 12-Waypoint Sequential Progression (Strict Start-to-End Tracing, Zero Tap Finish, 28-32px Corridor).
+// Forgiving Mid-Stroke Resume, 60 FPS Render Loop & Mandatory 1.8s Grand Completion Hold.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { RotateCcw, Sparkles } from "lucide-react";
-import { ALPHABET_PATHS } from "../../data/alphabetPaths.js";
+import { Sparkles, CheckCircle2 } from "lucide-react";
+import { getLetterPath } from "../../data/alphabetPaths.js";
 import {
   playSuccessSound,
   playHoverSound,
@@ -68,35 +69,8 @@ function parsePathToCanvas(ctx, pathStr, scaleX, scaleY, offsetX, offsetY) {
   ctx.stroke();
 }
 
-// Fallback milestone extractor for SVG paths
-function extractStrokeMilestones(pathStr) {
-  if (typeof document === "undefined") {
-    return { start: { x: 50, y: 16 }, end: { x: 50, y: 100 } };
-  }
-  try {
-    const svgNS = "http://www.w3.org/2000/svg";
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("d", pathStr);
-    const totalLength = path.getTotalLength() || 1;
-    const ptStart = path.getPointAtLength(0);
-    let ptEnd = path.getPointAtLength(totalLength);
-
-    const distStartEnd = Math.hypot(ptEnd.x - ptStart.x, ptEnd.y - ptStart.y);
-    if (distStartEnd < 18) {
-      ptEnd = path.getPointAtLength(totalLength * 0.5);
-    }
-
-    return {
-      start: { x: ptStart.x, y: ptStart.y },
-      end: { x: ptEnd.x, y: ptEnd.y },
-    };
-  } catch {
-    return { start: { x: 50, y: 16 }, end: { x: 50, y: 100 } };
-  }
-}
-
-// Sample points along path for animated directional comet pulse
-function sampleStrokePoints(pathStr, numSamples = 36) {
+// Sample exactly 12 dense sequential checkpoints along path (0% to 100%)
+function sampleStrokeCheckpoints(pathStr, count = 12) {
   if (typeof document === "undefined") return [];
   try {
     const svgNS = "http://www.w3.org/2000/svg";
@@ -104,8 +78,9 @@ function sampleStrokePoints(pathStr, numSamples = 36) {
     path.setAttribute("d", pathStr);
     const totalLength = path.getTotalLength() || 1;
     const points = [];
-    for (let i = 0; i <= numSamples; i++) {
-      const pt = path.getPointAtLength((i / numSamples) * totalLength);
+    for (let i = 0; i < count; i++) {
+      const dist = (i / (count - 1)) * totalLength;
+      const pt = path.getPointAtLength(dist);
       points.push({ x: pt.x, y: pt.y });
     }
     return points;
@@ -140,6 +115,8 @@ function drawSparkleStar(ctx, cx, cy, spikes = 4, outerRadius = 5, innerRadius =
 
 export default function LetterCanvas({
   letterObj,
+  mode = "upper",
+  activeColor = "#2563EB",
   onNextLetter,
   hasNextLetter = true,
   onProgressUpdate,
@@ -157,7 +134,10 @@ export default function LetterCanvas({
   const animFrameId = useRef(null);
   const lastSoundTime = useRef(0);
 
-  // Keep latest callbacks in refs so effects never re-run or cancel loops on prop changes
+  // Active ink color ref for smooth, un-throttled canvas updates
+  const activeColorRef = useRef(activeColor);
+
+  // Keep latest callbacks in refs so effects never cancel loops on prop changes
   const onProgressUpdateRef = useRef(onProgressUpdate);
   const onStrokeUpdateRef = useRef(onStrokeUpdate);
   const onLetterCompletedRef = useRef(onLetterCompleted);
@@ -170,31 +150,35 @@ export default function LetterCanvas({
     onNextLetterRef.current = onNextLetter;
   });
 
+  useEffect(() => {
+    activeColorRef.current = activeColor;
+  }, [activeColor]);
+
   // Mutable refs decoupled from React render loop for 60 FPS performance
   const isDrawing = useRef(false);
   const lastPoint = useRef(null);
   const currentStrokeIdxRef = useRef(0);
   const completedStrokesRef = useRef([]);
   const isHoldingCompletionRef = useRef(false);
-  const strokeMilestones = useRef([]);
-  const strokeWaypoints = useRef([]);
-  const milestoneHits = useRef({ start: false, end: false });
+  const strokeCheckpoints = useRef([]);
+  const nextCheckpointIndexRef = useRef(0);
   const particlesRef = useRef([]);
 
-  // React state for UI overlays (pill badge & celebration modal)
+  // React state for UI overlays (status bar & celebration modal)
   const [currentStrokeIdx, setCurrentStrokeIdx] = useState(0);
   const [completedStrokes, setCompletedStrokes] = useState([]);
   const [isHoldingCompletion, setIsHoldingCompletion] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [hasAwardedStar, setHasAwardedStar] = useState(false);
 
-  const letterPathData = ALPHABET_PATHS[letterObj.letter] || ALPHABET_PATHS.A;
+  const letterChar =
+    mode === "lower"
+      ? (letterObj?.lowercase || (letterObj?.letter || "a").toLowerCase())
+      : (letterObj?.letter || "A").toUpperCase();
+  const letterPathData = getLetterPath(letterChar, mode);
   const totalStrokes = letterPathData.paths.length;
 
-  // Proportional uniform scaling: target letter coordinate bounds fit comfortably within 4-line writing guidelines with generous safety padding
-  // Coordinates in alphabetPaths:
-  // Top Ascender Line at Y=16, Midline at Y=58, Baseline at Y=100, Descender at Y=114
-  // Using (0.50 * h) / 98 ensures ~25% top padding and ~25% bottom padding, avoiding any touch or overflow with the wooden easel frame!
+  // Proportional scaling for 4-line handwriting grid (Top Y=16, Midline Y=58, Baseline Y=100, Descender Y=114)
   const getScaleAndOffset = useCallback((w, h) => {
     const scale = Math.min((0.50 * h) / 98, (0.58 * w) / 80);
     const offsetX = (w / 2) - 50 * scale;
@@ -230,8 +214,22 @@ export default function LetterCanvas({
     const activeStroke = currentStrokeIdxRef.current;
     const isHolding = isHoldingCompletionRef.current;
 
+    // Refined, slim active & completed brush stroke width (7.2px, approx 20% slimmer than 9px)
+    const brushWidth = 7.2;
+    const inkColor = activeColorRef.current || "#2563EB";
+
+    // ── 0. Subtle Ruled Paper Left Margin Line (Classic Notebook Margin) ──
+    const marginX = lineXStart + 22 * Math.min(scaleX, scaleY);
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "rgba(244, 114, 182, 0.45)";
+    ctx.beginPath();
+    ctx.moveTo(marginX, 0);
+    ctx.lineTo(marginX, height);
+    ctx.stroke();
+
     // ── 1. Primary 4-Line Handwriting Guidelines ──
-    // Line 1: Top Ascender Line (Y = 16, crisp slate guide)
+    // Line 1: Top Ascender Line (Y = 16)
     const yTop = offsetY + 16 * scaleY;
     ctx.lineWidth = 1.8;
     ctx.setLineDash([]);
@@ -241,7 +239,7 @@ export default function LetterCanvas({
     ctx.lineTo(lineXEnd, yTop);
     ctx.stroke();
 
-    // Line 2: Waistline / Midline (Y = 58, dashed vibrant sky blue)
+    // Line 2: Waistline / Midline (Y = 58, dashed)
     const yMid = offsetY + 58 * scaleY;
     ctx.lineWidth = 2.0;
     ctx.setLineDash([8, 8]);
@@ -261,7 +259,7 @@ export default function LetterCanvas({
     ctx.lineTo(lineXEnd, yBase);
     ctx.stroke();
 
-    // Line 4: Descender Line (Y = 114, soft slate line)
+    // Line 4: Descender Line (Y = 114)
     const yBottom = offsetY + 114 * scaleY;
     ctx.lineWidth = 1.6;
     ctx.setLineDash([]);
@@ -271,164 +269,146 @@ export default function LetterCanvas({
     ctx.lineTo(lineXEnd, yBottom);
     ctx.stroke();
 
-    // ── 2. Letter Silhouette Track (Soft Background Sketch) ──
+    // ── 2. Letter Silhouette Track (Crisp Background Sketch) ──
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.setLineDash([]);
     ctx.strokeStyle = "#E2E8F0";
-    ctx.lineWidth = 26 * Math.min(scaleX, scaleY);
+    ctx.lineWidth = 14 * Math.min(scaleX, scaleY);
     for (const p of letterPathData.paths) {
       parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
     }
 
     // ── 2b. Dashed Centerline Track for Clear Letter Sketch ──
     ctx.strokeStyle = "#CBD5E1";
-    ctx.lineWidth = 3.5 * Math.min(scaleX, scaleY);
+    ctx.lineWidth = 2.2 * Math.min(scaleX, scaleY);
     ctx.setLineDash([6, 6]);
     for (const p of letterPathData.paths) {
       parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
     }
     ctx.setLineDash([]);
 
-    // ── 3. Completed Strokes & Active Track Guides ──
+    // ── 3. Completed Strokes ──
     letterPathData.paths.forEach((p, idx) => {
       if (completedList.includes(idx) || isHolding) {
-        // Crisp, solid royal blue vector ink with glossy highlight
+        // Solid vector ink in chosen crayon color with soft glow
         ctx.setLineDash([]);
-        ctx.lineWidth = 18 * Math.min(scaleX, scaleY);
-        ctx.strokeStyle = "#2563EB";
-        ctx.shadowColor = isHolding ? "#60A5FA" : "#93C5FD";
-        ctx.shadowBlur = isHolding ? 24 : 10;
+        ctx.lineWidth = brushWidth;
+        ctx.strokeStyle = inkColor;
+        ctx.shadowColor = isHolding ? inkColor : `${inkColor}66`;
+        ctx.shadowBlur = isHolding ? 12 : 4;
         parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
         ctx.shadowBlur = 0;
       } else if (idx === activeStroke && !isHolding && !isCompleted) {
-        // Active stroke track: prominent dashed guideline with letter color
+        // Active stroke track: prominent dashed guide line
         ctx.setLineDash([8, 10]);
-        ctx.lineWidth = 8.5 * Math.min(scaleX, scaleY);
-        ctx.strokeStyle = letterObj.color || "#3B82F6";
+        ctx.lineWidth = 6 * Math.min(scaleX, scaleY);
+        ctx.strokeStyle = letterObj.color || inkColor;
         parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
         ctx.setLineDash([]);
       }
     });
 
-    // ── 4. Directional Animated Comet Pulse along Active Stroke ──
-    const activePoints = strokeWaypoints.current[activeStroke];
-    if (activePoints && activePoints.length > 0 && !isHolding && !isCompleted) {
-      const now = performance.now();
-      const cometCycle = (now % 2000) / 2000;
-
-      for (let i = 0; i < 4; i++) {
-        const tailOffset = cometCycle - i * 0.04;
-        const boundedT = tailOffset < 0 ? 0 : tailOffset;
-        const ptIdx = Math.min(
-          activePoints.length - 1,
-          Math.floor(boundedT * activePoints.length)
-        );
-        const p = activePoints[ptIdx];
-        if (p) {
-          const cx = offsetX + p.x * scaleX;
-          const cy = offsetY + p.y * scaleY;
-          const r = Math.max(3.5, (9 - i * 1.8) * Math.min(scaleX, scaleY));
-
-          ctx.beginPath();
-          ctx.arc(cx, cy, r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(59, 130, 246, ${0.9 - i * 0.22})`;
-          ctx.shadowColor = "#60A5FA";
-          ctx.shadowBlur = 10;
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
+    // ── 4. Live Active Ink Along Path (from Checkpoint 0 to nextCheckpointIndex) ──
+    const activeCps = strokeCheckpoints.current[activeStroke];
+    const curCheckpointIdx = nextCheckpointIndexRef.current;
+    if (activeCps && activeCps.length >= 12 && curCheckpointIdx > 0 && !isHolding && !isCompleted) {
+      ctx.beginPath();
+      const p0 = activeCps[0];
+      ctx.moveTo(offsetX + p0.x * scaleX, offsetY + p0.y * scaleY);
+      for (let i = 1; i <= Math.min(curCheckpointIdx, 11); i++) {
+        const pi = activeCps[i];
+        ctx.lineTo(offsetX + pi.x * scaleX, offsetY + pi.y * scaleY);
       }
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = brushWidth;
+      ctx.strokeStyle = inkColor;
+      ctx.shadowColor = `${inkColor}66`;
+      ctx.shadowBlur = 4;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
-    // ── 5. Destination Target Beacon (ONLY for Active Stroke) ──
-    const activeMs = strokeMilestones.current[activeStroke];
-    if (activeMs?.end && !isHolding && !isCompleted) {
-      const ex = offsetX + activeMs.end.x * scaleX;
-      const ey = offsetY + activeMs.end.y * scaleY;
-      const endR = Math.max(9, 10 * Math.min(scaleX, scaleY));
+    // ── 5. Directional Animated Comet Pulse & Pulsing Start Dot (NO NUMBERS) ──
+    if (activeCps && activeCps.length >= 12 && !isHolding && !isCompleted) {
+      const curTarget = Math.min(curCheckpointIdx, 11);
 
-      if (milestoneHits.current.end) {
-        // Destination touched: solid emerald green check badge
-        ctx.beginPath();
-        ctx.arc(ex, ey, endR, 0, Math.PI * 2);
-        ctx.fillStyle = "#10B981";
-        ctx.fill();
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.lineWidth = 2.2;
-        ctx.stroke();
+      // Animated directional comet pulse gliding from current target toward end
+      if (curTarget < 11) {
+        const remaining = activeCps.slice(curTarget);
+        const now = performance.now();
+        const cometCycle = (now % 1800) / 1800;
 
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.beginPath();
-        ctx.moveTo(ex - endR * 0.4, ey);
-        ctx.lineTo(ex - endR * 0.1, ey + endR * 0.3);
-        ctx.lineTo(ex + endR * 0.4, ey - endR * 0.3);
-        ctx.stroke();
-      } else {
-        // Waiting for touch: soft dashed amber ring with pulsing star center
-        const pulseEnd = Math.sin(performance.now() * 0.007 + 1.5) * 2.2;
-        ctx.beginPath();
-        ctx.arc(ex, ey, endR + 3 + pulseEnd, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(245, 158, 11, 0.18)";
-        ctx.fill();
+        for (let i = 0; i < 3; i++) {
+          const tailOffset = cometCycle - i * 0.05;
+          if (tailOffset >= 0 && tailOffset <= 1) {
+            const ptIdx = Math.min(
+              remaining.length - 1,
+              Math.floor(tailOffset * remaining.length)
+            );
+            const p = remaining[ptIdx];
+            if (p) {
+              const cx = offsetX + p.x * scaleX;
+              const cy = offsetY + p.y * scaleY;
+              const r = Math.max(3, (6 - i * 1.5) * Math.min(scaleX, scaleY));
+
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(56, 189, 248, ${0.85 - i * 0.25})`;
+              ctx.shadowColor = "#38BDF8";
+              ctx.shadowBlur = 6;
+              ctx.fill();
+              ctx.shadowBlur = 0;
+            }
+          }
+        }
+      }
+
+      // Small, inviting Pulsing Start Dot at exact start or current resume position (NO NUMBER)
+      const startPt = activeCps[curTarget];
+      const sx = offsetX + startPt.x * scaleX;
+      const sy = offsetY + startPt.y * scaleY;
+      const dotR = 8;
+      const pulseR = 14 + Math.sin(performance.now() * 0.008) * 2;
+
+      // Outer pulse aura ring
+      ctx.beginPath();
+      ctx.arc(sx, sy, pulseR, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(245, 158, 11, 0.35)";
+      ctx.fill();
+
+      // Main solid start dot
+      ctx.beginPath();
+      ctx.arc(sx, sy, dotR, 0, Math.PI * 2);
+      ctx.fillStyle = "#F59E0B";
+      ctx.fill();
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Destination End Target Beacon (soft dashed ring at checkpoint 11)
+      if (curTarget < 11) {
+        const endPt = activeCps[11];
+        const ex = offsetX + endPt.x * scaleX;
+        const ey = offsetY + endPt.y * scaleY;
+        const endR = 7;
 
         ctx.beginPath();
-        ctx.setLineDash([4, 4]);
-        ctx.arc(ex, ey, endR, 0, Math.PI * 2);
+        ctx.setLineDash([3, 3]);
+        ctx.arc(ex, ey, endR + 2, 0, Math.PI * 2);
         ctx.strokeStyle = "#F59E0B";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
         ctx.setLineDash([]);
 
         ctx.fillStyle = "#F59E0B";
-        drawSparkleStar(ctx, ex, ey, 4, endR * 0.48, endR * 0.22);
+        drawSparkleStar(ctx, ex, ey, 4, endR * 0.5, endR * 0.22);
         ctx.fill();
       }
     }
 
-    // ── 6. SINGLE ACTIVE STROKE NUMBER NODE ──
-    // STRICT RULE: All future stroke numbers (2, 3...) remain completely HIDDEN.
-    // Only the single currently active stroke number is displayed!
-    if (!isHolding && !isCompleted && activeStroke < totalStrokes) {
-      const activeNode = letterPathData.startNodes?.[activeStroke] || {
-        number: activeStroke + 1,
-        x: activeMs?.start?.x || 50,
-        y: activeMs?.start?.y || 16,
-      };
-
-      const nx = offsetX + activeNode.x * scaleX;
-      const ny = offsetY + activeNode.y * scaleY;
-      const badgeR = Math.max(10, 11 * Math.min(scaleX, scaleY));
-
-      // Pulsing outer halo ring
-      const pulseR = badgeR + 3 + Math.sin(performance.now() * 0.006) * 2;
-      ctx.beginPath();
-      ctx.arc(nx, ny, pulseR, 0, Math.PI * 2);
-      ctx.fillStyle = milestoneHits.current.start
-        ? "rgba(16, 185, 129, 0.28)"
-        : (letterObj.color || "#3B82F6") + "33";
-      ctx.fill();
-
-      // Main circular badge
-      ctx.beginPath();
-      ctx.arc(nx, ny, badgeR, 0, Math.PI * 2);
-      ctx.fillStyle = milestoneHits.current.start
-        ? "#10B981"
-        : letterObj.color || "#3B82F6";
-      ctx.fill();
-      ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      // Sequence Number (Strictly 1, 2, 3...)
-      ctx.font = `bold ${Math.round(13 * Math.min(scaleX, scaleY))}px 'Fredoka', sans-serif`;
-      ctx.fillStyle = "#FFFFFF";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(String(activeStroke + 1), nx, ny);
-    }
-
-    // ── 7. Sparkling Star Particles Physics ──
+    // ── 6. Sparkling Star Particles Physics ──
     const particles = particlesRef.current;
     if (particles.length > 0) {
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -450,23 +430,15 @@ export default function LetterCanvas({
         ctx.restore();
       }
     }
-  }, [
-    letterObj,
-    letterPathData,
-    getScaleAndOffset,
-    isCompleted,
-    totalStrokes,
-  ]);
+  }, [letterPathData, letterObj, getScaleAndOffset]);
 
-  // Flawless DPI & Coordinate Matrix Synchronization
+  // Adjust canvas pixel resolutions to match display dimensions
   const resizeCanvases = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    const w = Math.max(320, Math.floor((rect.width || 500) * dpr));
-    const h = Math.max(240, Math.floor((rect.height || 400) * dpr));
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (w <= 0 || h <= 0) return;
 
     if (guideCanvasRef.current) {
       guideCanvasRef.current.width = w;
@@ -517,7 +489,7 @@ export default function LetterCanvas({
     currentStrokeIdxRef.current = 0;
     completedStrokesRef.current = [];
     isHoldingCompletionRef.current = false;
-    milestoneHits.current = { start: false, end: false };
+    nextCheckpointIndexRef.current = 0;
 
     setCurrentStrokeIdx(0);
     setCompletedStrokes([]);
@@ -537,18 +509,10 @@ export default function LetterCanvas({
     }
   }, [resetTrigger, handleFullReset]);
 
-  // Initialize milestone targets & stroke waypoints when active letter changes
+  // Initialize dense checkpoints when active letter changes
   useEffect(() => {
-    if (letterPathData.checkpoints && letterPathData.checkpoints.length === letterPathData.paths.length) {
-      strokeMilestones.current = letterPathData.checkpoints;
-    } else {
-      strokeMilestones.current = letterPathData.paths.map((p) =>
-        extractStrokeMilestones(p)
-      );
-    }
-
-    strokeWaypoints.current = letterPathData.paths.map((p) =>
-      sampleStrokePoints(p, 36)
+    strokeCheckpoints.current = letterPathData.paths.map((p) =>
+      sampleStrokeCheckpoints(p, 12)
     );
     particlesRef.current = [];
     isDrawing.current = false;
@@ -556,7 +520,7 @@ export default function LetterCanvas({
     currentStrokeIdxRef.current = 0;
     completedStrokesRef.current = [];
     isHoldingCompletionRef.current = false;
-    milestoneHits.current = { start: false, end: false };
+    nextCheckpointIndexRef.current = 0;
 
     setCurrentStrokeIdx(0);
     setCompletedStrokes([]);
@@ -577,7 +541,7 @@ export default function LetterCanvas({
     };
   }, [letterObj, totalStrokes, clearDrawingCanvas, renderGuideFrame, resizeCanvases]);
 
-  // Normalized pointer coordinates (eliminates DPI & viewport offset drift)
+  // Normalized pointer coordinates
   const getCanvasCoords = (e) => {
     const canvas = drawCanvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -591,56 +555,6 @@ export default function LetterCanvas({
     };
   };
 
-  // ─── Forgiving Checkpoint Hit Detection (With Path Distance Safeguard) ──
-  const checkMilestones = (x, y, scaleX, scaleY, offsetX, offsetY) => {
-    const activeIdx = currentStrokeIdxRef.current;
-    const ms = strokeMilestones.current[activeIdx];
-    if (!ms) return false;
-
-    // Checkpoint canvas coordinates
-    const startX = offsetX + ms.start.x * scaleX;
-    const startY = offsetY + ms.start.y * scaleY;
-    const endX = offsetX + ms.end.x * scaleX;
-    const endY = offsetY + ms.end.y * scaleY;
-
-    const strokeLength = Math.hypot(endX - startX, endY - startY);
-
-    // Hit radii: generous yet strictly preventing premature triggers halfway through the stroke
-    const START_RADIUS = Math.max(65, Math.min(95, strokeLength * 0.42));
-    const END_RADIUS = Math.max(60, Math.min(85, strokeLength * 0.4));
-
-    // 1. Check Start Checkpoint
-    const distStart = Math.hypot(x - startX, y - startY);
-
-    const altStart = letterPathData.startNodes?.[activeIdx];
-    let distAltStart = Infinity;
-    if (altStart) {
-      const asx = offsetX + altStart.x * scaleX;
-      const asy = offsetY + altStart.y * scaleY;
-      distAltStart = Math.hypot(x - asx, y - asy);
-    }
-
-    if (distStart <= START_RADIUS || distAltStart <= START_RADIUS) {
-      if (!milestoneHits.current.start) {
-        milestoneHits.current.start = true;
-        playHoverSound();
-      }
-    }
-
-    // 2. Check End Destination Checkpoint
-    const distEnd = Math.hypot(x - endX, y - endY);
-
-    if (distEnd <= END_RADIUS) {
-      if (!milestoneHits.current.end) {
-        milestoneHits.current.end = true;
-        playHoverSound();
-      }
-    }
-
-    // Bidirectional & forgiving: Both key checkpoints reached -> Stroke Complete!
-    return milestoneHits.current.start && milestoneHits.current.end;
-  };
-
   // ─── Mandatory 1.8-Second Grand Completion Hold & Smooth Auto-Advance ──
   const triggerGrandCompletion = () => {
     setIsHoldingCompletion(true);
@@ -652,7 +566,7 @@ export default function LetterCanvas({
     playFanfareSound();
 
     // Mark completed & increment star reward in GameContext
-    onLetterCompletedRef.current?.(letterObj.letter);
+    onLetterCompletedRef.current?.(letterChar);
     onProgressUpdateRef.current?.(100);
 
     if (!hasAwardedStar) {
@@ -686,10 +600,9 @@ export default function LetterCanvas({
     }
 
     // Cheerful voice affirmation
-    speakInstruction(`Hebat! Huruf ${letterObj.letter} selesai!`);
+    speakInstruction(`Hebat! Huruf ${letterChar} selesai!`);
 
-    // Hold the completed drawing for exactly 1.8 seconds so the child can appreciate their artwork,
-    // then smoothly and instantly auto-advance to the next letter in sequence
+    // Hold the completed drawing for exactly 1.8 seconds, then auto-advance
     completionHoldTimer.current = setTimeout(() => {
       onNextLetterRef.current?.();
     }, 1800);
@@ -705,8 +618,8 @@ export default function LetterCanvas({
     completedStrokesRef.current = nextCompleted;
     setCompletedStrokes(nextCompleted);
 
-    // Reset milestone hit flags for the upcoming stroke
-    milestoneHits.current = { start: false, end: false };
+    // Reset checkpoint counter for the next stroke
+    nextCheckpointIndexRef.current = 0;
 
     if (activeIdx + 1 < totalStrokes) {
       const nextIdx = activeIdx + 1;
@@ -720,7 +633,70 @@ export default function LetterCanvas({
     }
   };
 
-  // ─── Unified Pointer Events with Pointer Capture & Sub-Frame Lerp ─
+  // ─── Dense Sequential Checkpoint Validation (28px-30px Capture Corridor) ─
+  const validateProgress = (x, y, canvas, scaleX, scaleY, offsetX, offsetY, prev) => {
+    const activeIdx = currentStrokeIdxRef.current;
+    const activeCps = strokeCheckpoints.current[activeIdx];
+    if (!activeCps || activeCps.length < 12) return false;
+
+    const rect = canvas.getBoundingClientRect();
+    // 30px capture radius in display space converted to canvas pixels
+    const CAPTURE_RADIUS = 30 * (canvas.width / rect.width);
+
+    let k = nextCheckpointIndexRef.current;
+    if (k >= 12) return false;
+
+    // Sub-segment linear interpolation between previous and current pointer
+    const pStart = prev || { x, y };
+    const dist = Math.hypot(x - pStart.x, y - pStart.y);
+    const steps = Math.max(1, Math.floor(dist / 6));
+
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps;
+      const px = pStart.x + (x - pStart.x) * t;
+      const py = pStart.y + (y - pStart.y) * t;
+
+      if (k < 12) {
+        const cp = activeCps[k];
+        const cpx = offsetX + cp.x * scaleX;
+        const cpy = offsetY + cp.y * scaleY;
+        const d = Math.hypot(px - cpx, py - cpy);
+
+        if (d <= CAPTURE_RADIUS) {
+          k++;
+          nextCheckpointIndexRef.current = k;
+
+          // Tactile drawing tick sound (throttled every 70ms)
+          const now = performance.now();
+          if (now - lastSoundTime.current > 70) {
+            playChalkSound();
+            lastSoundTime.current = now;
+          }
+
+          // In fast movement, allow skipping 1 intermediate checkpoint if cursor reaches k+1
+          if (k < 12) {
+            const nextCp = activeCps[k];
+            const ncpx = offsetX + nextCp.x * scaleX;
+            const ncpy = offsetY + nextCp.y * scaleY;
+            if (Math.hypot(px - ncpx, py - ncpy) <= CAPTURE_RADIUS) {
+              k++;
+              nextCheckpointIndexRef.current = k;
+            }
+          }
+
+          // When checkpoint 11 is reached (k === 12), stroke is 100% complete!
+          if (k >= 12) {
+            completeActiveStroke();
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  };
+
+  // ─── Pointer Events with Pointer Capture ─
   const handlePointerDown = (e) => {
     if (isHoldingCompletionRef.current || isCompleted) return;
 
@@ -743,25 +719,8 @@ export default function LetterCanvas({
     const pt = getCanvasCoords(e);
     lastPoint.current = pt;
 
-    const ctx = canvas.getContext("2d");
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "#2563EB";
-    ctx.shadowColor = "#60A5FA";
-    ctx.shadowBlur = 10;
-    const brushWidth = Math.max(18, canvas.width * 0.055);
-    ctx.lineWidth = brushWidth;
-
-    // Immediate visual ink dot at touch point
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, brushWidth / 2, 0, Math.PI * 2);
-    ctx.fillStyle = "#2563EB";
-    ctx.fill();
-
-    const isFinished = checkMilestones(pt.x, pt.y, scaleX, scaleY, offsetX, offsetY);
-    if (isFinished) {
-      completeActiveStroke();
-    }
+    // Validate progress on initial touch
+    validateProgress(pt.x, pt.y, canvas, scaleX, scaleY, offsetX, offsetY);
   };
 
   const handlePointerMove = (e) => {
@@ -776,64 +735,53 @@ export default function LetterCanvas({
     );
 
     const pt = getCanvasCoords(e);
-
-    // Spawn sparkling star particles along brush tip
-    for (let i = 0; i < 2; i++) {
-      particlesRef.current.push({
-        x: pt.x + (Math.random() - 0.5) * 16,
-        y: pt.y + (Math.random() - 0.5) * 16,
-        vx: (Math.random() - 0.5) * 1.6,
-        vy: (Math.random() - 0.5) * 1.6 - 0.8,
-        life: 1.0,
-        size: Math.random() * 3.5 + 2.5,
-        color: Math.random() > 0.4 ? "#FCD34D" : "#93C5FD",
-      });
-    }
-
-    // Tactile drawing tick sound (throttled every 80ms)
-    const now = performance.now();
-    if (now - lastSoundTime.current > 80) {
-      playChalkSound();
-      lastSoundTime.current = now;
-    }
-
-    const ctx = canvas.getContext("2d");
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "#2563EB";
-    ctx.shadowColor = "#60A5FA";
-    ctx.shadowBlur = 10;
-    ctx.lineWidth = Math.max(18, canvas.width * 0.055);
-
     const prevPt = lastPoint.current || pt;
 
-    // Sub-frame raycasting: step every 10px along pointer move vector
-    const dist = Math.hypot(pt.x - prevPt.x, pt.y - prevPt.y);
-    const steps = Math.max(1, Math.floor(dist / 10));
-    let strokeFinished = false;
+    // Draw live stroke on drawing canvas with slim 7.2px brush in chosen crayon color
+    const ctx = canvas.getContext("2d");
+    const brushWidth = 7.2;
+    const inkColor = activeColorRef.current || "#2563EB";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = brushWidth;
+    ctx.strokeStyle = inkColor;
+    ctx.shadowColor = `${inkColor}66`;
+    ctx.shadowBlur = 4;
 
     ctx.beginPath();
     ctx.moveTo(prevPt.x, prevPt.y);
-
-    for (let i = 1; i <= steps; i++) {
-      const t = i / steps;
-      const interX = prevPt.x + (pt.x - prevPt.x) * t;
-      const interY = prevPt.y + (pt.y - prevPt.y) * t;
-
-      ctx.lineTo(interX, interY);
-
-      if (!strokeFinished) {
-        if (checkMilestones(interX, interY, scaleX, scaleY, offsetX, offsetY)) {
-          strokeFinished = true;
-        }
-      }
-    }
+    ctx.lineTo(pt.x, pt.y);
     ctx.stroke();
+
+    // Spawn subtle sparkle particles at brush tip
+    if (Math.random() > 0.4) {
+      particlesRef.current.push({
+        x: pt.x + (Math.random() - 0.5) * 12,
+        y: pt.y + (Math.random() - 0.5) * 12,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: (Math.random() - 0.5) * 1.5 - 0.5,
+        life: 0.9,
+        size: Math.random() * 3.5 + 2,
+        color: Math.random() > 0.4 ? "#FCD34D" : inkColor,
+      });
+    }
+
+    // Validate dense checkpoints along pointer move vector
+    const strokeFinished = validateProgress(
+      pt.x,
+      pt.y,
+      canvas,
+      scaleX,
+      scaleY,
+      offsetX,
+      offsetY,
+      prevPt
+    );
 
     lastPoint.current = pt;
 
     if (strokeFinished) {
-      completeActiveStroke();
+      // Stroke finished handled inside validateProgress
     }
   };
 
@@ -847,13 +795,15 @@ export default function LetterCanvas({
     }
     isDrawing.current = false;
     lastPoint.current = null;
+    clearDrawingCanvas();
+    renderGuideFrame();
   };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden rounded-2xl">
       <div
         ref={containerRef}
-        className="relative w-full h-full bg-gradient-to-b from-[#FFFFFF] to-[#FBF8F1] flex items-center justify-center overflow-hidden touch-none select-none"
+        className="relative w-full h-full bg-[#FFFDF8] flex items-center justify-center overflow-hidden touch-none select-none"
       >
         {/* Background Guide Canvas (Immune to Pointer Events) */}
         <canvas
@@ -872,15 +822,25 @@ export default function LetterCanvas({
           style={{ touchAction: "none" }}
         />
 
-        {/* Active Stroke Indicator Pill in Top Left */}
-        <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-white/92 backdrop-blur-xs border border-stone-200 px-3 py-1 rounded-xl shadow-xs pointer-events-none">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] animate-pulse" />
-          <span className="font-display font-bold text-xs text-[#1B4965]">
-            Goresan {Math.min(currentStrokeIdx + 1, totalStrokes)} / {totalStrokes}
-          </span>
+        {/* Active Stroke Indicator Pill in Top Left with Mini Animated Progress Bar */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-2.5 py-1 rounded-xl shadow-xs pointer-events-none">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
+            <span className="font-display font-bold text-[11px] text-[#1B4965]">
+              Goresan {Math.min(currentStrokeIdx + 1, totalStrokes)} / {totalStrokes}
+            </span>
+          </div>
+          <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-sky-400 rounded-full transition-all duration-300"
+              style={{
+                width: `${(completedStrokes.length / totalStrokes) * 100}%`,
+              }}
+            />
+          </div>
         </div>
 
-        {/* Friendly Celebration Floating Badge during 1.8s hold */}
+        {/* Friendly Celebration Floating Badge during 1.8s hold (Zero Stars Policy Compliant) */}
         <AnimatePresence>
           {isHoldingCompletion && (
             <motion.div
@@ -890,9 +850,9 @@ export default function LetterCanvas({
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               className="absolute top-3 inset-x-0 mx-auto w-fit z-30 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-2 pointer-events-none"
             >
-              <Sparkles size={18} className="text-yellow-300 animate-spin" />
+              <CheckCircle2 size={18} className="text-white stroke-[2.5]" />
               <span className="font-display font-black text-xs sm:text-sm md:text-base">
-                Luar Biasa! Huruf {letterObj.letter} Berhasil Ditulis! (+1 Bintang)
+                Luar Biasa! Huruf {letterChar} Berhasil Ditulis!
               </span>
             </motion.div>
           )}

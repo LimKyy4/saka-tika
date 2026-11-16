@@ -18,26 +18,27 @@ export const MODULE_ROUTE_INDEX_MAP = {
 };
 
 export function GameProvider({ children }) {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-
-  const [stars, setStars] = useState(() => {
-    const stored = localStorage.getItem("saka_tika_stars");
-    return stored ? Number(stored) : 0;
-  });
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [moduleProgress, setModuleProgress] = useState(() => {
-    const stored = localStorage.getItem("saka_tika_progress");
-    return stored ? JSON.parse(stored) : {};
+    try {
+      const stored = localStorage.getItem("saka_tika_progress");
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
   });
 
-  // Discovered letters (used by MengenalHuruf to give 1-time star reward per letter)
   const [discoveredLetters, setDiscoveredLetters] = useState(() => {
-    const stored = localStorage.getItem("saka_tika_discovered");
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem("saka_tika_discovered");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
   });
 
-  // Centralized carousel active module index (persisted per session)
   const [activeCarouselIndex, setActiveCarouselIndexState] = useState(() => {
     try {
       const initialRoute = window?.location?.pathname;
@@ -52,7 +53,6 @@ export function GameProvider({ children }) {
     }
   });
 
-  // Safe setter with range validation (0 to 4) and sessionStorage synchronization
   const setActiveCarouselIndex = useCallback((index) => {
     const num = Number(index);
     const validIdx = Number.isFinite(num) ? Math.max(0, Math.min(4, Math.floor(num))) : 0;
@@ -64,7 +64,6 @@ export function GameProvider({ children }) {
     }
   }, []);
 
-  // Automatically remember the active module when navigating into any module route
   useEffect(() => {
     const routeIndex = MODULE_ROUTE_INDEX_MAP[location.pathname];
     if (typeof routeIndex === "number") {
@@ -78,29 +77,34 @@ export function GameProvider({ children }) {
   }, [location.pathname]);
 
   useEffect(() => {
-    localStorage.setItem("saka_tika_stars", stars);
-  }, [stars]);
-
-  useEffect(() => {
-    localStorage.setItem("saka_tika_progress", JSON.stringify(moduleProgress));
+    try {
+      localStorage.setItem("saka_tika_progress", JSON.stringify(moduleProgress));
+    } catch {
+      // Ignore storage errors
+    }
   }, [moduleProgress]);
 
   useEffect(() => {
-    localStorage.setItem("saka_tika_discovered", JSON.stringify(discoveredLetters));
+    try {
+      localStorage.setItem("saka_tika_discovered", JSON.stringify(discoveredLetters));
+    } catch {
+      // Ignore storage errors
+    }
   }, [discoveredLetters]);
 
-  const addStars = useCallback((amount) => {
-    setStars((prev) => prev + amount);
-  }, []);
+  // Backward compatibility no-op for sub-modules
+  const addStars = useCallback(() => {}, []);
 
   const resetProgress = useCallback(() => {
-    setStars(0);
     setModuleProgress({});
     setDiscoveredLetters([]);
     setActiveCarouselIndex(0);
-    localStorage.setItem("saka_tika_stars", "0");
-    localStorage.setItem("saka_tika_progress", "{}");
-    localStorage.setItem("saka_tika_discovered", "[]");
+    try {
+      localStorage.setItem("saka_tika_progress", "{}");
+      localStorage.setItem("saka_tika_discovered", "[]");
+    } catch {
+      // Ignore storage errors
+    }
   }, [setActiveCarouselIndex]);
 
   const discoverLetter = useCallback((letter) => {
@@ -120,7 +124,7 @@ export function GameProvider({ children }) {
   const currentModule = location.pathname.split("/")[1] || "home";
 
   const value = {
-    stars,
+    stars: 0,
     addStars,
     resetProgress,
     navigateTo,

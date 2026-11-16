@@ -1,6 +1,6 @@
 // src/components/illustrations/TikaMascot.jsx
-// Studio-grade character mascot: Tika
-// Uses the client's authentic 3D character artwork with transparent alpha background:
+// Studio character mascot: Tika (girl with braided black hair, white collar, red dress with yellow stripes & 'T')
+// Uses the client's authentic character artwork with transparent alpha background:
 // - /assets/tika-maskot-utama.png (main / idle pose)
 // - /assets/tika-maskot-utama2.png (action / cheering pose)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
@@ -13,10 +13,10 @@ export default function TikaMascot({ className = "", isCheering = false }) {
 
   return (
     <motion.div
-      className={`relative flex items-end justify-center select-none overflow-visible pointer-events-none ${
-        className || "w-20 h-24 sm:w-24 sm:h-28"
+      className={`relative flex items-end justify-center select-none overflow-visible ${
+        className || "w-28 h-36 sm:w-36 sm:h-48 md:w-44 md:h-56 lg:w-52 lg:h-64"
       }`}
-      animate={isCheering ? { scale: [1, 1.05, 1], y: [-6, 0] } : { y: [0, -3, 0] }}
+      animate={isCheering ? { scale: [1, 1.05, 1], y: [-8, 0] } : { y: [0, -4, 0] }}
       transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
     >
       <img

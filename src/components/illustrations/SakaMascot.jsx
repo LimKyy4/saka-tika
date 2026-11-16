@@ -1,6 +1,6 @@
 // src/components/illustrations/SakaMascot.jsx
-// Studio-grade character mascot: Saka
-// Uses the client's authentic 3D character artwork with transparent alpha background:
+// Studio character mascot: Saka (boy with black hair, big round eyes, rosy cheeks, light blue shirt with 'S')
+// Uses the client's authentic character artwork with transparent alpha background:
 // - /assets/saka-maskot-utama.png (main / idle pose)
 // - /assets/saka-maskot-utama2.png (action / waving / cheering pose)
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
@@ -13,10 +13,10 @@ export default function SakaMascot({ className = "", isWaving = false }) {
 
   return (
     <motion.div
-      className={`relative flex items-end justify-center select-none overflow-visible pointer-events-none ${
-        className || "w-20 h-24 sm:w-24 sm:h-28"
+      className={`relative flex items-end justify-center select-none overflow-visible ${
+        className || "w-28 h-36 sm:w-36 sm:h-48 md:w-44 md:h-56 lg:w-52 lg:h-64"
       }`}
-      animate={isWaving ? { scale: [1, 1.05, 1], y: [-6, 0] } : { y: [0, -3, 0] }}
+      animate={isWaving ? { scale: [1, 1.05, 1], y: [-8, 0] } : { y: [0, -4, 0] }}
       transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
     >
       <img

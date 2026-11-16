@@ -1388,4 +1388,2461 @@ export const ALPHABET_PATHS = {
       }
     ]
   }
+,
+  "a": {
+      "letter": "a",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Putar lengkungan bulat ke kiri, 2. Tarik garis tegak di sebelah kanan!",
+      "paths": [
+          "M66,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C58,100 64,94 66,88",
+          "M66,58 L66,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 66,
+              "y": 68,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 66,
+              "y": 58,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 66,
+                  "y": 68
+              },
+              "end": {
+                  "x": 66,
+                  "y": 88
+              }
+          },
+          {
+              "start": {
+                  "x": 66,
+                  "y": 58
+              },
+              "end": {
+                  "x": 66,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "b": {
+      "letter": "b",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang tegak dari atas ke bawah, 2. Buat perut bulat di sebelah kanan bawah!",
+      "paths": [
+          "M32,16 L32,100",
+          "M32,65 C40,58 56,58 64,68 C72,78 72,85 64,95 C56,100 40,100 32,95"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 32,
+              "y": 16,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 32,
+              "y": 65,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 32,
+                  "y": 16
+              },
+              "end": {
+                  "x": 32,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 32,
+                  "y": 65
+              },
+              "end": {
+                  "x": 32,
+                  "y": 95
+              }
+          }
+      ]
+  },
+  "c": {
+      "letter": "c",
+      "caseType": "lower",
+      "numStrokes": 1,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Buat lengkungan bulat terbuka ke kanan!",
+      "paths": [
+          "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,98 68,92"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 68,
+              "y": 68,
+              "label": "Mulai 1"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 68,
+                  "y": 68
+              },
+              "end": {
+                  "x": 68,
+                  "y": 92
+              }
+          }
+      ]
+  },
+  "d": {
+      "letter": "d",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Buat perut bulat di kiri, 2. Tarik tiang tegak tinggi di kanan!",
+      "paths": [
+          "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,96 68,88",
+          "M68,16 L68,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 68,
+              "y": 68,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 68,
+              "y": 16,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 68,
+                  "y": 68
+              },
+              "end": {
+                  "x": 68,
+                  "y": 88
+              }
+          },
+          {
+              "start": {
+                  "x": 68,
+                  "y": 16
+              },
+              "end": {
+                  "x": 68,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "e": {
+      "letter": "e",
+      "caseType": "lower",
+      "numStrokes": 1,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik garis tidur ke kanan, lalu putar lengkungan bulat ke kiri dan bawah!",
+      "paths": [
+          "M34,80 L68,80 C68,66 58,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C58,100 64,96 68,92"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 34,
+              "y": 80,
+              "label": "Mulai 1"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 34,
+                  "y": 80
+              },
+              "end": {
+                  "x": 68,
+                  "y": 92
+              }
+          }
+      ]
+  },
+  "f": {
+      "letter": "f",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Buat tongkat berpayung melengkung ke bawah, 2. Beri garis sabuk di tengahnya!",
+      "paths": [
+          "M64,22 C60,17 54,16 48,16 C44,16 42,20 42,28 L42,100",
+          "M30,58 L56,58"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 64,
+              "y": 22,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 30,
+              "y": 58,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 64,
+                  "y": 22
+              },
+              "end": {
+                  "x": 42,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 30,
+                  "y": 58
+              },
+              "end": {
+                  "x": 56,
+                  "y": 58
+              }
+          }
+      ]
+  },
+  "g": {
+      "letter": "g",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Buat kepala bulat di atas, 2. Tarik ekor tegak ke bawah lalu melengkung ke kiri!",
+      "paths": [
+          "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,96 68,88",
+          "M68,58 L68,104 C68,112 56,114 40,114"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 68,
+              "y": 68,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 68,
+              "y": 58,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 68,
+                  "y": 68
+              },
+              "end": {
+                  "x": 68,
+                  "y": 88
+              }
+          },
+          {
+              "start": {
+                  "x": 68,
+                  "y": 58
+              },
+              "end": {
+                  "x": 40,
+                  "y": 114
+              }
+          }
+      ]
+  },
+  "h": {
+      "letter": "h",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang tinggi dari atas ke bawah, 2. Buat jembatan lengkung ke kanan!",
+      "paths": [
+          "M32,16 L32,100",
+          "M32,72 C38,62 50,58 60,58 C68,58 68,68 68,80 L68,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 32,
+              "y": 16,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 32,
+              "y": 72,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 32,
+                  "y": 16
+              },
+              "end": {
+                  "x": 32,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 32,
+                  "y": 72
+              },
+              "end": {
+                  "x": 68,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "i": {
+      "letter": "i",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik garis pendek tegak ke bawah, 2. Beri titik di atasnya!",
+      "paths": [
+          "M50,62 L50,100",
+          "M50,42 L50,46"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 50,
+              "y": 62,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 50,
+              "y": 44,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 50,
+                  "y": 62
+              },
+              "end": {
+                  "x": 50,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 50,
+                  "y": 42
+              },
+              "end": {
+                  "x": 50,
+                  "y": 46
+              }
+          }
+      ]
+  },
+  "j": {
+      "letter": "j",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang ke bawah lalu buat kail ke kiri, 2. Beri titik di atasnya!",
+      "paths": [
+          "M56,62 L56,106 C56,114 46,114 38,114",
+          "M56,42 L56,46"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 56,
+              "y": 62,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 56,
+              "y": 44,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 56,
+                  "y": 62
+              },
+              "end": {
+                  "x": 38,
+                  "y": 114
+              }
+          },
+          {
+              "start": {
+                  "x": 56,
+                  "y": 42
+              },
+              "end": {
+                  "x": 56,
+                  "y": 46
+              }
+          }
+      ]
+  },
+  "k": {
+      "letter": "k",
+      "caseType": "lower",
+      "numStrokes": 3,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang tegak tinggi, 2. Tarik garis miring ke tengah tiang, 3. Tarik kaki miring ke kanan bawah!",
+      "paths": [
+          "M32,16 L32,100",
+          "M68,62 L34,80",
+          "M34,80 L68,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 32,
+              "y": 16,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 68,
+              "y": 62,
+              "label": "Mulai 2"
+          },
+          {
+              "number": 3,
+              "x": 34,
+              "y": 80,
+              "label": "Mulai 3"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 32,
+                  "y": 16
+              },
+              "end": {
+                  "x": 32,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 68,
+                  "y": 62
+              },
+              "end": {
+                  "x": 34,
+                  "y": 80
+              }
+          },
+          {
+              "start": {
+                  "x": 34,
+                  "y": 80
+              },
+              "end": {
+                  "x": 68,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "l": {
+      "letter": "l",
+      "caseType": "lower",
+      "numStrokes": 1,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik satu tiang lurus tegak dari atas ke bawah!",
+      "paths": [
+          "M50,16 L50,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 50,
+              "y": 16,
+              "label": "Mulai 1"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 50,
+                  "y": 16
+              },
+              "end": {
+                  "x": 50,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "m": {
+      "letter": "m",
+      "caseType": "lower",
+      "numStrokes": 3,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang pendek, 2. Buat bukit lengkung pertama, 3. Buat bukit lengkung kedua!",
+      "paths": [
+          "M24,60 L24,100",
+          "M24,72 C28,62 38,58 44,58 C48,58 48,68 48,80 L48,100",
+          "M48,72 C52,62 64,58 70,58 C74,58 74,68 74,80 L74,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 24,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 24,
+              "y": 72,
+              "label": "Mulai 2"
+          },
+          {
+              "number": 3,
+              "x": 48,
+              "y": 72,
+              "label": "Mulai 3"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 24,
+                  "y": 60
+              },
+              "end": {
+                  "x": 24,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 24,
+                  "y": 72
+              },
+              "end": {
+                  "x": 48,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 48,
+                  "y": 72
+              },
+              "end": {
+                  "x": 74,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "n": {
+      "letter": "n",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang pendek ke bawah, 2. Buat bukit lengkung ke kanan!",
+      "paths": [
+          "M32,60 L32,100",
+          "M32,72 C38,62 52,58 62,58 C68,58 68,68 68,80 L68,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 32,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 32,
+              "y": 72,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 32,
+                  "y": 60
+              },
+              "end": {
+                  "x": 32,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 32,
+                  "y": 72
+              },
+              "end": {
+                  "x": 68,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "o": {
+      "letter": "o",
+      "caseType": "lower",
+      "numStrokes": 1,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Putar lingkaran bulat penuh seperti donat!",
+      "paths": [
+          "M50,58 C38,58 30,68 30,79 C30,90 38,100 50,100 C62,100 70,90 70,79 C70,68 62,58 50,58"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 50,
+              "y": 58,
+              "label": "Mulai 1"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 50,
+                  "y": 58
+              },
+              "end": {
+                  "x": 50,
+                  "y": 58
+              }
+          }
+      ]
+  },
+  "p": {
+      "letter": "p",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang lurus ke bawah sampai garis bawah, 2. Buat perut bulat di kanan!",
+      "paths": [
+          "M32,58 L32,114",
+          "M32,65 C40,58 56,58 64,68 C72,78 72,85 64,95 C56,100 40,100 32,95"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 32,
+              "y": 58,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 32,
+              "y": 65,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 32,
+                  "y": 58
+              },
+              "end": {
+                  "x": 32,
+                  "y": 114
+              }
+          },
+          {
+              "start": {
+                  "x": 32,
+                  "y": 65
+              },
+              "end": {
+                  "x": 32,
+                  "y": 95
+              }
+          }
+      ]
+  },
+  "q": {
+      "letter": "q",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Buat kepala bulat di kiri, 2. Tarik tiang tegak ke bawah sampai garis bawah!",
+      "paths": [
+          "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,96 68,88",
+          "M68,58 L68,114"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 68,
+              "y": 68,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 68,
+              "y": 58,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 68,
+                  "y": 68
+              },
+              "end": {
+                  "x": 68,
+                  "y": 88
+              }
+          },
+          {
+              "start": {
+                  "x": 68,
+                  "y": 58
+              },
+              "end": {
+                  "x": 68,
+                  "y": 114
+              }
+          }
+      ]
+  },
+  "r": {
+      "letter": "r",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang pendek ke bawah, 2. Buat dahan melengkung kecil di kanan!",
+      "paths": [
+          "M34,60 L34,100",
+          "M34,72 C38,62 48,58 56,58 C62,58 64,60 66,64"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 34,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 34,
+              "y": 72,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 34,
+                  "y": 60
+              },
+              "end": {
+                  "x": 34,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 34,
+                  "y": 72
+              },
+              "end": {
+                  "x": 66,
+                  "y": 64
+              }
+          }
+      ]
+  },
+  "s": {
+      "letter": "s",
+      "caseType": "lower",
+      "numStrokes": 1,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Liukkan garis berkelok seperti ombak kecil!",
+      "paths": [
+          "M64,68 C60,60 54,58 48,58 C38,58 34,64 34,72 C34,80 40,84 48,86 C58,88 64,92 64,96 C64,100 56,100 48,100 C40,100 36,98 34,94"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 64,
+              "y": 68,
+              "label": "Mulai 1"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 64,
+                  "y": 68
+              },
+              "end": {
+                  "x": 34,
+                  "y": 94
+              }
+          }
+      ]
+  },
+  "t": {
+      "letter": "t",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik tiang tegak dengan kaki melengkung, 2. Beri garis silang di tengahnya!",
+      "paths": [
+          "M48,24 L48,94 C48,99 53,100 58,100",
+          "M34,58 L62,58"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 48,
+              "y": 24,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 34,
+              "y": 58,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 48,
+                  "y": 24
+              },
+              "end": {
+                  "x": 58,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 34,
+                  "y": 58
+              },
+              "end": {
+                  "x": 62,
+                  "y": 58
+              }
+          }
+      ]
+  },
+  "u": {
+      "letter": "u",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik garis ke bawah lalu lengkungkan ke atas seperti cangkir, 2. Tarik tiang tegak di kanan!",
+      "paths": [
+          "M34,60 L34,90 C34,98 42,100 50,100 C58,100 66,98 66,90 L66,60",
+          "M66,60 L66,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 34,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 66,
+              "y": 60,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 34,
+                  "y": 60
+              },
+              "end": {
+                  "x": 66,
+                  "y": 60
+              }
+          },
+          {
+              "start": {
+                  "x": 66,
+                  "y": 60
+              },
+              "end": {
+                  "x": 66,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "v": {
+      "letter": "v",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik garis miring ke bawah, 2. Tarik garis miring kembali ke atas!",
+      "paths": [
+          "M32,60 L50,100",
+          "M50,100 L68,60"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 32,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 50,
+              "y": 100,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 32,
+                  "y": 60
+              },
+              "end": {
+                  "x": 50,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 50,
+                  "y": 100
+              },
+              "end": {
+                  "x": 68,
+                  "y": 60
+              }
+          }
+      ]
+  },
+  "w": {
+      "letter": "w",
+      "caseType": "lower",
+      "numStrokes": 4,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Miring ke bawah, 2. Miring ke atas, 3. Miring ke bawah lagi, 4. Miring ke atas!",
+      "paths": [
+          "M20,60 L34,100",
+          "M34,100 L48,70",
+          "M48,70 L62,100",
+          "M62,100 L78,60"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 20,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 34,
+              "y": 100,
+              "label": "Mulai 2"
+          },
+          {
+              "number": 3,
+              "x": 48,
+              "y": 70,
+              "label": "Mulai 3"
+          },
+          {
+              "number": 4,
+              "x": 62,
+              "y": 100,
+              "label": "Mulai 4"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 20,
+                  "y": 60
+              },
+              "end": {
+                  "x": 34,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 34,
+                  "y": 100
+              },
+              "end": {
+                  "x": 48,
+                  "y": 70
+              }
+          },
+          {
+              "start": {
+                  "x": 48,
+                  "y": 70
+              },
+              "end": {
+                  "x": 62,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 62,
+                  "y": 100
+              },
+              "end": {
+                  "x": 78,
+                  "y": 60
+              }
+          }
+      ]
+  },
+  "x": {
+      "letter": "x",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik garis miring ke kanan bawah, 2. Silangkan garis miring ke kiri bawah!",
+      "paths": [
+          "M34,60 L66,100",
+          "M66,60 L34,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 34,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 66,
+              "y": 60,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 34,
+                  "y": 60
+              },
+              "end": {
+                  "x": 66,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 66,
+                  "y": 60
+              },
+              "end": {
+                  "x": 34,
+                  "y": 100
+              }
+          }
+      ]
+  },
+  "y": {
+      "letter": "y",
+      "caseType": "lower",
+      "numStrokes": 2,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Tarik garis miring pendek ke tengah, 2. Tarik garis miring panjang menembus ke kiri bawah!",
+      "paths": [
+          "M34,60 L50,84",
+          "M66,60 L34,114"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 34,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 66,
+              "y": 60,
+              "label": "Mulai 2"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 34,
+                  "y": 60
+              },
+              "end": {
+                  "x": 50,
+                  "y": 84
+              }
+          },
+          {
+              "start": {
+                  "x": 66,
+                  "y": 60
+              },
+              "end": {
+                  "x": 34,
+                  "y": 114
+              }
+          }
+      ]
+  },
+  "z": {
+      "letter": "z",
+      "caseType": "lower",
+      "numStrokes": 3,
+      "viewBox": "0 0 100 120",
+      "instruction": "1. Garis tidur ke kanan, 2. Garis miring ke kiri bawah, 3. Garis tidur lagi ke kanan!",
+      "paths": [
+          "M34,60 L66,60",
+          "M66,60 L34,100",
+          "M34,100 L66,100"
+      ],
+      "startNodes": [
+          {
+              "number": 1,
+              "x": 34,
+              "y": 60,
+              "label": "Mulai 1"
+          },
+          {
+              "number": 2,
+              "x": 66,
+              "y": 60,
+              "label": "Mulai 2"
+          },
+          {
+              "number": 3,
+              "x": 34,
+              "y": 100,
+              "label": "Mulai 3"
+          }
+      ],
+      "checkpoints": [
+          {
+              "start": {
+                  "x": 34,
+                  "y": 60
+              },
+              "end": {
+                  "x": 66,
+                  "y": 60
+              }
+          },
+          {
+              "start": {
+                  "x": 66,
+                  "y": 60
+              },
+              "end": {
+                  "x": 34,
+                  "y": 100
+              }
+          },
+          {
+              "start": {
+                  "x": 34,
+                  "y": 100
+              },
+              "end": {
+                  "x": 66,
+                  "y": 100
+              }
+          }
+      ]
+  }
 };
+
+export const LOWERCASE_PATHS = {
+  "a": {
+    "letter": "a",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Putar lengkungan bulat ke kiri, 2. Tarik garis tegak di sebelah kanan!",
+    "paths": [
+      "M66,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C58,100 64,94 66,88",
+      "M66,58 L66,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 66,
+        "y": 68,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 66,
+        "y": 58,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 66,
+          "y": 68
+        },
+        "end": {
+          "x": 66,
+          "y": 88
+        }
+      },
+      {
+        "start": {
+          "x": 66,
+          "y": 58
+        },
+        "end": {
+          "x": 66,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "b": {
+    "letter": "b",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang tegak dari atas ke bawah, 2. Buat perut bulat di sebelah kanan bawah!",
+    "paths": [
+      "M32,16 L32,100",
+      "M32,65 C40,58 56,58 64,68 C72,78 72,85 64,95 C56,100 40,100 32,95"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 32,
+        "y": 16,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 32,
+        "y": 65,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 32,
+          "y": 16
+        },
+        "end": {
+          "x": 32,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 32,
+          "y": 65
+        },
+        "end": {
+          "x": 32,
+          "y": 95
+        }
+      }
+    ]
+  },
+  "c": {
+    "letter": "c",
+    "caseType": "lower",
+    "numStrokes": 1,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Buat lengkungan bulat terbuka ke kanan!",
+    "paths": [
+      "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,98 68,92"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 68,
+        "y": 68,
+        "label": "Mulai 1"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 68,
+          "y": 68
+        },
+        "end": {
+          "x": 68,
+          "y": 92
+        }
+      }
+    ]
+  },
+  "d": {
+    "letter": "d",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Buat perut bulat di kiri, 2. Tarik tiang tegak tinggi di kanan!",
+    "paths": [
+      "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,96 68,88",
+      "M68,16 L68,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 68,
+        "y": 68,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 68,
+        "y": 16,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 68,
+          "y": 68
+        },
+        "end": {
+          "x": 68,
+          "y": 88
+        }
+      },
+      {
+        "start": {
+          "x": 68,
+          "y": 16
+        },
+        "end": {
+          "x": 68,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "e": {
+    "letter": "e",
+    "caseType": "lower",
+    "numStrokes": 1,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik garis tidur ke kanan, lalu putar lengkungan bulat ke kiri dan bawah!",
+    "paths": [
+      "M34,80 L68,80 C68,66 58,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C58,100 64,96 68,92"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 34,
+        "y": 80,
+        "label": "Mulai 1"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 34,
+          "y": 80
+        },
+        "end": {
+          "x": 68,
+          "y": 92
+        }
+      }
+    ]
+  },
+  "f": {
+    "letter": "f",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Buat tongkat berpayung melengkung ke bawah, 2. Beri garis sabuk di tengahnya!",
+    "paths": [
+      "M64,22 C60,17 54,16 48,16 C44,16 42,20 42,28 L42,100",
+      "M30,58 L56,58"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 64,
+        "y": 22,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 30,
+        "y": 58,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 64,
+          "y": 22
+        },
+        "end": {
+          "x": 42,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 30,
+          "y": 58
+        },
+        "end": {
+          "x": 56,
+          "y": 58
+        }
+      }
+    ]
+  },
+  "g": {
+    "letter": "g",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Buat kepala bulat di atas, 2. Tarik ekor tegak ke bawah lalu melengkung ke kiri!",
+    "paths": [
+      "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,96 68,88",
+      "M68,58 L68,104 C68,112 56,114 40,114"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 68,
+        "y": 68,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 68,
+        "y": 58,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 68,
+          "y": 68
+        },
+        "end": {
+          "x": 68,
+          "y": 88
+        }
+      },
+      {
+        "start": {
+          "x": 68,
+          "y": 58
+        },
+        "end": {
+          "x": 40,
+          "y": 114
+        }
+      }
+    ]
+  },
+  "h": {
+    "letter": "h",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang tinggi dari atas ke bawah, 2. Buat jembatan lengkung ke kanan!",
+    "paths": [
+      "M32,16 L32,100",
+      "M32,72 C38,62 50,58 60,58 C68,58 68,68 68,80 L68,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 32,
+        "y": 16,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 32,
+        "y": 72,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 32,
+          "y": 16
+        },
+        "end": {
+          "x": 32,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 32,
+          "y": 72
+        },
+        "end": {
+          "x": 68,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "i": {
+    "letter": "i",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik garis pendek tegak ke bawah, 2. Beri titik di atasnya!",
+    "paths": [
+      "M50,62 L50,100",
+      "M50,42 L50,46"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 50,
+        "y": 62,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 50,
+        "y": 44,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 50,
+          "y": 62
+        },
+        "end": {
+          "x": 50,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 50,
+          "y": 42
+        },
+        "end": {
+          "x": 50,
+          "y": 46
+        }
+      }
+    ]
+  },
+  "j": {
+    "letter": "j",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang ke bawah lalu buat kail ke kiri, 2. Beri titik di atasnya!",
+    "paths": [
+      "M56,62 L56,106 C56,114 46,114 38,114",
+      "M56,42 L56,46"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 56,
+        "y": 62,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 56,
+        "y": 44,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 56,
+          "y": 62
+        },
+        "end": {
+          "x": 38,
+          "y": 114
+        }
+      },
+      {
+        "start": {
+          "x": 56,
+          "y": 42
+        },
+        "end": {
+          "x": 56,
+          "y": 46
+        }
+      }
+    ]
+  },
+  "k": {
+    "letter": "k",
+    "caseType": "lower",
+    "numStrokes": 3,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang tegak tinggi, 2. Tarik garis miring ke tengah tiang, 3. Tarik kaki miring ke kanan bawah!",
+    "paths": [
+      "M32,16 L32,100",
+      "M68,62 L34,80",
+      "M34,80 L68,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 32,
+        "y": 16,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 68,
+        "y": 62,
+        "label": "Mulai 2"
+      },
+      {
+        "number": 3,
+        "x": 34,
+        "y": 80,
+        "label": "Mulai 3"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 32,
+          "y": 16
+        },
+        "end": {
+          "x": 32,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 68,
+          "y": 62
+        },
+        "end": {
+          "x": 34,
+          "y": 80
+        }
+      },
+      {
+        "start": {
+          "x": 34,
+          "y": 80
+        },
+        "end": {
+          "x": 68,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "l": {
+    "letter": "l",
+    "caseType": "lower",
+    "numStrokes": 1,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik satu tiang lurus tegak dari atas ke bawah!",
+    "paths": [
+      "M50,16 L50,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 50,
+        "y": 16,
+        "label": "Mulai 1"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 50,
+          "y": 16
+        },
+        "end": {
+          "x": 50,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "m": {
+    "letter": "m",
+    "caseType": "lower",
+    "numStrokes": 3,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang pendek, 2. Buat bukit lengkung pertama, 3. Buat bukit lengkung kedua!",
+    "paths": [
+      "M24,60 L24,100",
+      "M24,72 C28,62 38,58 44,58 C48,58 48,68 48,80 L48,100",
+      "M48,72 C52,62 64,58 70,58 C74,58 74,68 74,80 L74,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 24,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 24,
+        "y": 72,
+        "label": "Mulai 2"
+      },
+      {
+        "number": 3,
+        "x": 48,
+        "y": 72,
+        "label": "Mulai 3"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 24,
+          "y": 60
+        },
+        "end": {
+          "x": 24,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 24,
+          "y": 72
+        },
+        "end": {
+          "x": 48,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 48,
+          "y": 72
+        },
+        "end": {
+          "x": 74,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "n": {
+    "letter": "n",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang pendek ke bawah, 2. Buat bukit lengkung ke kanan!",
+    "paths": [
+      "M32,60 L32,100",
+      "M32,72 C38,62 52,58 62,58 C68,58 68,68 68,80 L68,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 32,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 32,
+        "y": 72,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 32,
+          "y": 60
+        },
+        "end": {
+          "x": 32,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 32,
+          "y": 72
+        },
+        "end": {
+          "x": 68,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "o": {
+    "letter": "o",
+    "caseType": "lower",
+    "numStrokes": 1,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Putar lingkaran bulat penuh seperti donat!",
+    "paths": [
+      "M50,58 C38,58 30,68 30,79 C30,90 38,100 50,100 C62,100 70,90 70,79 C70,68 62,58 50,58"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 50,
+        "y": 58,
+        "label": "Mulai 1"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 50,
+          "y": 58
+        },
+        "end": {
+          "x": 50,
+          "y": 58
+        }
+      }
+    ]
+  },
+  "p": {
+    "letter": "p",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang lurus ke bawah sampai garis bawah, 2. Buat perut bulat di kanan!",
+    "paths": [
+      "M32,58 L32,114",
+      "M32,65 C40,58 56,58 64,68 C72,78 72,85 64,95 C56,100 40,100 32,95"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 32,
+        "y": 58,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 32,
+        "y": 65,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 32,
+          "y": 58
+        },
+        "end": {
+          "x": 32,
+          "y": 114
+        }
+      },
+      {
+        "start": {
+          "x": 32,
+          "y": 65
+        },
+        "end": {
+          "x": 32,
+          "y": 95
+        }
+      }
+    ]
+  },
+  "q": {
+    "letter": "q",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Buat kepala bulat di kiri, 2. Tarik tiang tegak ke bawah sampai garis bawah!",
+    "paths": [
+      "M68,68 C62,60 54,58 48,58 C36,58 30,68 30,79 C30,90 36,100 48,100 C56,100 62,96 68,88",
+      "M68,58 L68,114"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 68,
+        "y": 68,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 68,
+        "y": 58,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 68,
+          "y": 68
+        },
+        "end": {
+          "x": 68,
+          "y": 88
+        }
+      },
+      {
+        "start": {
+          "x": 68,
+          "y": 58
+        },
+        "end": {
+          "x": 68,
+          "y": 114
+        }
+      }
+    ]
+  },
+  "r": {
+    "letter": "r",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang pendek ke bawah, 2. Buat dahan melengkung kecil di kanan!",
+    "paths": [
+      "M34,60 L34,100",
+      "M34,72 C38,62 48,58 56,58 C62,58 64,60 66,64"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 34,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 34,
+        "y": 72,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 34,
+          "y": 60
+        },
+        "end": {
+          "x": 34,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 34,
+          "y": 72
+        },
+        "end": {
+          "x": 66,
+          "y": 64
+        }
+      }
+    ]
+  },
+  "s": {
+    "letter": "s",
+    "caseType": "lower",
+    "numStrokes": 1,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Liukkan garis berkelok seperti ombak kecil!",
+    "paths": [
+      "M64,68 C60,60 54,58 48,58 C38,58 34,64 34,72 C34,80 40,84 48,86 C58,88 64,92 64,96 C64,100 56,100 48,100 C40,100 36,98 34,94"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 64,
+        "y": 68,
+        "label": "Mulai 1"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 64,
+          "y": 68
+        },
+        "end": {
+          "x": 34,
+          "y": 94
+        }
+      }
+    ]
+  },
+  "t": {
+    "letter": "t",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik tiang tegak dengan kaki melengkung, 2. Beri garis silang di tengahnya!",
+    "paths": [
+      "M48,24 L48,94 C48,99 53,100 58,100",
+      "M34,58 L62,58"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 48,
+        "y": 24,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 34,
+        "y": 58,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 48,
+          "y": 24
+        },
+        "end": {
+          "x": 58,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 34,
+          "y": 58
+        },
+        "end": {
+          "x": 62,
+          "y": 58
+        }
+      }
+    ]
+  },
+  "u": {
+    "letter": "u",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik garis ke bawah lalu lengkungkan ke atas seperti cangkir, 2. Tarik tiang tegak di kanan!",
+    "paths": [
+      "M34,60 L34,90 C34,98 42,100 50,100 C58,100 66,98 66,90 L66,60",
+      "M66,60 L66,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 34,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 66,
+        "y": 60,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 34,
+          "y": 60
+        },
+        "end": {
+          "x": 66,
+          "y": 60
+        }
+      },
+      {
+        "start": {
+          "x": 66,
+          "y": 60
+        },
+        "end": {
+          "x": 66,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "v": {
+    "letter": "v",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik garis miring ke bawah, 2. Tarik garis miring kembali ke atas!",
+    "paths": [
+      "M32,60 L50,100",
+      "M50,100 L68,60"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 32,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 50,
+        "y": 100,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 32,
+          "y": 60
+        },
+        "end": {
+          "x": 50,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 50,
+          "y": 100
+        },
+        "end": {
+          "x": 68,
+          "y": 60
+        }
+      }
+    ]
+  },
+  "w": {
+    "letter": "w",
+    "caseType": "lower",
+    "numStrokes": 4,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Miring ke bawah, 2. Miring ke atas, 3. Miring ke bawah lagi, 4. Miring ke atas!",
+    "paths": [
+      "M20,60 L34,100",
+      "M34,100 L48,70",
+      "M48,70 L62,100",
+      "M62,100 L78,60"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 20,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 34,
+        "y": 100,
+        "label": "Mulai 2"
+      },
+      {
+        "number": 3,
+        "x": 48,
+        "y": 70,
+        "label": "Mulai 3"
+      },
+      {
+        "number": 4,
+        "x": 62,
+        "y": 100,
+        "label": "Mulai 4"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 20,
+          "y": 60
+        },
+        "end": {
+          "x": 34,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 34,
+          "y": 100
+        },
+        "end": {
+          "x": 48,
+          "y": 70
+        }
+      },
+      {
+        "start": {
+          "x": 48,
+          "y": 70
+        },
+        "end": {
+          "x": 62,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 62,
+          "y": 100
+        },
+        "end": {
+          "x": 78,
+          "y": 60
+        }
+      }
+    ]
+  },
+  "x": {
+    "letter": "x",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik garis miring ke kanan bawah, 2. Silangkan garis miring ke kiri bawah!",
+    "paths": [
+      "M34,60 L66,100",
+      "M66,60 L34,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 34,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 66,
+        "y": 60,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 34,
+          "y": 60
+        },
+        "end": {
+          "x": 66,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 66,
+          "y": 60
+        },
+        "end": {
+          "x": 34,
+          "y": 100
+        }
+      }
+    ]
+  },
+  "y": {
+    "letter": "y",
+    "caseType": "lower",
+    "numStrokes": 2,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Tarik garis miring pendek ke tengah, 2. Tarik garis miring panjang menembus ke kiri bawah!",
+    "paths": [
+      "M34,60 L50,84",
+      "M66,60 L34,114"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 34,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 66,
+        "y": 60,
+        "label": "Mulai 2"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 34,
+          "y": 60
+        },
+        "end": {
+          "x": 50,
+          "y": 84
+        }
+      },
+      {
+        "start": {
+          "x": 66,
+          "y": 60
+        },
+        "end": {
+          "x": 34,
+          "y": 114
+        }
+      }
+    ]
+  },
+  "z": {
+    "letter": "z",
+    "caseType": "lower",
+    "numStrokes": 3,
+    "viewBox": "0 0 100 120",
+    "instruction": "1. Garis tidur ke kanan, 2. Garis miring ke kiri bawah, 3. Garis tidur lagi ke kanan!",
+    "paths": [
+      "M34,60 L66,60",
+      "M66,60 L34,100",
+      "M34,100 L66,100"
+    ],
+    "startNodes": [
+      {
+        "number": 1,
+        "x": 34,
+        "y": 60,
+        "label": "Mulai 1"
+      },
+      {
+        "number": 2,
+        "x": 66,
+        "y": 60,
+        "label": "Mulai 2"
+      },
+      {
+        "number": 3,
+        "x": 34,
+        "y": 100,
+        "label": "Mulai 3"
+      }
+    ],
+    "checkpoints": [
+      {
+        "start": {
+          "x": 34,
+          "y": 60
+        },
+        "end": {
+          "x": 66,
+          "y": 60
+        }
+      },
+      {
+        "start": {
+          "x": 66,
+          "y": 60
+        },
+        "end": {
+          "x": 34,
+          "y": 100
+        }
+      },
+      {
+        "start": {
+          "x": 34,
+          "y": 100
+        },
+        "end": {
+          "x": 66,
+          "y": 100
+        }
+      }
+    ]
+  }
+};
+
+export function getLetterPath(char, mode = 'upper') {
+  if (mode === 'lower') {
+    const key = (char || 'a').toLowerCase();
+    return LOWERCASE_PATHS[key] || ALPHABET_PATHS[key] || LOWERCASE_PATHS['a'];
+  }
+  const key = (char || 'A').toUpperCase();
+  return ALPHABET_PATHS[key] || ALPHABET_PATHS['A'];
+}
