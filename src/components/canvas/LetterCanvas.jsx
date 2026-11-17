@@ -71,17 +71,98 @@ function parsePathToCanvas(ctx, pathStr, scaleX, scaleY, offsetX, offsetY) {
 
 // Sample exactly 12 dense sequential checkpoints along path (0% to 100%)
 function sampleStrokeCheckpoints(pathStr, count = 12) {
-  if (typeof document === "undefined") return [];
+  if (typeof document !== "undefined") {
+    try {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const path = document.createElementNS(svgNS, "path");
+      path.setAttribute("d", pathStr);
+      const totalLength = path.getTotalLength();
+      if (totalLength && totalLength > 0) {
+        const points = [];
+        for (let i = 0; i < count; i++) {
+          const dist = (i / (count - 1)) * totalLength;
+          const pt = path.getPointAtLength(dist);
+          points.push({
+            x: Math.round(pt.x * 10) / 10,
+            y: Math.round(pt.y * 10) / 10,
+          });
+        }
+        if (points.length === count) return points;
+      }
+    } catch {
+      // fallback to analytical sampler
+    }
+  }
+
+  // Pure analytical sampler for straight lines ('M' + 'L') and cubic beziers ('M' + 'C')
   try {
-    const svgNS = "http://www.w3.org/2000/svg";
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("d", pathStr);
-    const totalLength = path.getTotalLength() || 1;
+    const commands = pathStr.match(/[a-df-z][^a-df-z]*/gi) || [];
+    let curX = 0, curY = 0;
+    const segments = [];
+    for (const cmd of commands) {
+      const type = cmd[0];
+      const args = cmd.slice(1).trim().split(/[\s,]+/).filter(Boolean).map(Number);
+      if (type === "M") {
+        curX = args[0]; curY = args[1];
+      } else if (type === "L") {
+        const p0 = { x: curX, y: curY };
+        const p1 = { x: args[0], y: args[1] };
+        const len = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+        segments.push({ type: "L", p0, p1, len });
+        curX = p1.x; curY = p1.y;
+      } else if (type === "C") {
+        const p0 = { x: curX, y: curY };
+        const p1 = { x: args[0], y: args[1] };
+        const p2 = { x: args[2], y: args[3] };
+        const p3 = { x: args[4], y: args[5] };
+        let bezLen = 0;
+        let prevPt = p0;
+        for (let s = 1; s <= 20; s++) {
+          const t = s / 20;
+          const u = 1 - t;
+          const px = u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x;
+          const py = u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y;
+          bezLen += Math.hypot(px - prevPt.x, py - prevPt.y);
+          prevPt = { x: px, y: py };
+        }
+        segments.push({ type: "C", p0, p1, p2, p3, len: bezLen });
+        curX = p3.x; curY = p3.y;
+      }
+    }
+
+    const totalLen = segments.reduce((acc, s) => acc + s.len, 0) || 1;
     const points = [];
     for (let i = 0; i < count; i++) {
-      const dist = (i / (count - 1)) * totalLength;
-      const pt = path.getPointAtLength(dist);
-      points.push({ x: pt.x, y: pt.y });
+      const targetDist = (i / (count - 1)) * totalLen;
+      let accumulated = 0;
+      let found = false;
+      for (const seg of segments) {
+        if (accumulated + seg.len >= targetDist || seg === segments[segments.length - 1]) {
+          const segDist = Math.max(0, targetDist - accumulated);
+          const t = seg.len > 0 ? Math.min(1, segDist / seg.len) : 0;
+          if (seg.type === "L") {
+            points.push({
+              x: Math.round((seg.p0.x + (seg.p1.x - seg.p0.x) * t) * 10) / 10,
+              y: Math.round((seg.p0.y + (seg.p1.y - seg.p0.y) * t) * 10) / 10,
+            });
+          } else if (seg.type === "C") {
+            const u = 1 - t;
+            const px = u*u*u*seg.p0.x + 3*u*u*t*seg.p1.x + 3*u*t*t*seg.p2.x + t*t*t*seg.p3.x;
+            const py = u*u*u*seg.p0.y + 3*u*u*t*seg.p1.y + 3*u*t*t*seg.p2.y + t*t*t*seg.p3.y;
+            points.push({
+              x: Math.round(px * 10) / 10,
+              y: Math.round(py * 10) / 10,
+            });
+          }
+          found = true;
+          break;
+        }
+        accumulated += seg.len;
+      }
+      if (!found && segments.length > 0) {
+        const last = segments[segments.length - 1];
+        points.push(last.type === "L" ? last.p1 : last.p3);
+      }
     }
     return points;
   } catch {
@@ -178,13 +259,16 @@ export default function LetterCanvas({
   const letterPathData = getLetterPath(letterChar, mode);
   const totalStrokes = letterPathData.paths.length;
 
-  // Proportional scaling for 4-line handwriting grid (Top Y=16, Midline Y=58, Baseline Y=100, Descender Y=114)
+  // Proportional scaling: Enlarged 68-72% viewport coverage for kindergarten-friendly tracing
   const getScaleAndOffset = useCallback((w, h) => {
-    const scale = Math.min((0.50 * h) / 98, (0.58 * w) / 80);
+    const isLower = mode === "lower";
+    const spanH = isLower ? 104 : 88;
+    const centerY = isLower ? 65 : 58;
+    const scale = Math.min((0.68 * h) / spanH, (0.72 * w) / 80);
     const offsetX = (w / 2) - 50 * scale;
-    const offsetY = (h / 2) - 58 * scale;
-    return { scaleX: scale, scaleY: scale, offsetX, offsetY, drawW: 80 * scale, drawH: 98 * scale };
-  }, []);
+    const offsetY = (h / 2) - centerY * scale;
+    return { scaleX: scale, scaleY: scale, offsetX, offsetY, drawW: 80 * scale, drawH: spanH * scale };
+  }, [mode]);
 
   // Clear scratch user drawing canvas
   const clearDrawingCanvas = useCallback(() => {
@@ -214,32 +298,24 @@ export default function LetterCanvas({
     const activeStroke = currentStrokeIdxRef.current;
     const isHolding = isHoldingCompletionRef.current;
 
-    // Refined, slim active & completed brush stroke width (7.2px, approx 20% slimmer than 9px)
-    const brushWidth = 7.2;
+    // Refined, juicy active & completed brush stroke width (9px for kid-friendly bold tracing)
+    const brushWidth = 9.0;
     const inkColor = activeColorRef.current || "#2563EB";
 
-    // ── 0. Subtle Ruled Paper Left Margin Line (Classic Notebook Margin) ──
-    const marginX = lineXStart + 22 * Math.min(scaleX, scaleY);
-    ctx.lineWidth = 1.4;
-    ctx.setLineDash([]);
-    ctx.strokeStyle = "rgba(244, 114, 182, 0.45)";
-    ctx.beginPath();
-    ctx.moveTo(marginX, 0);
-    ctx.lineTo(marginX, height);
-    ctx.stroke();
+    // ── 1. Dynamic Handwriting Guidelines (3 Lines for Upper vs 4 Lines for Lower matching Client Chart) ──
+    const isLower = mode === "lower";
 
-    // ── 1. Primary 4-Line Handwriting Guidelines ──
-    // Line 1: Top Ascender Line (Y = 16)
+    // Line 1: Top Cap / Ascender Line (Y = 16, solid blue #3B82F6)
     const yTop = offsetY + 16 * scaleY;
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 2.0;
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#94A3B8";
+    ctx.strokeStyle = "#3B82F6";
     ctx.beginPath();
     ctx.moveTo(lineXStart, yTop);
     ctx.lineTo(lineXEnd, yTop);
     ctx.stroke();
 
-    // Line 2: Waistline / Midline (Y = 58, dashed)
+    // Line 2: Waistline / Midline / x-height (Y = 58, dashed blue #60A5FA)
     const yMid = offsetY + 58 * scaleY;
     ctx.lineWidth = 2.0;
     ctx.setLineDash([8, 8]);
@@ -249,39 +325,41 @@ export default function LetterCanvas({
     ctx.lineTo(lineXEnd, yMid);
     ctx.stroke();
 
-    // Line 3: Baseline (Y = 100, solid coral grounding line)
+    // Line 3: Baseline (Y = 100, solid red #EF4444)
     const yBase = offsetY + 100 * scaleY;
     ctx.lineWidth = 2.4;
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#F87171";
+    ctx.strokeStyle = "#EF4444";
     ctx.beginPath();
     ctx.moveTo(lineXStart, yBase);
     ctx.lineTo(lineXEnd, yBase);
     ctx.stroke();
 
-    // Line 4: Descender Line (Y = 114)
-    const yBottom = offsetY + 114 * scaleY;
-    ctx.lineWidth = 1.6;
-    ctx.setLineDash([]);
-    ctx.strokeStyle = "#CBD5E1";
-    ctx.beginPath();
-    ctx.moveTo(lineXStart, yBottom);
-    ctx.lineTo(lineXEnd, yBottom);
-    ctx.stroke();
+    // Line 4: Descender Line (Y = 114, dashed blue-gray #94A3B8) — ONLY rendered in Lowercase mode!
+    if (isLower) {
+      const yBottom = offsetY + 114 * scaleY;
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = "#94A3B8";
+      ctx.beginPath();
+      ctx.moveTo(lineXStart, yBottom);
+      ctx.lineTo(lineXEnd, yBottom);
+      ctx.stroke();
+    }
 
     // ── 2. Letter Silhouette Track (Crisp Background Sketch) ──
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#E2E8F0";
-    ctx.lineWidth = 14 * Math.min(scaleX, scaleY);
+    ctx.strokeStyle = "rgba(226, 232, 240, 0.95)";
+    ctx.lineWidth = 18 * Math.min(scaleX, scaleY);
     for (const p of letterPathData.paths) {
       parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
     }
 
     // ── 2b. Dashed Centerline Track for Clear Letter Sketch ──
     ctx.strokeStyle = "#CBD5E1";
-    ctx.lineWidth = 2.2 * Math.min(scaleX, scaleY);
+    ctx.lineWidth = 2.4 * Math.min(scaleX, scaleY);
     ctx.setLineDash([6, 6]);
     for (const p of letterPathData.paths) {
       parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
@@ -296,21 +374,26 @@ export default function LetterCanvas({
         ctx.lineWidth = brushWidth;
         ctx.strokeStyle = inkColor;
         ctx.shadowColor = isHolding ? inkColor : `${inkColor}66`;
-        ctx.shadowBlur = isHolding ? 12 : 4;
+        ctx.shadowBlur = isHolding ? 14 : 5;
         parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
         ctx.shadowBlur = 0;
       } else if (idx === activeStroke && !isHolding && !isCompleted) {
-        // Active stroke track: prominent dashed guide line
-        ctx.setLineDash([8, 10]);
-        ctx.lineWidth = 6 * Math.min(scaleX, scaleY);
-        ctx.strokeStyle = letterObj.color || inkColor;
+        // Active stroke track: prominent sky-blue dashed guide line with luminous halo
+        ctx.save();
+        ctx.setLineDash([8, 8]);
+        ctx.lineWidth = 10 * Math.min(scaleX, scaleY);
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
         parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
-        ctx.setLineDash([]);
+        ctx.lineWidth = 5.5 * Math.min(scaleX, scaleY);
+        ctx.strokeStyle = "#0284C7";
+        parsePathToCanvas(ctx, p, scaleX, scaleY, offsetX, offsetY);
+        ctx.restore();
       }
     });
 
     // ── 4. Live Active Ink Along Path (from Checkpoint 0 to nextCheckpointIndex) ──
-    const activeCps = strokeCheckpoints.current[activeStroke];
+    const allCps = strokeCheckpoints.current;
+    const activeCps = allCps[activeStroke];
     const curCheckpointIdx = nextCheckpointIndexRef.current;
     if (activeCps && activeCps.length >= 12 && curCheckpointIdx > 0 && !isHolding && !isCompleted) {
       ctx.beginPath();
@@ -330,81 +413,189 @@ export default function LetterCanvas({
       ctx.shadowBlur = 0;
     }
 
-    // ── 5. Directional Animated Comet Pulse & Pulsing Start Dot (NO NUMBERS) ──
-    if (activeCps && activeCps.length >= 12 && !isHolding && !isCompleted) {
-      const curTarget = Math.min(curCheckpointIdx, 11);
+    // ── 5. Client Legend Symbols: Stroke Numbers, Start Dots, End Dots & Direction Arrows ──
+    if (allCps && allCps.length > 0 && !isHolding && !isCompleted) {
+      const now = performance.now();
 
-      // Animated directional comet pulse gliding from current target toward end
-      if (curTarget < 11) {
-        const remaining = activeCps.slice(curTarget);
-        const now = performance.now();
-        const cometCycle = (now % 1800) / 1800;
+      // 5a. Render circular blue sequence numbers on all upcoming strokes (sIdx > activeStroke)
+      allCps.forEach((cps, sIdx) => {
+        if (sIdx > activeStroke && cps && cps.length >= 12) {
+          const sPt = cps[0];
+          const p1 = cps[1] || sPt;
+          const sx = offsetX + sPt.x * scaleX;
+          const sy = offsetY + sPt.y * scaleY;
+          const initDx = p1.x - sPt.x;
+          const initDy = p1.y - sPt.y;
+          const initLen = Math.hypot(initDx, initDy) || 1;
+          const normPerpX = -initDy / initLen;
+          const normPerpY = initDx / initLen;
 
-        for (let i = 0; i < 3; i++) {
-          const tailOffset = cometCycle - i * 0.05;
-          if (tailOffset >= 0 && tailOffset <= 1) {
-            const ptIdx = Math.min(
-              remaining.length - 1,
-              Math.floor(tailOffset * remaining.length)
-            );
-            const p = remaining[ptIdx];
-            if (p) {
-              const cx = offsetX + p.x * scaleX;
-              const cy = offsetY + p.y * scaleY;
-              const r = Math.max(3, (6 - i * 1.5) * Math.min(scaleX, scaleY));
+          let badgeX = sx + normPerpX * 18 - (initDx / initLen) * 6;
+          let badgeY = sy + normPerpY * 18 - (initDy / initLen) * 6;
+          badgeX = Math.max(16, Math.min(width - 16, badgeX));
+          badgeY = Math.max(16, Math.min(height - 16, badgeY));
 
-              ctx.beginPath();
-              ctx.arc(cx, cy, r, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(56, 189, 248, ${0.85 - i * 0.25})`;
-              ctx.shadowColor = "#38BDF8";
-              ctx.shadowBlur = 6;
-              ctx.fill();
-              ctx.shadowBlur = 0;
-            }
-          }
+          // Soft blue circular badge for upcoming strokes (matching client overview chart)
+          ctx.beginPath();
+          ctx.arc(badgeX, badgeY, 9, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(37, 99, 235, 0.75)";
+          ctx.fill();
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "bold 10px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(String(sIdx + 1), badgeX, badgeY + 0.5);
+
+          // Faint green start dot
+          ctx.beginPath();
+          ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "#22C55E";
+          ctx.fill();
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
         }
-      }
+      });
 
-      // Small, inviting Pulsing Start Dot at exact start or current resume position (NO NUMBER)
-      const startPt = activeCps[curTarget];
-      const sx = offsetX + startPt.x * scaleX;
-      const sy = offsetY + startPt.y * scaleY;
-      const dotR = 8;
-      const pulseR = 14 + Math.sin(performance.now() * 0.008) * 2;
+      // 5b. Render prominent interactive symbols on the ACTIVE stroke
+      if (activeCps && activeCps.length >= 12) {
+        const isClosedLoop =
+          Math.hypot(activeCps[0].x - activeCps[11].x, activeCps[0].y - activeCps[11].y) < 6;
 
-      // Outer pulse aura ring
-      ctx.beginPath();
-      ctx.arc(sx, sy, pulseR, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(245, 158, 11, 0.35)";
-      ctx.fill();
-
-      // Main solid start dot
-      ctx.beginPath();
-      ctx.arc(sx, sy, dotR, 0, Math.PI * 2);
-      ctx.fillStyle = "#F59E0B";
-      ctx.fill();
-      ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Destination End Target Beacon (soft dashed ring at checkpoint 11)
-      if (curTarget < 11) {
-        const endPt = activeCps[11];
-        const ex = offsetX + endPt.x * scaleX;
-        const ey = offsetY + endPt.y * scaleY;
-        const endR = 7;
+        // Smooth Animated Ghost Comet gliding along active stroke
+        const cometCycle = (now % 2200) / 2200;
+        const cpFloat = cometCycle * 11;
+        const cpBase = Math.floor(cpFloat);
+        const cpNext = Math.min(11, cpBase + 1);
+        const cpFrac = cpFloat - cpBase;
+        const cpA = activeCps[cpBase];
+        const cpB = activeCps[cpNext];
+        const gx = offsetX + (cpA.x + (cpB.x - cpA.x) * cpFrac) * scaleX;
+        const gy = offsetY + (cpA.y + (cpB.y - cpA.y) * cpFrac) * scaleY;
 
         ctx.beginPath();
-        ctx.setLineDash([3, 3]);
-        ctx.arc(ex, ey, endR + 2, 0, Math.PI * 2);
-        ctx.strokeStyle = "#F59E0B";
+        ctx.arc(gx, gy, 10, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(gx, gy, 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#38BDF8";
+        ctx.fill();
+        ctx.strokeStyle = "#FFFFFF";
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        ctx.setLineDash([]);
 
-        ctx.fillStyle = "#F59E0B";
-        drawSparkleStar(ctx, ex, ey, 4, endR * 0.5, endR * 0.22);
+        // Blue Directional Arrow along active stroke (~40% progress: checkpoint 4 to 5)
+        const arrowCpA = activeCps[4];
+        const arrowCpB = activeCps[5];
+        if (arrowCpA && arrowCpB) {
+          const ax = offsetX + arrowCpA.x * scaleX;
+          const ay = offsetY + arrowCpA.y * scaleY;
+          const bx = offsetX + arrowCpB.x * scaleX;
+          const by = offsetY + arrowCpB.y * scaleY;
+          const arrowAngle = Math.atan2(by - ay, bx - ax);
+
+          ctx.save();
+          ctx.translate(ax, ay);
+          ctx.rotate(arrowAngle);
+          ctx.fillStyle = "#2563EB";
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(10, 0);
+          ctx.lineTo(-6, -6);
+          ctx.lineTo(-3, 0);
+          ctx.lineTo(-6, 6);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Titik Akhir (Red End Point at checkpoint 11)
+        const endPt = activeCps[11];
+        let ex = offsetX + endPt.x * scaleX;
+        let ey = offsetY + endPt.y * scaleY;
+        if (isClosedLoop) {
+          ex += 13;
+        }
+
+        // Red end dot aura
+        ctx.beginPath();
+        ctx.arc(ex, ey, 11, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
         ctx.fill();
+
+        // Red end dot solid circle
+        ctx.beginPath();
+        ctx.arc(ex, ey, 7.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#EF4444";
+        ctx.fill();
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        // Titik Awal (Green Start Point at checkpoint 0)
+        const startPt = activeCps[0];
+        const sx = offsetX + startPt.x * scaleX;
+        const sy = offsetY + startPt.y * scaleY;
+
+        // Green start dot energetic double pulsing beacon
+        const pulseR1 = 15 + Math.sin(now * 0.007) * 4;
+        const pulseR2 = 22 + Math.sin(now * 0.007 + 1.2) * 5;
+        ctx.beginPath();
+        ctx.arc(sx, sy, pulseR2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(34, 197, 94, 0.2)";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(sx, sy, pulseR1, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(34, 197, 94, 0.35)";
+        ctx.fill();
+
+        // Green start dot solid circle
+        ctx.beginPath();
+        ctx.arc(sx, sy, 9.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#22C55E";
+        ctx.fill();
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+
+        // Nomor Urutan Goresan (Vibrant Blue Circular Badge with Stroke Number)
+        const p1 = activeCps[1] || activeCps[0];
+        const initDx = p1.x - startPt.x;
+        const initDy = p1.y - startPt.y;
+        const initLen = Math.hypot(initDx, initDy) || 1;
+        const normPerpX = -initDy / initLen;
+        const normPerpY = initDx / initLen;
+
+        let badgeX = sx + normPerpX * 18 - (initDx / initLen) * 6;
+        let badgeY = sy + normPerpY * 18 - (initDy / initLen) * 6;
+
+        badgeX = Math.max(16, Math.min(width - 16, badgeX));
+        badgeY = Math.max(16, Math.min(height - 16, badgeY));
+
+        ctx.beginPath();
+        ctx.arc(badgeX, badgeY, 11, 0, Math.PI * 2);
+        ctx.fillStyle = "#2563EB";
+        ctx.shadowColor = "#2563EB";
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(activeStroke + 1), badgeX, badgeY + 0.5);
       }
     }
 
@@ -509,7 +700,7 @@ export default function LetterCanvas({
     }
   }, [resetTrigger, handleFullReset]);
 
-  // Initialize dense checkpoints when active letter changes
+  // Initialize dense 12 checkpoints when active letter changes
   useEffect(() => {
     strokeCheckpoints.current = letterPathData.paths.map((p) =>
       sampleStrokeCheckpoints(p, 12)
@@ -539,7 +730,7 @@ export default function LetterCanvas({
     return () => {
       clearTimeout(completionHoldTimer.current);
     };
-  }, [letterObj, totalStrokes, clearDrawingCanvas, renderGuideFrame, resizeCanvases]);
+  }, [letterChar, mode, letterObj, totalStrokes, clearDrawingCanvas, renderGuideFrame, resizeCanvases]);
 
   // Normalized pointer coordinates
   const getCanvasCoords = (e) => {
@@ -640,8 +831,8 @@ export default function LetterCanvas({
     if (!activeCps || activeCps.length < 12) return false;
 
     const rect = canvas.getBoundingClientRect();
-    // 30px capture radius in display space converted to canvas pixels
-    const CAPTURE_RADIUS = 30 * (canvas.width / rect.width);
+    // 34px capture radius in display space converted to canvas pixels for kid-friendly forgiveness
+    const CAPTURE_RADIUS = 34 * (canvas.width / rect.width);
 
     let k = nextCheckpointIndexRef.current;
     if (k >= 12) return false;
@@ -737,9 +928,9 @@ export default function LetterCanvas({
     const pt = getCanvasCoords(e);
     const prevPt = lastPoint.current || pt;
 
-    // Draw live stroke on drawing canvas with slim 7.2px brush in chosen crayon color
+    // Draw live stroke on drawing canvas with juicy 9.0px brush in chosen crayon color
     const ctx = canvas.getContext("2d");
-    const brushWidth = 7.2;
+    const brushWidth = 9.0;
     const inkColor = activeColorRef.current || "#2563EB";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -822,13 +1013,18 @@ export default function LetterCanvas({
           style={{ touchAction: "none" }}
         />
 
-        {/* Active Stroke Indicator Pill in Top Left with Mini Animated Progress Bar */}
+        {/* Active Stroke Indicator Pill in Top Left with Mini Animated Progress Bar & Category Badge */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-2.5 py-1 rounded-xl shadow-xs pointer-events-none">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
             <span className="font-display font-bold text-[11px] text-[#1B4965]">
               Goresan {Math.min(currentStrokeIdx + 1, totalStrokes)} / {totalStrokes}
             </span>
+            {mode === "lower" && letterPathData.category && (
+              <span className="ml-1 px-1.5 py-0.5 bg-sky-100 text-[#0369A1] border border-sky-300 rounded-md font-display font-black text-[10px] leading-none">
+                Huruf {letterPathData.category}
+              </span>
+            )}
           </div>
           <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
             <div
@@ -838,6 +1034,38 @@ export default function LetterCanvas({
               }}
             />
           </div>
+        </div>
+
+        {/* Compact Official Client Symbol Legend Pill in Top-Right Corner */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-2 sm:gap-2.5 bg-white/95 backdrop-blur-xs border border-slate-200/90 px-2 sm:px-2.5 py-1 rounded-xl shadow-xs pointer-events-none">
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] border border-white shadow-2xs" />
+            <span className="font-sans font-bold text-[10px] text-slate-700">Mulai</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] border border-white shadow-2xs" />
+            <span className="font-sans font-bold text-[10px] text-slate-700">Selesai</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <svg className="w-3 h-3 text-[#2563EB]" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h9M7 3l4 4-4 4" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="font-sans font-bold text-[10px] text-[#2563EB]">Arah</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-3.5 h-3.5 rounded-full bg-[#2563EB] text-white font-bold text-[9px] flex items-center justify-center">1</span>
+            <span className="font-sans font-bold text-[10px] text-slate-700">Urutan</span>
+          </div>
+        </div>
+
+        {/* Active Stroke Instruction Banner from Client Specification */}
+        <div className="absolute bottom-2 inset-x-3 mx-auto w-fit max-w-[90%] z-10 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-3 py-1 rounded-xl shadow-xs pointer-events-none flex items-center gap-1.5 truncate">
+          <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white font-display font-black text-[10px] flex items-center justify-center flex-shrink-0">
+            {Math.min(currentStrokeIdx + 1, totalStrokes)}
+          </span>
+          <span className="font-display font-bold text-xs text-[#1B4965] truncate">
+            {letterPathData.strokeInstructions?.[currentStrokeIdx] || letterPathData.instruction}
+          </span>
         </div>
 
         {/* Friendly Celebration Floating Badge during 1.8s hold (Zero Stars Policy Compliant) */}

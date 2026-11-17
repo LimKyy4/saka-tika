@@ -297,6 +297,121 @@ export function playRubberBoingSound() {
   }
 }
 
+// Swift playful whoosh as the flying coin shoots up to the slot
+export function playCoinWhooshSound() {
+  try {
+    const ctx = getContext();
+    if (!ctx || ctx.state === "suspended") return;
+
+    const start = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(350, start);
+    osc.frequency.exponentialRampToValueAtTime(1100, start + 0.22);
+
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.28);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + 0.28);
+  } catch {
+    // Graceful error silence
+  }
+}
+
+// Crisp sparkling chime ("DING!") when the flying coin lands into the target slot
+export function playSlotSnapSound(stage = 0) {
+  try {
+    const ctx = getContext();
+    if (!ctx || ctx.state === "suspended") return;
+
+    const start = ctx.currentTime;
+    const chordPitches = [
+      [1046.5, 1318.51], // C6, E6
+      [1174.66, 1396.91], // D6, F6
+      [1318.51, 1567.98, 2093.0], // E6, G6, C7
+    ];
+    const notes = chordPitches[stage % chordPitches.length];
+
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0, start + idx * 0.03);
+      gain.gain.linearRampToValueAtTime(0.24, start + idx * 0.03 + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + idx * 0.03 + 0.38);
+
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start + idx * 0.03);
+      osc.stop(start + idx * 0.03 + 0.38);
+    });
+  } catch {
+    // Graceful error silence
+  }
+}
+
+// Cute high-spirited giggle for Saka & Tika tap interaction
+export function playMascotGiggleSound() {
+  try {
+    const ctx = getContext();
+    if (!ctx || ctx.state === "suspended") return;
+
+    const start = ctx.currentTime;
+    const hops = [680, 840, 720, 960];
+    hops.forEach((freq, i) => {
+      const noteStart = start + i * 0.06;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, noteStart);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.15, noteStart + 0.04);
+
+      gain.gain.setValueAtTime(0, noteStart);
+      gain.gain.linearRampToValueAtTime(0.15, noteStart + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.08);
+
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(noteStart);
+      osc.stop(noteStart + 0.08);
+    });
+  } catch {
+    // Graceful error silence
+  }
+}
+
+// Soft subtle water drop sound when tapping ambient arena or background mini bubbles
+export function playAmbientRippleSound() {
+  try {
+    const ctx = getContext();
+    if (!ctx || ctx.state === "suspended") return;
+
+    const start = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    const base = 800 + Math.random() * 400;
+    osc.frequency.setValueAtTime(base, start);
+    osc.frequency.exponentialRampToValueAtTime(base * 1.6, start + 0.04);
+
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.12, start + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.06);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + 0.06);
+  } catch {
+    // Graceful error silence
+  }
+}
+
 export class BgmSynthesizerController {
   constructor() {
     this.isPlaying = false;

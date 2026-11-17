@@ -178,6 +178,12 @@ export default function MelengkapiKataView() {
   const [spinPuzzleIdx, setSpinPuzzleIdx] = useState(null);
   const [tappedTileIdx, setTappedTileIdx] = useState(null);
 
+  // Ref untuk baki kayu & slot aktif agar drop detection sangat toleran (tidak harus akurat)
+  const trayBoardRef = useRef(null);
+  const activeSlotRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const [isDraggingAny, setIsDraggingAny] = useState(false);
+
   const autoAdvanceTimer = useRef(null);
 
   // Kata aktif saat ini
@@ -231,11 +237,11 @@ export default function MelengkapiKataView() {
     setOptions(combined);
 
     if (currentLevel === 1) {
-      setSpeechBubbleText("Lengkapi 1 huruf yang hilang ya!");
+      setSpeechBubbleText("Tarik atau ketuk 1 huruf yang hilang ya!");
     } else if (currentLevel === 2) {
-      setSpeechBubbleText("Lengkapi huruf pertama yang hilang!");
+      setSpeechBubbleText("Tarik atau ketuk huruf pertama yang hilang!");
     } else {
-      setSpeechBubbleText("Tantangan Level 3! Ayo lengkapi hurufnya!");
+      setSpeechBubbleText("Tantangan Level 3! Tarik atau ketuk hurufnya!");
     }
 
     if (autoAdvanceTimer.current) {
@@ -367,6 +373,52 @@ export default function MelengkapiKataView() {
       questionIndex,
       addStars,
     ]
+  );
+
+  // Handle Drag-and-Drop dengan toleransi ekstra tinggi untuk anak-anak (tidak harus akurat)
+  const handleDropOption = useCallback(
+    (letter, info) => {
+      if (isAnswered || isChampion) return;
+
+      const dropX = info.point.x;
+      const dropY = info.point.y;
+
+      let isHit = false;
+
+      // 1. Cek jarak ke slot aktif (Toleransi ekstra lebar: radius 220px dari pusat slot)
+      if (activeSlotRef.current) {
+        const sRect = activeSlotRef.current.getBoundingClientRect();
+        const centerX = sRect.left + sRect.width / 2;
+        const centerY = sRect.top + sRect.height / 2;
+        const distance = Math.hypot(dropX - centerX, dropY - centerY);
+        if (distance < 220) {
+          isHit = true;
+        }
+      }
+
+      // 2. Cek apakah dilepas di area baki kayu (dengan margin ekstra 60px ke segala arah)
+      if (!isHit && trayBoardRef.current) {
+        const tRect = trayBoardRef.current.getBoundingClientRect();
+        if (
+          dropX >= tRect.left - 60 &&
+          dropX <= tRect.right + 60 &&
+          dropY >= tRect.top - 60 &&
+          dropY <= tRect.bottom + 80
+        ) {
+          isHit = true;
+        }
+      }
+
+      // 3. Cek gesture drag ke atas (jika anak melempar/menarik ke separuh atas layar menuju kata)
+      if (!isHit && dropY < window.innerHeight * 0.65) {
+        isHit = true;
+      }
+
+      if (isHit) {
+        handleSelectOption(letter);
+      }
+    },
+    [handleSelectOption, isAnswered, isChampion]
   );
 
   // Input Keyboard Fisik (A-Z)
@@ -729,8 +781,11 @@ export default function MelengkapiKataView() {
 
           {/* Baki Kayu 3D Honey-Pine Diperbesar Ukurannya */}
           <motion.div
+            ref={trayBoardRef}
             layout
-            className="relative bg-gradient-to-b from-[#D97706] to-[#B45309] border-4 border-[#FDE68A] border-b-8 border-b-[#78350F] rounded-[2.5rem] px-6 sm:px-10 py-5 sm:py-7 shadow-[0_18px_36px_rgba(6,78,59,0.38)] max-w-4xl w-full mx-auto"
+            className={`relative bg-gradient-to-b from-[#D97706] to-[#B45309] border-4 border-[#FDE68A] border-b-8 border-b-[#78350F] rounded-[2.5rem] px-6 sm:px-10 py-5 sm:py-7 shadow-[0_18px_36px_rgba(6,78,59,0.38)] max-w-4xl w-full mx-auto transition-all ${
+              isDraggingAny ? "ring-4 ring-amber-300 shadow-[0_0_40px_rgba(251,191,36,0.6)]" : ""
+            }`}
           >
             {/* Pantulan Cahaya Kilau Atas */}
             <div className="absolute top-2 inset-x-10 h-1 bg-white/40 rounded-full pointer-events-none" />
@@ -753,6 +808,7 @@ export default function MelengkapiKataView() {
                   return (
                     <motion.div
                       key={`missing-${index}`}
+                      ref={isActiveSlot ? activeSlotRef : null}
                       animate={
                         isSolved
                           ? {
@@ -762,7 +818,7 @@ export default function MelengkapiKataView() {
                             }
                           : isActiveSlot
                           ? {
-                              scale: [1, 1.05, 1],
+                              scale: isDraggingAny ? [1.08, 1.16, 1.08] : [1, 1.05, 1],
                               y: [0, -3, 0],
                             }
                           : {}
@@ -771,14 +827,16 @@ export default function MelengkapiKataView() {
                         isSolved
                           ? { duration: 0.5, ease: "easeOut" }
                           : isActiveSlot
-                          ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" }
+                          ? { duration: isDraggingAny ? 0.8 : 1.8, repeat: Infinity, ease: "easeInOut" }
                           : { duration: 0.3 }
                       }
                       className={`relative w-16 h-22 sm:w-20 sm:h-26 md:w-24 md:h-30 lg:w-26 lg:h-32 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center font-display font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl transition-all select-none ${
                         isSolved
                           ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-4 border-emerald-200 border-b-8 border-b-[#065F46] text-white shadow-xl cursor-pointer"
                           : isActiveSlot
-                          ? "bg-gradient-to-b from-[#FFFDF0] via-[#FEF9C3] to-[#FEF08A] border-4 border-dashed border-amber-400 shadow-[0_0_30px_rgba(253,224,71,0.85)] ring-4 ring-amber-300/80 cursor-default"
+                          ? isDraggingAny
+                            ? "bg-gradient-to-b from-[#FFFBEB] via-[#FEF08A] to-[#FDE047] border-4 border-dashed border-amber-500 shadow-[0_0_45px_rgba(253,224,71,1)] ring-8 ring-amber-400/80 cursor-default scale-105"
+                            : "bg-gradient-to-b from-[#FFFDF0] via-[#FEF9C3] to-[#FEF08A] border-4 border-dashed border-amber-400 shadow-[0_0_30px_rgba(253,224,71,0.85)] ring-4 ring-amber-300/80 cursor-default"
                           : "bg-white/20 border-3 border-dashed border-white/50 opacity-60 cursor-default"
                       }`}
                       title={
@@ -802,10 +860,17 @@ export default function MelengkapiKataView() {
                           </motion.div>
                         </>
                       ) : isActiveSlot ? (
-                        /* Slot Aktif: Garis Emas Berdenyut (SIMBOL '?' TELAH DIHILANGKAN SECARA MUTLAK!) */
-                        <span className="w-10 sm:w-14 h-2 sm:h-2.5 rounded-full bg-amber-500 animate-pulse shadow-xs" />
+                        /* Slot Aktif: Garis Emas Berdenyut + Hint Teks saat Drag */
+                        <div className="flex flex-col items-center gap-1.5 pointer-events-none">
+                          <span className="w-10 sm:w-14 h-2 sm:h-2.5 rounded-full bg-amber-500 animate-pulse shadow-xs" />
+                          {isDraggingAny && (
+                            <span className="font-display font-black text-[9px] sm:text-[11px] text-amber-900 tracking-wider uppercase animate-bounce drop-shadow-xs">
+                              LEPAS DI SINI!
+                            </span>
+                          )}
+                        </div>
                       ) : (
-                        /* Slot Belum Aktif: Garis Putih Halus Samar (SIMBOL '?' TELAH DIHILANGKAN) */
+                        /* Slot Belum Aktif: Garis Putih Halus Samar */
                         <span className="w-8 sm:w-10 h-1.5 sm:h-2 rounded-full bg-white/40" />
                       )}
                     </motion.div>
@@ -862,14 +927,14 @@ export default function MelengkapiKataView() {
         <footer className="w-full max-w-xl sm:max-w-2xl mx-auto flex flex-col items-center justify-center pb-2 sm:pb-3 px-2 flex-shrink-0 z-20">
           
           {/* Label Panduan */}
-          <div className="flex items-center gap-1.5 mb-2 bg-white/95 px-4 py-1 rounded-full border border-emerald-300 shadow-xs">
+          <div className="flex items-center gap-1.5 mb-2 bg-white/95 px-4 py-1.5 rounded-full border border-emerald-300 shadow-xs">
             <Sparkles size={14} className="text-emerald-600" />
             <span className="font-display font-black text-xs sm:text-sm text-[#065F46] tracking-wide uppercase">
-              Pilih Huruf yang Tepat:
+              Tarik atau Ketuk Huruf yang Tepat:
             </span>
           </div>
 
-          {/* 4 Balok Mainan 3D Pilihan Huruf */}
+          {/* 4 Balok Mainan 3D Pilihan Huruf (Mendukung Drag-and-Drop & Ketukan Langsung) */}
           <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 flex-wrap">
             {options.map((letter, optIdx) => {
               const isMatchingTarget = isCorrect && letter === expectedLetter;
@@ -877,12 +942,36 @@ export default function MelengkapiKataView() {
               const palette = TOY_CHOICE_PALETTES[optIdx % TOY_CHOICE_PALETTES.length];
 
               return (
-                <motion.button
+                <motion.div
                   key={`${letter}-${optIdx}`}
-                  type="button"
-                  disabled={isAnswered}
+                  drag={!isAnswered && !isChampion}
+                  dragSnapToOrigin={true}
+                  dragElastic={0.45}
                   whileHover={!isAnswered ? { scale: 1.12, y: -4 } : {}}
-                  whileTap={!isAnswered ? { scale: 0.9, y: 3 } : {}}
+                  whileTap={!isAnswered ? { scale: 0.96 } : {}}
+                  whileDrag={{
+                    scale: 1.22,
+                    zIndex: 100,
+                    rotate: 4,
+                    boxShadow: "0 24px 45px rgba(0,0,0,0.38)",
+                    cursor: "grabbing",
+                  }}
+                  onDragStart={() => {
+                    isDraggingRef.current = true;
+                    setIsDraggingAny(true);
+                  }}
+                  onDragEnd={(e, info) => {
+                    setTimeout(() => {
+                      isDraggingRef.current = false;
+                    }, 60);
+                    setIsDraggingAny(false);
+                    handleDropOption(letter, info);
+                  }}
+                  onClick={() => {
+                    if (!isDraggingRef.current) {
+                      handleSelectOption(letter);
+                    }
+                  }}
                   animate={
                     isWobble
                       ? {
@@ -897,14 +986,13 @@ export default function MelengkapiKataView() {
                       : {}
                   }
                   transition={{ duration: isWobble ? 0.45 : 0.3 }}
-                  onClick={() => handleSelectOption(letter)}
-                  className={`w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl sm:rounded-3xl font-display font-black text-3xl sm:text-4xl md:text-5xl border-3 sm:border-4 border-b-8 active:border-b-0 active:translate-y-1.5 transition-all flex items-center justify-center select-none cursor-pointer shadow-xl relative aspect-square ${
+                  className={`w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl sm:rounded-3xl font-display font-black text-3xl sm:text-4xl md:text-5xl border-3 sm:border-4 border-b-8 active:border-b-0 active:translate-y-1.5 transition-shadow flex items-center justify-center select-none cursor-grab active:cursor-grabbing shadow-xl relative aspect-square touch-none ${
                     isMatchingTarget
                       ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-emerald-200 border-b-emerald-800 text-white shadow-emerald-400"
                       : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.shadow}`
                   }`}
                   style={{ color: isMatchingTarget ? "#FFFFFF" : palette.text }}
-                  title={`Pilih huruf ${letter}`}
+                  title={`Tarik atau ketuk huruf ${letter}`}
                 >
                   {/* Kilau Cahaya Sudut Atas */}
                   <div className="absolute top-1 inset-x-3 h-1 bg-white/50 rounded-full pointer-events-none" />
@@ -915,12 +1003,12 @@ export default function MelengkapiKataView() {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center shadow-xs"
+                      className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center shadow-xs pointer-events-none"
                     >
                       <Check size={13} strokeWidth={3} className="text-white" />
                     </motion.div>
                   )}
-                </motion.button>
+                </motion.div>
               );
             })}
           </div>
