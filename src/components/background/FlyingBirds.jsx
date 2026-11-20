@@ -61,27 +61,21 @@ function Songbird({ bodyColor, beakColor = "#FF9F1C", wingDelay = 0, onClick }) 
 }
 
 export default function FlyingBirds({ className = "" }) {
-  const { playSfx } = useAudio();
-
-  const handleBirdClick = (e) => {
-    e.stopPropagation();
-    playSfx("chirp");
-  };
-
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
-      {/* Bird 1: Pastel Yellow Songbird crossing from left to right */}
+    <div className={`absolute inset-0 overflow-hidden pointer-events-none select-none ${className}`}>
+      {/* Bird 1: Pastel Yellow Songbird crossing high from left to right */}
       <motion.div
         initial={{ x: "-10vw" }}
         animate={{ x: "115vw" }}
-        transition={{ duration: 26, repeat: Infinity, ease: "linear", delay: 2 }}
-        className="absolute top-[12%] left-0 pointer-events-auto"
+        transition={{ duration: 28, repeat: Infinity, ease: "linear", delay: 2 }}
+        className="absolute top-[8%] left-0 pointer-events-none"
       >
         <motion.div
-          animate={{ y: [0, -14, 0, 14, 0] }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ y: [0, -10, 0, 10, 0] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          className="scale-75 sm:scale-85 opacity-75"
         >
-          <Songbird bodyColor="#FFDE59" wingDelay={0} onClick={handleBirdClick} />
+          <Songbird bodyColor="#FDE047" wingDelay={0} />
         </motion.div>
       </motion.div>
 
@@ -89,30 +83,16 @@ export default function FlyingBirds({ className = "" }) {
       <motion.div
         initial={{ x: "110vw" }}
         animate={{ x: "-15vw" }}
-        transition={{ duration: 22, repeat: Infinity, ease: "linear", delay: 9 }}
-        className="absolute top-[22%] left-0 pointer-events-auto"
+        transition={{ duration: 25, repeat: Infinity, ease: "linear", delay: 11 }}
+        className="absolute top-[14%] left-0 pointer-events-none"
       >
         <motion.div
-          animate={{ y: [0, 12, 0, -12, 0] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ y: [0, 8, 0, -8, 0] }}
+          transition={{ duration: 3.0, repeat: Infinity, ease: "easeInOut" }}
           style={{ transform: "scaleX(-1)" }}
+          className="scale-75 sm:scale-85 opacity-75"
         >
-          <Songbird bodyColor="#54B5FF" wingDelay={0.12} onClick={handleBirdClick} />
-        </motion.div>
-      </motion.div>
-
-      {/* Bird 3: Coral Pink Songbird crossing high */}
-      <motion.div
-        initial={{ x: "-15vw" }}
-        animate={{ x: "112vw" }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear", delay: 16 }}
-        className="absolute top-[16%] left-0 pointer-events-auto"
-      >
-        <motion.div
-          animate={{ y: [0, -10, 0, 10, 0] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Songbird bodyColor="#FF8BA7" wingDelay={0.24} onClick={handleBirdClick} />
+          <Songbird bodyColor="#7DD3FC" wingDelay={0.15} />
         </motion.div>
       </motion.div>
     </div>

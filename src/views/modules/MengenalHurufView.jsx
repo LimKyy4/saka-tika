@@ -22,7 +22,6 @@ import {
   ChevronRight,
   Play,
   Lock,
-  Sparkles,
 } from "lucide-react";
 
 import { useGame } from "../../context/GameContext.jsx";
@@ -75,13 +74,6 @@ export default function MengenalHurufView() {
   const [wobbleKey, setWobbleKey] = useState(null);
   const [isMascotJumping, setIsMascotJumping] = useState(false);
 
-  // Dynamic Speech Bubble State for Saka & Tika
-  const [speechText, setSpeechText] = useState(() => {
-    if (maxUnlockedIndex === 0) return "Ayo buka huruf A dulu!";
-    if (maxUnlockedIndex >= 25) return "Luar biasa! Semua 26 huruf sudah terbuka!";
-    return `Ayo buka huruf ${ALPHABET_DATA[maxUnlockedIndex].letter}!`;
-  });
-
   // ── Handle Letter Card Click (Sequential Unlock Logic) ─────────────
   const handleCardClick = useCallback(
     (letterObj, globalIndex) => {
@@ -92,9 +84,7 @@ export default function MengenalHurufView() {
         setTimeout(() => setWobbleKey(null), 500);
 
         const targetLetter = ALPHABET_DATA[maxUnlockedIndex].letter;
-        const msg = `Buka huruf ${targetLetter} dulu ya!`;
-        setSpeechText(msg);
-        speakInstruction(msg);
+        speakInstruction(`Buka huruf ${targetLetter} dulu ya!`);
         return;
       }
 
@@ -125,7 +115,7 @@ export default function MengenalHurufView() {
         });
 
         const nextLetter = ALPHABET_DATA[nextIdx].letter;
-        setSpeechText(`Hebat! Huruf ${nextLetter} sekarang terbuka!`);
+        speakInstruction(`Hebat! Huruf ${nextLetter} sekarang terbuka!`);
       }
 
       // Track discovery in central game context
@@ -148,7 +138,6 @@ export default function MengenalHurufView() {
       origin: { y: 0.55 },
       colors: ["#F59E0B", "#E11D48", "#10B981", "#3B82F6", "#8B5CF6"],
     });
-    setSpeechText("Hore! Kamu hebat sekali sudah mengenal semua huruf!");
     speakInstruction("Hore! Kamu hebat sekali sudah mengenal semua huruf!");
   }, [playSfx]);
 
@@ -192,7 +181,7 @@ export default function MengenalHurufView() {
             colors: ["#F59E0B", "#10B981", "#3B82F6", "#EC4899"],
           });
           const nextLetter = ALPHABET_DATA[newIndex].letter;
-          setSpeechText(`Hebat! Huruf ${nextLetter} sekarang terbuka!`);
+          speakInstruction(`Hebat! Huruf ${nextLetter} sekarang terbuka!`);
         }
       }
 
@@ -233,26 +222,6 @@ export default function MengenalHurufView() {
             LEFT COLUMN: Grounded 3D Grass Mound & Mascots Stage
            ═════════════════════════════════════════════════════ */}
         <aside className="w-full flex flex-col items-center justify-end relative h-full max-h-[82vh] overflow-visible select-none">
-          {/* Dynamic Child-Friendly Speech Bubble */}
-          <motion.div
-            key={speechText}
-            initial={{ opacity: 0, y: 10, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 20 }}
-            onClick={() => {
-              playSfx("click");
-              speakInstruction(speechText);
-            }}
-            className="relative z-20 mb-3 px-3.5 py-1.5 bg-white/95 border-3 border-amber-300 shadow-md rounded-2xl max-w-[230px] text-center cursor-pointer hover:scale-103 transition-transform"
-          >
-            <p className="font-display font-bold text-xs sm:text-sm text-[#1B4965] leading-snug">
-              {speechText}
-            </p>
-            {/* Speech Bubble Arrow pointing down to Saka & Tika */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-6 border-x-transparent border-t-6 border-t-white" />
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-x-[7px] border-x-transparent border-t-[7px] border-t-amber-300 -z-10" />
-          </motion.div>
-
           {/* Pedestal Stage with Firmly Grounded Saka & Tika */}
           <div className="relative flex flex-col items-center justify-end overflow-visible w-full mt-auto">
             {/* Dual Mascots Resting Naturally on Top of Grass Mound */}
@@ -267,43 +236,46 @@ export default function MengenalHurufView() {
                   ? { duration: 0.5, type: "spring", stiffness: 420, damping: 15 }
                   : { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
               }
-              className="relative flex items-end justify-center gap-1 z-10 origin-bottom -mb-3 sm:-mb-4"
+              className="relative flex items-end justify-center gap-1 z-10 origin-bottom -mb-5 sm:-mb-6"
             >
-              {/* Saka Cutout */}
-              <motion.img
-                src="/assets/saka-maskot-1-cutout.png"
-                alt="Saka Maskot"
-                draggable="false"
-                whileHover={{ scale: 1.05 }}
-                className="h-[28vh] sm:h-[32vh] md:h-[36vh] max-h-[290px] w-auto object-contain object-bottom drop-shadow-md cursor-pointer select-none"
-                onClick={() => {
-                  playSfx("click");
-                  setIsMascotJumping(true);
-                  setTimeout(() => setIsMascotJumping(false), 700);
-                  speakInstruction("Halo! Aku Saka! Ayo buka huruf berikutnya!");
-                }}
-              />
-              {/* Tika Cutout (Positioned neatly with zero protrusion into board) */}
-              <motion.img
-                src="/assets/tika-maskot-1-cutout.png"
-                alt="Tika Maskot"
-                draggable="false"
-                whileHover={{ scale: 1.05 }}
-                className="h-[26vh] sm:h-[30vh] md:h-[34vh] max-h-[275px] w-auto object-contain object-bottom drop-shadow-md cursor-pointer select-none -ml-3"
-                onClick={() => {
-                  playSfx("click");
-                  setIsMascotJumping(true);
-                  setTimeout(() => setIsMascotJumping(false), 700);
-                  speakInstruction("Hai! Aku Tika! Belajar huruf sangat menyenangkan!");
-                }}
-              />
-            </motion.div>
+              {/* Saka Cutout & Direct Ground Contact Shadow */}
+              <div className="relative flex flex-col items-center">
+                <motion.img
+                  src="/assets/saka-maskot-1-cutout.png"
+                  alt="Saka Maskot"
+                  draggable="false"
+                  whileHover={{ scale: 1.05 }}
+                  className="h-[28vh] sm:h-[32vh] md:h-[36vh] max-h-[290px] w-auto object-contain object-bottom drop-shadow-md cursor-pointer select-none relative z-10"
+                  onClick={() => {
+                    playSfx("click");
+                    setIsMascotJumping(true);
+                    setTimeout(() => setIsMascotJumping(false), 700);
+                    speakInstruction("Halo! Aku Saka! Ayo buka huruf berikutnya!");
+                  }}
+                />
+                {/* Soft Elliptical Contact Shadow beneath Saka's shoes */}
+                <div className="w-24 sm:w-28 h-2.5 bg-emerald-950/25 blur-[2px] rounded-full -mt-2 z-0 pointer-events-none" />
+              </div>
 
-            {/* Natural Contact Shadows beneath shoes */}
-            <div className="flex items-center justify-center gap-3 w-full -mb-2 z-10 pointer-events-none">
-              <div className="w-20 sm:w-24 h-2.5 bg-[#064E3B]/40 rounded-full blur-[2px]" />
-              <div className="w-18 sm:w-22 h-2.5 bg-[#064E3B]/40 rounded-full blur-[2px] -ml-4" />
-            </div>
+              {/* Tika Cutout & Direct Ground Contact Shadow */}
+              <div className="relative flex flex-col items-center -ml-3">
+                <motion.img
+                  src="/assets/tika-maskot-1-cutout.png"
+                  alt="Tika Maskot"
+                  draggable="false"
+                  whileHover={{ scale: 1.05 }}
+                  className="h-[26vh] sm:h-[30vh] md:h-[34vh] max-h-[275px] w-auto object-contain object-bottom drop-shadow-md cursor-pointer select-none relative z-10"
+                  onClick={() => {
+                    playSfx("click");
+                    setIsMascotJumping(true);
+                    setTimeout(() => setIsMascotJumping(false), 700);
+                    speakInstruction("Hai! Aku Tika! Belajar huruf sangat menyenangkan!");
+                  }}
+                />
+                {/* Soft Elliptical Contact Shadow beneath Tika's shoes */}
+                <div className="w-20 sm:w-24 h-2.5 bg-emerald-950/25 blur-[2px] rounded-full -mt-2 z-0 pointer-events-none" />
+              </div>
+            </motion.div>
 
             {/* Wide Grounded 3D Lush Grass Hill Mound with 3D Lip & Props */}
             <div className="relative w-full max-w-[250px] sm:max-w-[280px] rounded-t-[2.5rem] rounded-b-[1.75rem] bg-gradient-to-b from-[#4ADE80] via-[#22C55E] to-[#16A34A] border-t-3 border-x-3 border-[#86EFAC] border-b-8 border-[#15803D] shadow-[0_12px_24px_rgba(21,128,61,0.4)] px-3 pt-3 pb-3 z-0 flex flex-col items-center">
@@ -398,14 +370,6 @@ export default function MengenalHurufView() {
                   </motion.button>
                 );
               })}
-            </div>
-
-            {/* Right: Sleek Progress Pill aligned on the same horizontal row */}
-            <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 border-2 border-amber-300 shadow-sm mb-1">
-              <Star size={14} className="fill-[#F59E0B] text-[#D97706]" />
-              <span className="font-sans font-extrabold text-xs sm:text-sm text-[#92400E]">
-                Terbuka: {Math.min(maxUnlockedIndex + 1, 26)} / 26 Huruf
-              </span>
             </div>
           </div>
 
@@ -961,19 +925,22 @@ function LetterDetailModal({ letterObj, maxUnlockedIndex, onClose, onNavigate, p
               <motion.button
                 key={ex.word + idx}
                 type="button"
+                animate={
+                  isHighlighted
+                    ? { scale: [1, 1.06, 1.04], y: -5 }
+                    : { scale: 1, y: 0 }
+                }
+                transition={{ type: "spring", stiffness: 450, damping: 18 }}
                 whileHover={{ scale: 1.04, y: -3 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => handleWordClick(ex, idx)}
                 aria-label={`Contoh kata ${ex.word}`}
                 className={`group relative flex flex-col items-center justify-between p-2.5 sm:p-4 rounded-2xl border-3 cursor-pointer transition-all select-none bg-gradient-to-b ${theme.cardBg} ${theme.border} ${theme.borderB} border-b-6 shadow-sm hover:shadow-md ${
-                  isHighlighted ? "ring-4 ring-amber-400 ring-offset-2 scale-103" : ""
+                  isHighlighted
+                    ? "ring-4 ring-amber-400 ring-offset-2 shadow-[0_0_24px_rgba(251,191,36,0.6)]"
+                    : ""
                 }`}
               >
-                {/* Decorative Corner Sparkle */}
-                <div className={`absolute top-2 right-2 opacity-50 group-hover:opacity-100 transition-opacity ${theme.sparkleColor}`}>
-                  <Sparkles size={12} className="text-amber-500" />
-                </div>
-
                 {/* Rounded Inner Illustration Frame */}
                 <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 flex items-center justify-center p-1 bg-white/80 rounded-2xl shadow-inner border border-white group-hover:scale-108 transition-transform">
                   <WordIllustration
@@ -987,7 +954,12 @@ function LetterDetailModal({ letterObj, maxUnlockedIndex, onClose, onNavigate, p
                 {/* Large Word Typography with Initial Letter Highlight */}
                 <div className="mt-2 text-center">
                   <span className="font-display font-black text-lg sm:text-2xl lg:text-3xl leading-none drop-shadow-2xs">
-                    <span style={{ color: letterObj.color }}>{initialLetter}</span>
+                    <span
+                      className="inline-block transition-transform"
+                      style={{ color: letterObj.color || "#EF4444" }}
+                    >
+                      {initialLetter}
+                    </span>
                     <span className="text-[#1E293B]">{remainingLetters}</span>
                   </span>
                 </div>

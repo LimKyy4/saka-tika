@@ -151,14 +151,15 @@ export function playFanfareSound() {
   }
 }
 
-// Xylophone notes for ABC Blocks
+// Xylophone notes for ABC Blocks and Musical Title Blocks (C5 through C6)
 export function playXylophoneNote(noteIndex = 0) {
   try {
     const ctx = getContext();
     if (!ctx || ctx.state === "suspended") return;
 
-    const frequencies = [523.25, 587.33, 659.25]; // C5 (Do), D5 (Re), E5 (Mi)
-    const freq = frequencies[noteIndex % frequencies.length];
+    // C5 (Do), D5 (Re), E5 (Mi), F5 (Fa), G5 (Sol), A5 (La), B5 (Si), C6 (Do high)
+    const frequencies = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+    const freq = frequencies[Math.abs(noteIndex) % frequencies.length];
 
     const osc = ctx.createOscillator();
     const osc2 = ctx.createOscillator();

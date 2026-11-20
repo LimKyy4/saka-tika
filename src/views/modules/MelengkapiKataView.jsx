@@ -1,12 +1,10 @@
 // src/views/modules/MelengkapiKataView.jsx
 // SAKA TIKA: Mint Sage Wooden Puzzle Workshop for "Melengkapi Kata" (Module 5)
-// 1. Level 1 (1 Huruf Hilang), Level 2 (2 Huruf Hilang), Level 3 (3 Huruf Hilang) with Standard Indonesian Vocabulary
-// 2. Zero "?" Symbol: Clean glowing mystery slots with warm golden pulsing underline cursor
-// 3. Enlarged High-Visibility Question Banner & Oversized 3D Wooden Letter Blocks
-// 4. Sequential Step-by-Step Multi-Slot Completion with Do-Re-Mi Xylophone Feedback
-// 5. Living Workshop Atmosphere: Interactive Tap-able Floating Puzzle Pieces, Sparkles & Chimes
-// 6. Interactive Mascots (Saka & Tika with Dynamic Encouragement Speech Bubble)
-// 7. 5 Rounds per Session with Golden Token Progress Bar & Grand Champion Celebration Modal
+// - Enlarged clue illustration with dedicated "Dengar" audio button (Zero badge overlap)
+// - Crisp, 100% solid, smudge-free ivory letter blocks on 3D Honey-Pine wooden puzzle tray
+// - Seamless dual input: High-tolerance drag-and-drop & single tap-to-place with snap chimes
+// - Clean instruction label (Zero sparkle icons) and 4 colorful chunky 3D answer blocks
+// - Grounded Saka & Tika anchored on lush grass mounds with contact shadows & indented speech bubble
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
 // STRICT ZERO EMOJIS & ZERO STAR ICONS POLICY: Exclusively lucide-react icons or bespoke vector graphics.
 // STRICT AUDIO CONTROL: Never auto-play voice narration or SFX on initial mount.
@@ -20,7 +18,6 @@ import {
   Shuffle,
   CheckCircle2,
   Check,
-  Sparkles,
   Puzzle,
   Layers,
 } from "lucide-react";
@@ -36,7 +33,6 @@ import {
   playClickSound,
   playXylophoneNote,
   playSunChime,
-  playBubblePopSound,
 } from "../../utils/soundSynthesizer.js";
 import { ShuffleQueue } from "../../utils/shuffleQueue.js";
 import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
@@ -98,7 +94,7 @@ const WORKSHOP_WORD_POOL = [
   { word: "WAYANG", illustrationKey: "wayang", color: "#D97706" },
 ];
 
-// Palet warna cerah balok pilihan huruf mainan 3D
+// Palet warna cerah 4 balok pilihan huruf mainan 3D
 const TOY_CHOICE_PALETTES = [
   {
     bg: "from-[#7DD3FC] via-[#38BDF8] to-[#0284C7]",
@@ -170,7 +166,7 @@ export default function MelengkapiKataView() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [wobbleLetter, setWobbleLetter] = useState(null);
   const [isMascotCheering, setIsMascotCheering] = useState(false);
-  const [speechBubbleText, setSpeechBubbleText] = useState("Lengkapi huruf yang hilang ya!");
+  const [speechBubbleText, setSpeechBubbleText] = useState("Tarik atau ketuk 1 huruf yang hilang ya!");
   const [isChampion, setIsChampion] = useState(false);
 
   // Komponen interaktif ekstra
@@ -178,7 +174,7 @@ export default function MelengkapiKataView() {
   const [spinPuzzleIdx, setSpinPuzzleIdx] = useState(null);
   const [tappedTileIdx, setTappedTileIdx] = useState(null);
 
-  // Ref untuk baki kayu & slot aktif agar drop detection sangat toleran (tidak harus akurat)
+  // Ref untuk baki kayu & slot aktif agar drop detection sangat toleran
   const trayBoardRef = useRef(null);
   const activeSlotRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -213,10 +209,8 @@ export default function MelengkapiKataView() {
   // Siapkan ronde permainan baru
   const setupRound = useCallback((item, currentLevel) => {
     const chars = item.word.split("");
-    // Jumlah huruf hilang disesuaikan dengan level (maksimal panjang kata - 2 agar tetap ada huruf pemandu)
     const targetCount = Math.min(currentLevel, Math.max(1, chars.length - 2));
 
-    // Pilih indeks huruf yang hilang secara acak dan urutkan dari kiri ke kanan
     const allIndices = Array.from({ length: chars.length }, (_, i) => i);
     const shuffled = [...allIndices].sort(() => 0.5 - Math.random());
     const pickedMissing = shuffled.slice(0, targetCount).sort((a, b) => a - b);
@@ -230,7 +224,6 @@ export default function MelengkapiKataView() {
     setIsMascotCheering(false);
     setTappedTileIdx(null);
 
-    // Buat opsi pilihan untuk slot huruf hilang pertama
     const firstTarget = chars[pickedMissing[0]] || "A";
     const distractors = generateDistractors(firstTarget);
     const combined = [firstTarget, ...distractors].sort(() => 0.5 - Math.random());
@@ -375,7 +368,7 @@ export default function MelengkapiKataView() {
     ]
   );
 
-  // Handle Drag-and-Drop dengan toleransi ekstra tinggi untuk anak-anak (tidak harus akurat)
+  // Handle Drag-and-Drop dengan toleransi tinggi untuk anak-anak
   const handleDropOption = useCallback(
     (letter, info) => {
       if (isAnswered || isChampion) return;
@@ -385,7 +378,7 @@ export default function MelengkapiKataView() {
 
       let isHit = false;
 
-      // 1. Cek jarak ke slot aktif (Toleransi ekstra lebar: radius 220px dari pusat slot)
+      // 1. Cek jarak ke slot aktif (radius 220px dari pusat slot)
       if (activeSlotRef.current) {
         const sRect = activeSlotRef.current.getBoundingClientRect();
         const centerX = sRect.left + sRect.width / 2;
@@ -396,7 +389,7 @@ export default function MelengkapiKataView() {
         }
       }
 
-      // 2. Cek apakah dilepas di area baki kayu (dengan margin ekstra 60px ke segala arah)
+      // 2. Cek apakah dilepas di area baki kayu
       if (!isHit && trayBoardRef.current) {
         const tRect = trayBoardRef.current.getBoundingClientRect();
         if (
@@ -409,7 +402,7 @@ export default function MelengkapiKataView() {
         }
       }
 
-      // 3. Cek gesture drag ke atas (jika anak melempar/menarik ke separuh atas layar menuju kata)
+      // 3. Cek gesture drag ke atas menuju area panggung kata
       if (!isHit && dropY < window.innerHeight * 0.65) {
         isHit = true;
       }
@@ -502,8 +495,8 @@ export default function MelengkapiKataView() {
   };
 
   return (
-    <main className="relative w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between select-none p-2 sm:p-3">
-      {/* ── 1. Latar Belakang Bengkel Kayu Mint Sage yang Hidup (Gradien + Sinar Panggung) ── */}
+    <main className="relative w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between select-none p-3 sm:p-4 md:p-6">
+      {/* ── 1. Latar Belakang Bengkel Kayu Mint Sage yang Hidup ── */}
       <div
         className="fixed inset-0 w-full h-full pointer-events-none z-0"
         style={{
@@ -523,7 +516,7 @@ export default function MelengkapiKataView() {
         }}
       />
 
-      {/* ── 2. Ornamen Kepingan Puzzle 3D Melayang Interaktif (Dapat Disentuh/Diputar!) ── */}
+      {/* ── 2. Ornamen Kepingan Puzzle 3D Melayang Interaktif ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Kepingan Puzzle Kiri Atas */}
         <motion.div
@@ -539,7 +532,7 @@ export default function MelengkapiKataView() {
               ? { duration: 0.65, ease: "easeOut" }
               : { duration: 5.5, repeat: Infinity, ease: "easeInOut" }
           }
-          className="absolute top-4 left-6 w-18 h-18 sm:w-22 sm:h-22 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100"
+          className="absolute top-16 left-6 w-16 h-16 sm:w-20 sm:h-20 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100"
           title="Ketuk kepingan puzzle untuk memutarnya!"
         >
           <Puzzle size={72} className="w-full h-full stroke-[1.5]" />
@@ -559,7 +552,7 @@ export default function MelengkapiKataView() {
               ? { duration: 0.65, ease: "easeOut" }
               : { duration: 6.0, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
           }
-          className="absolute top-4 right-6 w-18 h-18 sm:w-22 sm:h-22 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100 -scale-x-100"
+          className="absolute top-16 right-6 w-16 h-16 sm:w-20 sm:h-20 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100 -scale-x-100"
           title="Ketuk kepingan puzzle untuk memutarnya!"
         >
           <Puzzle size={72} className="w-full h-full stroke-[1.5]" />
@@ -567,7 +560,7 @@ export default function MelengkapiKataView() {
 
         {/* Partikel Berkilau Melayang yang Dapat Diketuk */}
         {[
-          { top: "12%", left: "14%", size: 14, color: "#FEF08A" },
+          { top: "14%", left: "14%", size: 14, color: "#FEF08A" },
           { top: "20%", left: "86%", size: 12, color: "#FFFFFF" },
           { top: "34%", left: "8%", size: 10, color: "#A7F3D0" },
           { top: "38%", left: "92%", size: 12, color: "#FDE047" },
@@ -619,31 +612,31 @@ export default function MelengkapiKataView() {
       </div>
 
       {/* ── 4. Wadah Konten Utama Interaktif ── */}
-      <div className="relative z-10 flex-1 min-h-0 w-full max-w-5xl mx-auto flex flex-col justify-between">
+      <div className="relative z-10 flex-1 min-h-0 w-full max-w-5xl mx-auto flex flex-col justify-between pt-12 sm:pt-14 pb-14 sm:pb-16 overflow-hidden">
 
         {/* ── TIER 1: Konsol Header Diperbesar dengan Pilihan Level 1, 2, 3 ── */}
-        <header className="w-full px-2 pt-1 flex justify-center flex-shrink-0 z-30">
+        <header className="w-full px-2 flex justify-center flex-shrink-0 z-30">
           <motion.div
             initial={{ y: -16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 420, damping: 20 }}
-            className="max-w-4xl w-full mx-auto px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-[2.2rem] bg-gradient-to-b from-[#FFFDF8] via-[#FFF9EE] to-[#FEF3C7] border-4 border-[#FBBF24] border-b-6 sm:border-b-8 border-b-[#D97706] shadow-[0_12px_28px_rgba(6,78,59,0.35),0_0_24px_rgba(251,191,36,0.2)] flex items-center justify-between gap-3 sm:gap-6"
+            className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-[2rem] bg-[#FFFDF9] border-4 border-amber-300 shadow-[0_12px_0_rgba(6,78,59,0.28)] flex items-center justify-between gap-3 sm:gap-4"
           >
-            {/* Sisi Kiri: Kartu Ilustrasi Objek 3D & Tombol Suara */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Sisi Kiri: Ilustrasi Objek Diperbesar & Tombol Suara Dengar Mandiri (Tanpa Badge Bertumpuk) */}
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.08, rotate: -2 }}
+                whileHover={{ scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
                 animate={
                   isIllustrationBouncing
-                    ? { scale: [1, 1.25, 1], rotate: [-8, 8, 0] }
+                    ? { scale: [1, 1.2, 1], rotate: [-6, 6, 0] }
                     : {}
                 }
                 transition={{ duration: 0.45, ease: "easeOut" }}
                 onClick={handleSpeakWord}
                 aria-label={`Dengarkan pengucapan kata ${currentItem.word}`}
-                className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100 border-2 border-amber-300 border-b-4 border-b-amber-500 p-1 shadow-md cursor-pointer flex items-center justify-center relative group"
+                className="w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl bg-emerald-50/90 border-2 border-emerald-200 p-2 sm:p-2.5 shadow-inner cursor-pointer flex items-center justify-center shrink-0 group"
                 title="Ketuk gambar untuk mendengarkan pengucapan kata!"
               >
                 <WordIllustration
@@ -651,27 +644,37 @@ export default function MelengkapiKataView() {
                   wordKey={currentItem.illustrationKey}
                   word={currentItem.word}
                   color={currentItem.color}
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                  className="w-full h-full object-contain group-hover:scale-108 transition-transform drop-shadow-sm"
                 />
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-b from-sky-400 to-blue-500 border border-white flex items-center justify-center text-white shadow-xs">
-                  <Volume2 size={10} className="stroke-[2.5]" />
-                </div>
+              </motion.button>
+
+              {/* Tombol Audio Taktil Mandiri "Dengar" */}
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={handleSpeakWord}
+                aria-label={`Dengarkan pengucapan kata ${currentItem.word}`}
+                className="px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-b from-sky-400 to-sky-500 border-2 border-white border-b-4 border-sky-700 text-white font-display font-bold text-xs md:text-sm shadow-md flex items-center gap-1.5 cursor-pointer active:border-b-1 active:translate-y-0.5 select-none shrink-0"
+                title="Dengarkan pengucapan kata"
+              >
+                <Volume2 size={16} className="stroke-[2.5]" />
+                <span className="hidden sm:inline">Dengar</span>
               </motion.button>
             </div>
 
-            {/* Bagian Tengah: Teks Pertanyaan Diperbesar & Pilihan Tab Level 1, 2, 3 */}
+            {/* Bagian Tengah: Judul Bersih & 3 Tab Pemilih Level */}
             <div className="flex flex-col items-center justify-center flex-1 text-center min-w-0">
-              {/* Ukuran Pertanyaan Diperbesar Sesuai Permintaan */}
-              <h1 className="font-display font-black text-base sm:text-xl md:text-2xl text-emerald-950 tracking-wide leading-tight drop-shadow-xs">
+              <h1 className="font-display font-black text-base sm:text-lg md:text-2xl text-slate-800 tracking-wide leading-tight drop-shadow-xs">
                 Lengkapi Huruf yang Hilang!
               </h1>
 
               {/* Pemilih Tab Level 1, Level 2, Level 3 */}
               <div className="flex items-center gap-1.5 sm:gap-2.5 mt-1.5">
                 {[
-                  { lvl: 1, label: "Level 1", sub: "1 Huruf Hilang" },
-                  { lvl: 2, label: "Level 2", sub: "2 Huruf Hilang" },
-                  { lvl: 3, label: "Level 3", sub: "3 Huruf Hilang" },
+                  { lvl: 1, label: "Level 1", sub: "1 Huruf" },
+                  { lvl: 2, label: "Level 2", sub: "2 Huruf" },
+                  { lvl: 3, label: "Level 3", sub: "3 Huruf" },
                 ].map((tab) => {
                   const isActive = level === tab.lvl;
                   return (
@@ -698,44 +701,43 @@ export default function MelengkapiKataView() {
               </div>
             </div>
 
-            {/* Sisi Kanan: Koin Progres Emas ("Soal X/5") & Tombol Reset / Acak */}
+            {/* Sisi Kanan: Koin Progres ("Soal X/5") & Tombol Reset / Acak */}
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <div className="flex flex-col items-end">
-                <span className="font-display font-bold text-xs text-amber-900/80">
-                  Soal {questionIndex + 1}/{TOTAL_QUESTIONS}
+                <span className="font-display font-black text-[11px] sm:text-xs text-amber-900/85">
+                  Soal {questionIndex + 1} / {TOTAL_QUESTIONS}
                 </span>
-                <div className="flex items-center gap-1 mt-1">
+                <div className="flex items-center gap-1 mt-0.5">
                   {Array.from({ length: TOTAL_QUESTIONS }).map((_, pIdx) => {
                     const isDone = pIdx < questionIndex || isCorrect;
                     const isCurrent = pIdx === questionIndex && !isCorrect;
 
                     return (
-                      <motion.div
+                      <div
                         key={pIdx}
-                        whileHover={{ scale: 1.15 }}
-                        className={`w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full transition-all flex items-center justify-center font-display font-black text-[9px] ${
+                        className={`w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full transition-all flex items-center justify-center font-display font-black text-[9px] select-none ${
                           isDone
                             ? "bg-gradient-to-b from-[#FEF08A] via-[#FBBF24] to-[#D97706] border border-amber-300 border-b-2 border-b-amber-700 text-amber-950 shadow-xs"
                             : isCurrent
                             ? "bg-amber-300 border border-white ring-2 ring-amber-400 text-amber-950 animate-pulse"
-                            : "bg-white/70 border border-dashed border-amber-400/70 text-amber-900/40"
+                            : "bg-amber-100/70 border border-dashed border-amber-400/70 text-amber-900/40"
                         }`}
                       >
                         {isDone && <Check size={10} strokeWidth={3.5} className="text-emerald-900" />}
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Tombol Reset */}
+              {/* Tombol Reset Taktil */}
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.1, rotate: 12 }}
                 whileTap={{ scale: 0.9, y: 1 }}
                 onClick={handleResetCurrent}
                 aria-label="Ulangi Kata Saat Ini"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 border-b-3 border-b-amber-700 text-amber-950 shadow-md cursor-pointer flex items-center justify-center active:border-b-0 flex-shrink-0"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border border-amber-200 border-b-3 border-amber-700 text-amber-950 shadow-sm cursor-pointer flex items-center justify-center active:border-b-1 flex-shrink-0"
                 title="Ulangi tebakan kata ini"
               >
                 <RotateCcw size={18} className="stroke-[2.5]" />
@@ -748,7 +750,7 @@ export default function MelengkapiKataView() {
                 whileTap={{ scale: 0.9, y: 1 }}
                 onClick={handleNextWord}
                 aria-label="Ganti Kata Berikutnya"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-b from-emerald-400 to-teal-500 border-2 border-emerald-200 border-b-3 border-teal-700 text-white shadow-md cursor-pointer flex items-center justify-center active:border-b-0 flex-shrink-0"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-emerald-400 to-teal-500 border border-emerald-200 border-b-3 border-teal-700 text-white shadow-sm cursor-pointer flex items-center justify-center active:border-b-1 flex-shrink-0"
                 title="Ganti ke kata acak berikutnya"
               >
                 <Shuffle size={18} className="stroke-[2.5]" />
@@ -757,10 +759,10 @@ export default function MelengkapiKataView() {
           </motion.div>
         </header>
 
-        {/* ── TIER 2: Baki Kayu 3D Honey-Pine Diperbesar & Balok Huruf Hidup ── */}
+        {/* ── TIER 2: Baki Kayu 3D Honey-Pine & Balok Huruf Opaque Solid ── */}
         <section className="flex-1 min-h-0 flex flex-col items-center justify-center relative px-3 py-2">
           
-          {/* Banner Apresiasi Melayang ("HEBAT! KATA LENGKAP!") saat Jawaban Benar */}
+          {/* Banner Apresiasi Melayang saat Jawaban Benar */}
           <AnimatePresence>
             {isCorrect && (
               <motion.div
@@ -774,16 +776,15 @@ export default function MelengkapiKataView() {
                 <span className="font-display font-black text-base sm:text-lg md:text-xl tracking-wide uppercase">
                   HEBAT! KATA {currentItem.word} LENGKAP!
                 </span>
-                <Sparkles size={20} className="text-yellow-300 animate-spin" />
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Baki Kayu 3D Honey-Pine Diperbesar Ukurannya */}
+          {/* Baki Kayu 3D Honey-Pine Berbingkai Halus */}
           <motion.div
             ref={trayBoardRef}
             layout
-            className={`relative bg-gradient-to-b from-[#D97706] to-[#B45309] border-4 border-[#FDE68A] border-b-8 border-b-[#78350F] rounded-[2.5rem] px-6 sm:px-10 py-5 sm:py-7 shadow-[0_18px_36px_rgba(6,78,59,0.38)] max-w-4xl w-full mx-auto transition-all ${
+            className={`relative bg-gradient-to-b from-[#C87D32] via-[#B46924] to-[#924E14] border-4 border-[#FDE68A] border-b-[10px] border-b-[#6B3408] rounded-[2rem] p-4 sm:p-5 md:p-6 shadow-[0_18px_36px_rgba(6,78,59,0.35)] max-w-3xl w-full mx-auto transition-all ${
               isDraggingAny ? "ring-4 ring-amber-300 shadow-[0_0_40px_rgba(251,191,36,0.6)]" : ""
             }`}
           >
@@ -791,13 +792,13 @@ export default function MelengkapiKataView() {
             <div className="absolute top-2 inset-x-10 h-1 bg-white/40 rounded-full pointer-events-none" />
 
             {/* Baut Pasak Sudut Kayu */}
-            <div className="absolute top-3.5 left-3.5 w-3 h-3 rounded-full bg-[#78350F] opacity-75 shadow-inner" />
-            <div className="absolute top-3.5 right-3.5 w-3 h-3 rounded-full bg-[#78350F] opacity-75 shadow-inner" />
-            <div className="absolute bottom-3.5 left-3.5 w-3 h-3 rounded-full bg-[#78350F] opacity-75 shadow-inner" />
-            <div className="absolute bottom-3.5 right-3.5 w-3 h-3 rounded-full bg-[#78350F] opacity-75 shadow-inner" />
+            <div className="absolute top-3 left-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
+            <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
+            <div className="absolute bottom-3 left-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
+            <div className="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
 
             {/* Alas Cekung Baki Tempat Balok Bertengger */}
-            <div className="bg-[#78350F]/40 border-2 border-[#5B330F]/45 rounded-2xl p-3.5 sm:p-5 shadow-inner flex items-center justify-center gap-3 sm:gap-4 md:gap-5 flex-wrap">
+            <div className="bg-[#6B3408]/40 border-2 border-[#4E2304]/50 rounded-2xl p-3 sm:p-4 md:p-5 shadow-inner flex items-center justify-center gap-2.5 sm:gap-3.5 md:gap-4 flex-wrap">
               {currentWordChars.map((char, index) => {
                 const isMissing = missingIndices.includes(index);
                 const isSolved = solvedIndices.includes(index);
@@ -812,13 +813,13 @@ export default function MelengkapiKataView() {
                       animate={
                         isSolved
                           ? {
-                              scale: [0.65, 1.15, 1],
+                              scale: [0.5, 1.2, 0.95, 1],
                               rotate: [0, 4, -4, 0],
-                              y: [12, -4, 0],
+                              y: [8, -4, 0],
                             }
                           : isActiveSlot
                           ? {
-                              scale: isDraggingAny ? [1.08, 1.16, 1.08] : [1, 1.05, 1],
+                              scale: isDraggingAny ? [1.06, 1.14, 1.06] : [1, 1.04, 1],
                               y: [0, -3, 0],
                             }
                           : {}
@@ -830,14 +831,14 @@ export default function MelengkapiKataView() {
                           ? { duration: isDraggingAny ? 0.8 : 1.8, repeat: Infinity, ease: "easeInOut" }
                           : { duration: 0.3 }
                       }
-                      className={`relative w-16 h-22 sm:w-20 sm:h-26 md:w-24 md:h-30 lg:w-26 lg:h-32 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center font-display font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl transition-all select-none ${
+                      className={`relative w-15 h-20 sm:w-18 sm:h-24 md:w-20 md:h-26 lg:w-22 lg:h-28 rounded-2xl flex flex-col items-center justify-center font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl transition-all select-none ${
                         isSolved
-                          ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-4 border-emerald-200 border-b-8 border-b-[#065F46] text-white shadow-xl cursor-pointer"
+                          ? "bg-gradient-to-b from-emerald-400 to-emerald-500 border-2 border-emerald-200 border-b-[7px] border-b-emerald-700 text-white shadow-lg cursor-pointer"
                           : isActiveSlot
                           ? isDraggingAny
-                            ? "bg-gradient-to-b from-[#FFFBEB] via-[#FEF08A] to-[#FDE047] border-4 border-dashed border-amber-500 shadow-[0_0_45px_rgba(253,224,71,1)] ring-8 ring-amber-400/80 cursor-default scale-105"
-                            : "bg-gradient-to-b from-[#FFFDF0] via-[#FEF9C3] to-[#FEF08A] border-4 border-dashed border-amber-400 shadow-[0_0_30px_rgba(253,224,71,0.85)] ring-4 ring-amber-300/80 cursor-default"
-                          : "bg-white/20 border-3 border-dashed border-white/50 opacity-60 cursor-default"
+                            ? "bg-gradient-to-b from-[#FFFBEB] via-[#FEF08A] to-[#FDE047] border-3 border-dashed border-amber-500 shadow-[0_0_36px_rgba(253,224,71,1)] ring-6 ring-amber-400/80 cursor-default scale-105"
+                            : "bg-gradient-to-b from-[#FFFBEB] to-[#FEF08A] border-3 border-amber-400 border-b-[7px] border-b-amber-600 text-amber-600 shadow-[0_0_26px_rgba(253,224,71,0.9)] cursor-default"
+                          : "bg-[#FDE68A]/35 border-2 border-dashed border-[#FEF3C7] text-amber-100/80 cursor-default"
                       }`}
                       title={
                         isSolved
@@ -850,47 +851,47 @@ export default function MelengkapiKataView() {
                       {/* Tampilan Huruf yang Telah Dipecahkan */}
                       {isSolved ? (
                         <>
-                          <span className="relative z-10">{char}</span>
+                          <span className="relative z-10 drop-shadow-sm">{char}</span>
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-white flex items-center justify-center shadow-md text-amber-950"
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border border-white flex items-center justify-center shadow-xs text-white"
                           >
-                            <Check size={12} strokeWidth={3.5} />
+                            <Check size={11} strokeWidth={3.5} />
                           </motion.div>
                         </>
                       ) : isActiveSlot ? (
                         /* Slot Aktif: Garis Emas Berdenyut + Hint Teks saat Drag */
-                        <div className="flex flex-col items-center gap-1.5 pointer-events-none">
-                          <span className="w-10 sm:w-14 h-2 sm:h-2.5 rounded-full bg-amber-500 animate-pulse shadow-xs" />
+                        <div className="flex flex-col items-center gap-1 pointer-events-none">
+                          <div className="w-8 sm:w-10 h-2 bg-amber-500 rounded-full animate-pulse shadow-xs" />
                           {isDraggingAny && (
-                            <span className="font-display font-black text-[9px] sm:text-[11px] text-amber-900 tracking-wider uppercase animate-bounce drop-shadow-xs">
-                              LEPAS DI SINI!
+                            <span className="font-display font-black text-[9px] text-amber-900 tracking-wider uppercase animate-bounce drop-shadow-xs">
+                              LEPAS!
                             </span>
                           )}
                         </div>
                       ) : (
-                        /* Slot Belum Aktif: Garis Putih Halus Samar */
-                        <span className="w-8 sm:w-10 h-1.5 sm:h-2 rounded-full bg-white/40" />
+                        /* Slot Belum Aktif: Garis Samar */
+                        <div className="w-6 sm:w-8 h-1.5 bg-amber-200/60 rounded-full" />
                       )}
                     </motion.div>
                   );
                 }
 
-                // Balok Huruf Kayu yang Sudah Diketahui (Ukuran Diperbesar & Taktil)
+                // Balok Huruf Kayu yang Sudah Diketahui (100% Solid Opaque Cream-Ivory)
                 return (
                   <motion.div
                     key={`known-${index}`}
                     onClick={() => handleTileClick(index, char)}
-                    whileHover={{ scale: 1.06, y: -4 }}
+                    whileHover={{ scale: 1.05, y: -3 }}
                     animate={
                       isCorrect
                         ? {
-                            y: [0, -14, 0],
-                            scale: [1, 1.08, 1],
+                            y: [0, -10, 0],
+                            scale: [1, 1.06, 1],
                           }
                         : isTapped
-                        ? { y: [-12, 0], scale: [1, 1.15, 1] }
+                        ? { y: [-8, 0], scale: [1, 1.1, 1] }
                         : {}
                     }
                     transition={
@@ -904,16 +905,9 @@ export default function MelengkapiKataView() {
                         ? { duration: 0.35, ease: "easeOut" }
                         : {}
                     }
-                    className="relative w-16 h-22 sm:w-20 sm:h-26 md:w-24 md:h-30 lg:w-26 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden bg-[#FFFDF8] border-4 border-amber-200 border-b-8 border-b-amber-400 text-slate-800 shadow-md flex items-center justify-center font-display font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl select-none cursor-pointer"
+                    className="relative w-15 h-20 sm:w-18 sm:h-24 md:w-20 md:h-26 lg:w-22 lg:h-28 rounded-2xl bg-[#FFFDF9] border-2 border-amber-200 border-b-[7px] border-b-amber-300 text-[#0F172A] shadow-md flex items-center justify-center font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl select-none cursor-pointer"
                     title={`Huruf ${char} (Ketuk untuk membunyikan suara)`}
                   >
-                    {/* Tekstur Halus Balok Kayu */}
-                    <img
-                      src="/assets/balok-kayu-3d.png"
-                      alt="Balok Kayu"
-                      draggable="false"
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-25"
-                    />
                     <span className="relative z-10">{char}</span>
                   </motion.div>
                 );
@@ -923,18 +917,17 @@ export default function MelengkapiKataView() {
 
         </section>
 
-        {/* ── TIER 3: 4 Balok Pilihan Huruf Mainan 3D Ekstra Besar ── */}
-        <footer className="w-full max-w-xl sm:max-w-2xl mx-auto flex flex-col items-center justify-center pb-2 sm:pb-3 px-2 flex-shrink-0 z-20">
+        {/* ── TIER 3: 4 Balok Pilihan Huruf Mainan 3D Ekstra Taktil ── */}
+        <footer className="w-full max-w-xl sm:max-w-2xl mx-auto flex flex-col items-center justify-center pb-2 px-2 flex-shrink-0 z-20">
           
-          {/* Label Panduan */}
-          <div className="flex items-center gap-1.5 mb-2 bg-white/95 px-4 py-1.5 rounded-full border border-emerald-300 shadow-xs">
-            <Sparkles size={14} className="text-emerald-600" />
+          {/* Label Panduan Murni Teks (Tanpa Ikon Sparkle) */}
+          <div className="mb-2 bg-white/95 px-5 py-1.5 rounded-full border border-emerald-300 shadow-xs flex items-center justify-center">
             <span className="font-display font-black text-xs sm:text-sm text-[#065F46] tracking-wide uppercase">
               Tarik atau Ketuk Huruf yang Tepat:
             </span>
           </div>
 
-          {/* 4 Balok Mainan 3D Pilihan Huruf (Mendukung Drag-and-Drop & Ketukan Langsung) */}
+          {/* 4 Balok Mainan 3D Pilihan Huruf */}
           <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 flex-wrap">
             {options.map((letter, optIdx) => {
               const isMatchingTarget = isCorrect && letter === expectedLetter;
@@ -947,13 +940,13 @@ export default function MelengkapiKataView() {
                   drag={!isAnswered && !isChampion}
                   dragSnapToOrigin={true}
                   dragElastic={0.45}
-                  whileHover={!isAnswered ? { scale: 1.12, y: -4 } : {}}
-                  whileTap={!isAnswered ? { scale: 0.96 } : {}}
+                  whileHover={!isAnswered ? { scale: 1.1, y: -3 } : {}}
+                  whileTap={!isAnswered ? { scale: 0.95 } : {}}
                   whileDrag={{
-                    scale: 1.22,
+                    scale: 1.2,
                     zIndex: 100,
-                    rotate: 4,
-                    boxShadow: "0 24px 45px rgba(0,0,0,0.38)",
+                    rotate: 3,
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
                     cursor: "grabbing",
                   }}
                   onDragStart={() => {
@@ -975,18 +968,18 @@ export default function MelengkapiKataView() {
                   animate={
                     isWobble
                       ? {
-                          x: [-8, 8, -6, 6, -3, 3, 0],
-                          rotate: [-4, 4, -3, 3, 0],
+                          x: [-7, 7, -4, 4, 0],
+                          rotate: [-3, 3, -2, 2, 0],
                         }
                       : isMatchingTarget
                       ? {
-                          scale: [1, 1.2, 1],
-                          y: [0, -14, 0],
+                          scale: [1, 1.18, 1],
+                          y: [0, -12, 0],
                         }
                       : {}
                   }
                   transition={{ duration: isWobble ? 0.45 : 0.3 }}
-                  className={`w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl sm:rounded-3xl font-display font-black text-3xl sm:text-4xl md:text-5xl border-3 sm:border-4 border-b-8 active:border-b-0 active:translate-y-1.5 transition-shadow flex items-center justify-center select-none cursor-grab active:cursor-grabbing shadow-xl relative aspect-square touch-none ${
+                  className={`w-16 h-18 sm:w-18 sm:h-20 md:w-20 md:h-22 rounded-2xl font-display font-black text-3xl sm:text-4xl border-3 border-b-[6px] active:border-b-1 active:translate-y-1 transition-shadow flex items-center justify-center select-none cursor-grab active:cursor-grabbing shadow-lg relative aspect-square touch-none ${
                     isMatchingTarget
                       ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-emerald-200 border-b-emerald-800 text-white shadow-emerald-400"
                       : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.shadow}`
@@ -994,18 +987,15 @@ export default function MelengkapiKataView() {
                   style={{ color: isMatchingTarget ? "#FFFFFF" : palette.text }}
                   title={`Tarik atau ketuk huruf ${letter}`}
                 >
-                  {/* Kilau Cahaya Sudut Atas */}
                   <div className="absolute top-1 inset-x-3 h-1 bg-white/50 rounded-full pointer-events-none" />
-
                   <span>{letter}</span>
-
                   {isMatchingTarget && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center shadow-xs pointer-events-none"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border border-white flex items-center justify-center shadow-xs pointer-events-none"
                     >
-                      <Check size={13} strokeWidth={3} className="text-white" />
+                      <Check size={11} strokeWidth={3} className="text-white" />
                     </motion.div>
                   )}
                 </motion.div>
@@ -1017,10 +1007,10 @@ export default function MelengkapiKataView() {
 
       </div>
 
-      {/* ── 5. Maskot Saka & Tika Interaktif dengan Balon Percakapan Dinamis ── */}
-      {/* Saka di Kiri Bawah */}
-      <div className="absolute bottom-1 left-2 sm:left-4 z-10 select-none flex flex-col items-center">
-        {/* Balon Percakapan Saka */}
+      {/* ── 5. Maskot Saka & Tika Berlabuh di Atas Bukit Rumput 3D ── */}
+      {/* Saka di Kiri Bawah dengan Indentasi Balon Ucapan Aman */}
+      <div className="fixed bottom-0 left-4 sm:left-8 z-20 select-none flex flex-col items-center pointer-events-none">
+        {/* Balon Percakapan Saka Terindentasi */}
         <AnimatePresence mode="wait">
           <motion.div
             key={speechBubbleText}
@@ -1031,17 +1021,18 @@ export default function MelengkapiKataView() {
             onClick={handleMascotTap}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="mb-1.5 px-3.5 py-1.5 rounded-2xl bg-white/95 border-2 border-emerald-300 shadow-md flex items-center gap-1.5 max-w-[210px] text-center cursor-pointer pointer-events-auto"
+            className="mb-1.5 ml-4 px-3.5 py-1.5 rounded-2xl bg-white/95 border-2 border-emerald-300 shadow-md flex items-center gap-1.5 max-w-[220px] text-center cursor-pointer pointer-events-auto"
             title="Ketuk Saka untuk mendengar semangatnya!"
           >
-            <span className="font-sans font-bold text-[11px] sm:text-xs text-[#065F46] leading-tight">
+            <span className="font-display font-bold text-[11px] sm:text-xs text-[#065F46] leading-tight">
               {speechBubbleText}
             </span>
           </motion.div>
         </AnimatePresence>
 
-        {/* Gambar Maskot Saka */}
+        {/* Gambar Maskot Saka & Gundukan Rumput 3D */}
         <div className="relative flex flex-col items-center">
+          <div className="absolute -bottom-2 w-32 sm:w-36 md:w-44 h-8 sm:h-10 bg-gradient-to-b from-[#22C55E] via-[#16A34A] to-[#15803D] rounded-t-full border-t-2 border-emerald-300 shadow-md z-0" />
           <motion.img
             src="/assets/saka-maskot-1-cutout.png"
             alt="Maskot Saka"
@@ -1049,22 +1040,27 @@ export default function MelengkapiKataView() {
             onClick={handleMascotTap}
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.92 }}
-            animate={isMascotCheering ? { y: [0, -12, 0] } : { y: [0, -3, 0] }}
+            animate={
+              isAnswered || isMascotCheering
+                ? { y: [-16, 0, -8, 0], scale: [1, 1.06, 1] }
+                : { y: [0, -3, 0] }
+            }
             transition={{
-              duration: isMascotCheering ? 0.4 : 3.0,
-              repeat: isMascotCheering ? 3 : Infinity,
+              duration: isAnswered || isMascotCheering ? 0.6 : 3.0,
+              repeat: isAnswered || isMascotCheering ? 2 : Infinity,
               ease: "easeInOut",
             }}
-            className="w-22 h-30 sm:w-28 sm:h-40 md:w-34 md:h-48 object-contain object-bottom pointer-events-auto cursor-pointer select-none drop-shadow-lg"
+            className="h-28 sm:h-34 md:h-40 w-auto object-contain object-bottom pointer-events-auto cursor-pointer select-none drop-shadow-lg relative z-10"
             title="Ketuk Saka untuk menyapanya!"
           />
-          <div className="w-20 sm:w-24 h-3.5 bg-black/25 rounded-full blur-[2px] -mt-1 pointer-events-none" />
+          <div className="w-20 sm:w-24 h-3 bg-black/25 rounded-full blur-[2px] -mt-1 relative z-10 pointer-events-none" />
         </div>
       </div>
 
       {/* Tika di Kanan Bawah */}
-      <div className="absolute bottom-1 right-2 sm:right-4 z-10 select-none flex flex-col items-center">
+      <div className="fixed bottom-0 right-4 sm:right-8 z-20 select-none flex flex-col items-center pointer-events-none">
         <div className="relative flex flex-col items-center">
+          <div className="absolute -bottom-2 w-32 sm:w-36 md:w-44 h-8 sm:h-10 bg-gradient-to-b from-[#22C55E] via-[#16A34A] to-[#15803D] rounded-t-full border-t-2 border-emerald-300 shadow-md z-0" />
           <motion.img
             src="/assets/tika-maskot-1-cutout.png"
             alt="Maskot Tika"
@@ -1072,17 +1068,21 @@ export default function MelengkapiKataView() {
             onClick={handleMascotTap}
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.92 }}
-            animate={isMascotCheering ? { y: [0, -12, 0], scale: [1, 1.05, 1] } : { y: [0, -3, 0] }}
+            animate={
+              isAnswered || isMascotCheering
+                ? { y: [-18, 0, -10, 0], scale: [1, 1.06, 1] }
+                : { y: [0, -3, 0] }
+            }
             transition={{
-              duration: isMascotCheering ? 0.4 : 3.2,
-              repeat: isMascotCheering ? 3 : Infinity,
+              duration: isAnswered || isMascotCheering ? 0.6 : 3.2,
+              repeat: isAnswered || isMascotCheering ? 2 : Infinity,
               ease: "easeInOut",
-              delay: 0.15,
+              delay: 0.1,
             }}
-            className="w-22 h-30 sm:w-28 sm:h-40 md:w-34 md:h-48 object-contain object-bottom pointer-events-auto cursor-pointer select-none drop-shadow-lg"
+            className="h-28 sm:h-34 md:h-40 w-auto object-contain object-bottom pointer-events-auto cursor-pointer select-none drop-shadow-lg relative z-10"
             title="Ketuk Tika untuk menyapanya!"
           />
-          <div className="w-20 sm:w-24 h-3.5 bg-black/25 rounded-full blur-[2px] -mt-1 pointer-events-none" />
+          <div className="w-20 sm:w-24 h-3 bg-black/25 rounded-full blur-[2px] -mt-1 relative z-10 pointer-events-none" />
         </div>
       </div>
 
@@ -1165,11 +1165,6 @@ export default function MelengkapiKataView() {
               <p className="font-sans font-black text-sm sm:text-base text-amber-950 mt-2 leading-relaxed">
                 Luar Biasa! Kamu Berhasil Menyelesaikan 5 Soal pada Level {level} dengan Sempurna!
               </p>
-
-              <div className="mt-3 px-4 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-sans font-bold text-xs shadow-md flex items-center gap-1.5">
-                <Sparkles size={14} className="text-yellow-300" />
-                <span>Siap mencoba tantangan level berikutnya?</span>
-              </div>
 
               {/* Tombol Aksi */}
               <div className="flex items-center gap-3 mt-5">

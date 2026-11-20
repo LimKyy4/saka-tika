@@ -15,6 +15,7 @@ import {
   playFanfareSound,
   playChalkSound,
   playXylophoneNote,
+  playSunChime,
 } from "../../utils/soundSynthesizer.js";
 import { speakInstruction } from "../../utils/speechEngine.js";
 import { useGame } from "../../context/GameContext.jsx";
@@ -251,6 +252,9 @@ export default function LetterCanvas({
   const [isHoldingCompletion, setIsHoldingCompletion] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [hasAwardedStar, setHasAwardedStar] = useState(false);
+  const [comboBadge, setComboBadge] = useState(null);
+  const [strokeFlash, setStrokeFlash] = useState(false);
+  const strokeLiftsRef = useRef(0);
 
   const letterChar =
     mode === "lower"
@@ -259,12 +263,12 @@ export default function LetterCanvas({
   const letterPathData = getLetterPath(letterChar, mode);
   const totalStrokes = letterPathData.paths.length;
 
-  // Proportional scaling: Enlarged 68-72% viewport coverage for kindergarten-friendly tracing
+  // Proportional scaling: Enlarged 70-74% viewport coverage for kindergarten-friendly tracing
   const getScaleAndOffset = useCallback((w, h) => {
     const isLower = mode === "lower";
     const spanH = isLower ? 104 : 88;
     const centerY = isLower ? 65 : 58;
-    const scale = Math.min((0.68 * h) / spanH, (0.72 * w) / 80);
+    const scale = Math.min((0.70 * h) / spanH, (0.74 * w) / 80);
     const offsetX = (w / 2) - 50 * scale;
     const offsetY = (h / 2) - centerY * scale;
     return { scaleX: scale, scaleY: scale, offsetX, offsetY, drawW: 80 * scale, drawH: spanH * scale };
@@ -302,45 +306,45 @@ export default function LetterCanvas({
     const brushWidth = 9.0;
     const inkColor = activeColorRef.current || "#2563EB";
 
-    // ── 1. Dynamic Handwriting Guidelines (3 Lines for Upper vs 4 Lines for Lower matching Client Chart) ──
+    // ── 1. Dynamic Handwriting Guidelines (Soft Neutral Textbook Tones for High Ink Contrast) ──
     const isLower = mode === "lower";
 
-    // Line 1: Top Cap / Ascender Line (Y = 16, solid blue #3B82F6)
+    // Line 1: Top Cap / Ascender Line (Y = 16, soft cool-grey #CBD5E1)
     const yTop = offsetY + 16 * scaleY;
-    ctx.lineWidth = 2.0;
+    ctx.lineWidth = 1.8;
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#3B82F6";
+    ctx.strokeStyle = "#CBD5E1";
     ctx.beginPath();
     ctx.moveTo(lineXStart, yTop);
     ctx.lineTo(lineXEnd, yTop);
     ctx.stroke();
 
-    // Line 2: Waistline / Midline / x-height (Y = 58, dashed blue #60A5FA)
+    // Line 2: Waistline / Midline / x-height (Y = 58, dashed soft cool-grey #CBD5E1)
     const yMid = offsetY + 58 * scaleY;
-    ctx.lineWidth = 2.0;
+    ctx.lineWidth = 1.8;
     ctx.setLineDash([8, 8]);
-    ctx.strokeStyle = "#60A5FA";
+    ctx.strokeStyle = "#CBD5E1";
     ctx.beginPath();
     ctx.moveTo(lineXStart, yMid);
     ctx.lineTo(lineXEnd, yMid);
     ctx.stroke();
 
-    // Line 3: Baseline (Y = 100, solid red #EF4444)
+    // Line 3: Baseline (Y = 100, soft rose-pink #FDA4AF for clean contrast against blue ink)
     const yBase = offsetY + 100 * scaleY;
-    ctx.lineWidth = 2.4;
+    ctx.lineWidth = 2.2;
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#EF4444";
+    ctx.strokeStyle = "#FDA4AF";
     ctx.beginPath();
     ctx.moveTo(lineXStart, yBase);
     ctx.lineTo(lineXEnd, yBase);
     ctx.stroke();
 
-    // Line 4: Descender Line (Y = 114, dashed blue-gray #94A3B8) — ONLY rendered in Lowercase mode!
+    // Line 4: Descender Line (Y = 114, dashed light grey #E2E8F0) — ONLY rendered in Lowercase mode!
     if (isLower) {
       const yBottom = offsetY + 114 * scaleY;
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.6;
       ctx.setLineDash([6, 6]);
-      ctx.strokeStyle = "#94A3B8";
+      ctx.strokeStyle = "#E2E8F0";
       ctx.beginPath();
       ctx.moveTo(lineXStart, yBottom);
       ctx.lineTo(lineXEnd, yBottom);
@@ -413,55 +417,11 @@ export default function LetterCanvas({
       ctx.shadowBlur = 0;
     }
 
-    // ── 5. Client Legend Symbols: Stroke Numbers, Start Dots, End Dots & Direction Arrows ──
+    // ── 5. Client Legend Symbols: Start Dots, End Dots & Direction Arrows (No Stroke Numbers) ──
     if (allCps && allCps.length > 0 && !isHolding && !isCompleted) {
       const now = performance.now();
 
-      // 5a. Render circular blue sequence numbers on all upcoming strokes (sIdx > activeStroke)
-      allCps.forEach((cps, sIdx) => {
-        if (sIdx > activeStroke && cps && cps.length >= 12) {
-          const sPt = cps[0];
-          const p1 = cps[1] || sPt;
-          const sx = offsetX + sPt.x * scaleX;
-          const sy = offsetY + sPt.y * scaleY;
-          const initDx = p1.x - sPt.x;
-          const initDy = p1.y - sPt.y;
-          const initLen = Math.hypot(initDx, initDy) || 1;
-          const normPerpX = -initDy / initLen;
-          const normPerpY = initDx / initLen;
-
-          let badgeX = sx + normPerpX * 18 - (initDx / initLen) * 6;
-          let badgeY = sy + normPerpY * 18 - (initDy / initLen) * 6;
-          badgeX = Math.max(16, Math.min(width - 16, badgeX));
-          badgeY = Math.max(16, Math.min(height - 16, badgeY));
-
-          // Soft blue circular badge for upcoming strokes (matching client overview chart)
-          ctx.beginPath();
-          ctx.arc(badgeX, badgeY, 9, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(37, 99, 235, 0.75)";
-          ctx.fill();
-          ctx.strokeStyle = "#FFFFFF";
-          ctx.lineWidth = 1.8;
-          ctx.stroke();
-
-          ctx.fillStyle = "#FFFFFF";
-          ctx.font = "bold 10px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(String(sIdx + 1), badgeX, badgeY + 0.5);
-
-          // Faint green start dot
-          ctx.beginPath();
-          ctx.arc(sx, sy, 5, 0, Math.PI * 2);
-          ctx.fillStyle = "#22C55E";
-          ctx.fill();
-          ctx.strokeStyle = "#FFFFFF";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        }
-      });
-
-      // 5b. Render prominent interactive symbols on the ACTIVE stroke
+      // Render prominent interactive symbols on the ACTIVE stroke
       if (activeCps && activeCps.length >= 12) {
         const isClosedLoop =
           Math.hypot(activeCps[0].x - activeCps[11].x, activeCps[0].y - activeCps[11].y) < 6;
@@ -565,37 +525,6 @@ export default function LetterCanvas({
         ctx.strokeStyle = "#FFFFFF";
         ctx.lineWidth = 2.4;
         ctx.stroke();
-
-        // Nomor Urutan Goresan (Vibrant Blue Circular Badge with Stroke Number)
-        const p1 = activeCps[1] || activeCps[0];
-        const initDx = p1.x - startPt.x;
-        const initDy = p1.y - startPt.y;
-        const initLen = Math.hypot(initDx, initDy) || 1;
-        const normPerpX = -initDy / initLen;
-        const normPerpY = initDx / initLen;
-
-        let badgeX = sx + normPerpX * 18 - (initDx / initLen) * 6;
-        let badgeY = sy + normPerpY * 18 - (initDy / initLen) * 6;
-
-        badgeX = Math.max(16, Math.min(width - 16, badgeX));
-        badgeY = Math.max(16, Math.min(height - 16, badgeY));
-
-        ctx.beginPath();
-        ctx.arc(badgeX, badgeY, 11, 0, Math.PI * 2);
-        ctx.fillStyle = "#2563EB";
-        ctx.shadowColor = "#2563EB";
-        ctx.shadowBlur = 6;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.lineWidth = 2.2;
-        ctx.stroke();
-
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 11px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(String(activeStroke + 1), badgeX, badgeY + 0.5);
       }
     }
 
@@ -681,11 +610,14 @@ export default function LetterCanvas({
     completedStrokesRef.current = [];
     isHoldingCompletionRef.current = false;
     nextCheckpointIndexRef.current = 0;
+    strokeLiftsRef.current = 0;
 
     setCurrentStrokeIdx(0);
     setCompletedStrokes([]);
     setIsHoldingCompletion(false);
     setIsCompleted(false);
+    setComboBadge(null);
+    setStrokeFlash(false);
 
     onProgressUpdateRef.current?.(0);
     onStrokeUpdateRef.current?.({ current: 1, total: totalStrokes });
@@ -712,11 +644,14 @@ export default function LetterCanvas({
     completedStrokesRef.current = [];
     isHoldingCompletionRef.current = false;
     nextCheckpointIndexRef.current = 0;
+    strokeLiftsRef.current = 0;
 
     setCurrentStrokeIdx(0);
     setCompletedStrokes([]);
     setIsHoldingCompletion(false);
     setIsCompleted(false);
+    setComboBadge(null);
+    setStrokeFlash(false);
     setHasAwardedStar(false);
 
     clearTimeout(completionHoldTimer.current);
@@ -802,15 +737,26 @@ export default function LetterCanvas({
   // Advance to next stroke or grand completion
   const completeActiveStroke = () => {
     const activeIdx = currentStrokeIdxRef.current;
-    playXylophoneNote(activeIdx);
     clearDrawingCanvas();
+
+    // Ascending celebratory chime & white-gold stroke lock flash
+    playSunChime();
+    setStrokeFlash(true);
+    setTimeout(() => setStrokeFlash(false), 350);
+
+    // Continuous single-drag "Mulus!" reward check
+    if (strokeLiftsRef.current === 0) {
+      setComboBadge("Mulus!");
+      setTimeout(() => setComboBadge(null), 1200);
+    }
 
     const nextCompleted = [...completedStrokesRef.current, activeIdx];
     completedStrokesRef.current = nextCompleted;
     setCompletedStrokes(nextCompleted);
 
-    // Reset checkpoint counter for the next stroke
+    // Reset checkpoint counter & lift tracker for the next stroke
     nextCheckpointIndexRef.current = 0;
+    strokeLiftsRef.current = 0;
 
     if (activeIdx + 1 < totalStrokes) {
       const nextIdx = activeIdx + 1;
@@ -857,10 +803,11 @@ export default function LetterCanvas({
           k++;
           nextCheckpointIndexRef.current = k;
 
-          // Tactile drawing tick sound (throttled every 70ms)
+          // Rising acoustic feedback: ascending soft xylophone note with checkpoint progress
           const now = performance.now();
-          if (now - lastSoundTime.current > 70) {
-            playChalkSound();
+          if (now - lastSoundTime.current > 65) {
+            const noteIdx = Math.min(6, Math.floor((k / 11) * 7));
+            playXylophoneNote(noteIdx);
             lastSoundTime.current = now;
           }
 
@@ -895,6 +842,10 @@ export default function LetterCanvas({
       e.target.setPointerCapture(e.pointerId);
     } catch {
       // ignore
+    }
+
+    if (nextCheckpointIndexRef.current === 0) {
+      strokeLiftsRef.current = 0;
     }
 
     isDrawing.current = true;
@@ -944,16 +895,16 @@ export default function LetterCanvas({
     ctx.lineTo(pt.x, pt.y);
     ctx.stroke();
 
-    // Spawn subtle sparkle particles at brush tip
-    if (Math.random() > 0.4) {
+    // Live Ink Sparkle Trail: emit glowing sparkle particles from brush tip tinted with active marker color
+    if (Math.random() > 0.3) {
       particlesRef.current.push({
-        x: pt.x + (Math.random() - 0.5) * 12,
-        y: pt.y + (Math.random() - 0.5) * 12,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5 - 0.5,
-        life: 0.9,
-        size: Math.random() * 3.5 + 2,
-        color: Math.random() > 0.4 ? "#FCD34D" : inkColor,
+        x: pt.x + (Math.random() - 0.5) * 14,
+        y: pt.y + (Math.random() - 0.5) * 14,
+        vx: (Math.random() - 0.5) * 1.6,
+        vy: (Math.random() - 0.5) * 1.6 - 0.6,
+        life: 0.95,
+        size: Math.random() * 4 + 2.5,
+        color: Math.random() > 0.35 ? inkColor : "#FDE047",
       });
     }
 
@@ -984,6 +935,11 @@ export default function LetterCanvas({
     } catch {
       // ignore
     }
+
+    if (nextCheckpointIndexRef.current > 0 && nextCheckpointIndexRef.current < 12) {
+      strokeLiftsRef.current += 1;
+    }
+
     isDrawing.current = false;
     lastPoint.current = null;
     clearDrawingCanvas();
@@ -1013,56 +969,78 @@ export default function LetterCanvas({
           style={{ touchAction: "none" }}
         />
 
-        {/* Active Stroke Indicator Pill in Top Left with Mini Animated Progress Bar & Category Badge */}
-        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-2.5 py-1 rounded-xl shadow-xs pointer-events-none">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
-            <span className="font-display font-bold text-[11px] text-[#1B4965]">
-              Goresan {Math.min(currentStrokeIdx + 1, totalStrokes)} / {totalStrokes}
+        {/* White-Gold Luminous Stroke Lock Flash */}
+        <AnimatePresence>
+          {strokeFlash && (
+            <motion.div
+              initial={{ opacity: 0.65 }}
+              animate={{ opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="absolute inset-0 bg-gradient-to-tr from-amber-100/50 via-white/70 to-yellow-100/40 pointer-events-none z-20"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Playful Floating "Mulus!" Single-Drag Combo Callout */}
+        <AnimatePresence>
+          {comboBadge && (
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.8 }}
+              animate={{ opacity: 1, y: -10, scale: 1.08 }}
+              exit={{ opacity: 0, y: -24, scale: 0.9 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute top-12 right-6 z-25 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-white font-display font-black text-xs sm:text-sm px-3.5 py-1 rounded-full shadow-lg border-2 border-white pointer-events-none"
+            >
+              {comboBadge}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Top Paper Header Bar: Clean Horizontal Separation Between Stroke Counter & Symbol Legend */}
+        <div className="absolute top-2 inset-x-2.5 sm:inset-x-3 z-10 flex items-center justify-between gap-2 pointer-events-none">
+          {/* Left Group: Stroke Progress Pill & Category */}
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-2 sm:px-2.5 py-1 rounded-xl shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse flex-shrink-0" />
+            <span className="font-display font-bold text-[10px] sm:text-[11px] text-[#1B4965] whitespace-nowrap">
+              Goresan {Math.min(currentStrokeIdx + 1, totalStrokes)}/{totalStrokes}
             </span>
+            <div className="w-10 sm:w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200 flex-shrink-0">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-sky-400 rounded-full transition-all duration-300"
+                style={{
+                  width: `${(completedStrokes.length / totalStrokes) * 100}%`,
+                }}
+              />
+            </div>
             {mode === "lower" && letterPathData.category && (
-              <span className="ml-1 px-1.5 py-0.5 bg-sky-100 text-[#0369A1] border border-sky-300 rounded-md font-display font-black text-[10px] leading-none">
+              <span className="px-1.5 py-0.5 bg-sky-100 text-[#0369A1] border border-sky-300 rounded-md font-display font-black text-[9px] sm:text-[10px] leading-none whitespace-nowrap">
                 Huruf {letterPathData.category}
               </span>
             )}
           </div>
-          <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-            <div
-              className="h-full bg-gradient-to-r from-blue-500 to-sky-400 rounded-full transition-all duration-300"
-              style={{
-                width: `${(completedStrokes.length / totalStrokes) * 100}%`,
-              }}
-            />
+
+          {/* Right Group: Symbol Legend Pill */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 bg-white/95 backdrop-blur-xs border border-slate-200/90 px-2 sm:px-2.5 py-1 rounded-xl shadow-xs">
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#22C55E] border border-white shadow-2xs flex-shrink-0" />
+              <span className="font-sans font-bold text-[9px] sm:text-[10px] text-slate-700 whitespace-nowrap">Mulai</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#EF4444] border border-white shadow-2xs flex-shrink-0" />
+              <span className="font-sans font-bold text-[9px] sm:text-[10px] text-slate-700 whitespace-nowrap">Selesai</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#2563EB] flex-shrink-0" viewBox="0 0 14 14" fill="none">
+                <path d="M2 7h9M7 3l4 4-4 4" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="font-sans font-bold text-[9px] sm:text-[10px] text-[#2563EB] whitespace-nowrap">Arah</span>
+            </div>
           </div>
         </div>
 
-        {/* Compact Official Client Symbol Legend Pill in Top-Right Corner */}
-        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-2 sm:gap-2.5 bg-white/95 backdrop-blur-xs border border-slate-200/90 px-2 sm:px-2.5 py-1 rounded-xl shadow-xs pointer-events-none">
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] border border-white shadow-2xs" />
-            <span className="font-sans font-bold text-[10px] text-slate-700">Mulai</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] border border-white shadow-2xs" />
-            <span className="font-sans font-bold text-[10px] text-slate-700">Selesai</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <svg className="w-3 h-3 text-[#2563EB]" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7h9M7 3l4 4-4 4" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="font-sans font-bold text-[10px] text-[#2563EB]">Arah</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="w-3.5 h-3.5 rounded-full bg-[#2563EB] text-white font-bold text-[9px] flex items-center justify-center">1</span>
-            <span className="font-sans font-bold text-[10px] text-slate-700">Urutan</span>
-          </div>
-        </div>
-
-        {/* Active Stroke Instruction Banner from Client Specification */}
-        <div className="absolute bottom-2 inset-x-3 mx-auto w-fit max-w-[90%] z-10 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-3 py-1 rounded-xl shadow-xs pointer-events-none flex items-center gap-1.5 truncate">
-          <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white font-display font-black text-[10px] flex items-center justify-center flex-shrink-0">
-            {Math.min(currentStrokeIdx + 1, totalStrokes)}
-          </span>
+        {/* Active Stroke Instruction Banner */}
+        <div className="absolute bottom-2 inset-x-3 mx-auto w-fit max-w-[90%] z-10 bg-white/95 backdrop-blur-xs border border-amber-200/90 px-3 py-1 rounded-xl shadow-xs pointer-events-none flex items-center justify-center truncate">
           <span className="font-display font-bold text-xs text-[#1B4965] truncate">
             {letterPathData.strokeInstructions?.[currentStrokeIdx] || letterPathData.instruction}
           </span>

@@ -239,14 +239,6 @@ export default function WordPuzzleTrayDiorama({ isActive = true, className = "" 
           <path d="M0,-7 Q1,-1 7,0 Q1,1 0,7 Q-1,1 -7,0 Q-1,-1 0,-7 Z" fill="#FDE047" filter="drop-shadow(0 0 4px #FBBF24)" />
         </motion.g>
 
-        <motion.g
-          transform="translate(92, 36)"
-          animate={isActive ? { scale: [0.9, 1.25, 0.9], rotate: [0, -45, 0] } : {}}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-        >
-          <path d="M0,-6 Q1,-1 6,0 Q1,1 0,6 Q-1,1 -6,0 Q-1,-1 0,-6 Z" fill="#34D399" filter="drop-shadow(0 0 3px #6EE7B7)" />
-        </motion.g>
-
         <circle cx="238" cy="80" r="2.5" fill="#FEF08A" opacity="0.9" />
         <circle cx="56" cy="78" r="2" fill="#FFFFFF" opacity="0.8" />
       </svg>

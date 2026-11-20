@@ -39,55 +39,35 @@ function CloudPuff({ width = 140, height = 75, className = "" }) {
 
 export default function DriftingClouds({ className = "" }) {
   return (
-    <div className={`absolute inset-x-0 top-0 h-[25%] overflow-hidden pointer-events-none select-none z-10 ${className}`}>
-      {/* Cloud 1: Large puffy cloud - Left to Right (45s) */}
+    <div className={`absolute inset-x-0 top-0 h-[20%] overflow-hidden pointer-events-none select-none z-10 ${className}`}>
+      {/* Cloud 1: Soft upper cloud - Left to Right (48s) */}
       <motion.div
         initial={{ x: "-15vw" }}
         animate={{ x: "110vw" }}
-        transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 48, repeat: Infinity, ease: "linear" }}
         className="absolute top-2 left-0"
       >
-        <CloudPuff width={150} height={80} className="opacity-75" />
+        <CloudPuff width={135} height={70} className="opacity-70" />
       </motion.div>
 
-      {/* Cloud 2: Mid-sized cloud - Right to Left (36s) */}
+      {/* Cloud 2: Soft high cloud - Right to Left (40s) */}
       <motion.div
         initial={{ x: "105vw" }}
         animate={{ x: "-20vw" }}
-        transition={{ duration: 36, repeat: Infinity, ease: "linear", delay: 4 }}
-        className="absolute top-8 left-0"
+        transition={{ duration: 40, repeat: Infinity, ease: "linear", delay: 3 }}
+        className="absolute top-6 left-0"
       >
-        <CloudPuff width={120} height={65} className="opacity-70" />
+        <CloudPuff width={110} height={58} className="opacity-65" />
       </motion.div>
 
-      {/* Cloud 3: High background small cloud - Left to Right (58s) */}
+      {/* Cloud 3: Distant gentle cloud - Left to Right (60s) */}
       <motion.div
         initial={{ x: "-10vw" }}
         animate={{ x: "115vw" }}
-        transition={{ duration: 58, repeat: Infinity, ease: "linear", delay: 12 }}
+        transition={{ duration: 60, repeat: Infinity, ease: "linear", delay: 10 }}
         className="absolute top-1 left-0"
       >
-        <CloudPuff width={90} height={48} className="opacity-60 scale-90" />
-      </motion.div>
-
-      {/* Cloud 4: Mid-height background cloud - Left to Right (50s) */}
-      <motion.div
-        initial={{ x: "-25vw" }}
-        animate={{ x: "110vw" }}
-        transition={{ duration: 50, repeat: Infinity, ease: "linear", delay: 24 }}
-        className="absolute top-14 left-0"
-      >
-        <CloudPuff width={110} height={58} className="opacity-65 scale-95" />
-      </motion.div>
-
-      {/* Cloud 5: High drifting accent cloud - Right to Left (42s) */}
-      <motion.div
-        initial={{ x: "110vw" }}
-        animate={{ x: "-15vw" }}
-        transition={{ duration: 42, repeat: Infinity, ease: "linear", delay: 18 }}
-        className="absolute top-6 left-0"
-      >
-        <CloudPuff width={100} height={54} className="opacity-65" />
+        <CloudPuff width={85} height={45} className="opacity-55 scale-90" />
       </motion.div>
     </div>
   );

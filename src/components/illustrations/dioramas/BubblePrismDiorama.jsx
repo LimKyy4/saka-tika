@@ -78,24 +78,7 @@ export default function BubblePrismDiorama({ isActive = true, className = "" }) 
         {/* Ground Soft Contact Shadow */}
         <ellipse cx="132" cy="156" rx="60" ry="8" fill="#881337" opacity="0.18" />
 
-        {/* ── 2. Small Companion Bubbles (Floating in Background) ── */}
-        {/* Companion Bubble 1 (Upper Left) */}
-        <motion.g
-          transform="translate(68, 48)"
-          animate={isActive ? { y: [0, -8, 0], x: [0, -3, 0] } : {}}
-          transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <circle cx="0" cy="0" r="18" fill="url(#soapBubbleFill)" stroke="#FFFFFF" strokeWidth="1.2" strokeOpacity="0.7" />
-          {/* Curved Gloss Arc */}
-          <path d="M-11,-10 A14 14 0 0 1 6,-14" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-          <circle cx="-9" cy="-7" r="1.5" fill="#FFFFFF" />
-          {/* Inside Letter Hint 'A' */}
-          <text x="0" y="5" textAnchor="middle" fontFamily="'Fredoka', sans-serif" fontWeight="bold" fontSize="13" fill="#E11D48" opacity="0.6">
-            A
-          </text>
-        </motion.g>
-
-        {/* Companion Bubble 2 (Lower Right) */}
+        {/* ── 2. Companion Bubble (Lower Right) ── */}
         <motion.g
           transform="translate(208, 122)"
           animate={isActive ? { y: [0, -6, 0], x: [0, 4, 0] } : {}}

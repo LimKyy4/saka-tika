@@ -222,7 +222,7 @@ export const ALPHABET_DATA = [
     examples: [
       { word: "Quran", illustrationKey: "quran" },
       { word: "Quokka", illustrationKey: "quokka" },
-      { word: "Quiche", illustrationKey: "quiche" },
+      { word: "Quetzal", illustrationKey: "quetzal" },
     ],
   },
   {
@@ -339,7 +339,7 @@ export const ALPHABET_DATA = [
     examples: [
       { word: "Zebra", illustrationKey: "zebra" },
       { word: "Zaitun", illustrationKey: "zaitun" },
-      { word: "Zirah", illustrationKey: "zirah" },
+      { word: "Zeppelin", illustrationKey: "zeppelin" },
     ],
   },
 ];

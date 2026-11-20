@@ -20,7 +20,8 @@ import { Volume2, RotateCcw, Shuffle, Check, Sparkles, Play } from "lucide-react
 import { useGame } from "../../context/GameContext.jsx";
 import { useAudio } from "../../context/AudioContext.jsx";
 import { ALPHABET_DATA } from "../../data/masterDataset.js";
-import { speakLetter, speakInstruction } from "../../utils/speechEngine.js";
+import { speakLetter, speakWord, speakInstruction } from "../../utils/speechEngine.js";
+import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
 import {
   playBubblePopSound,
   playRubberBoingSound,
@@ -80,6 +81,71 @@ function StageFlower({ cx, cy, petalColor, centerColor = "#FDE047", delay = 0 })
   );
 }
 
+// Custom Vector Gold-Rimmed Brass Magnifying Glass with Turquoise Handle
+function MagnifyingGlassIcon({ className = "w-6 h-6 sm:w-7 sm:h-7" }) {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      fill="none"
+      className={`${className} flex-shrink-0 drop-shadow-xs`}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="lensBrassGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#FEF08A" />
+          <stop offset="40%" stopColor="#FBBF24" />
+          <stop offset="85%" stopColor="#D97706" />
+          <stop offset="100%" stopColor="#78350F" />
+        </linearGradient>
+        <linearGradient id="lensHandleGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#67E8F9" />
+          <stop offset="50%" stopColor="#06B6D4" />
+          <stop offset="100%" stopColor="#0E7490" />
+        </linearGradient>
+      </defs>
+      {/* Handle */}
+      <rect
+        x="30"
+        y="30"
+        width="6"
+        height="15"
+        rx="3"
+        transform="rotate(-45 30 30)"
+        fill="url(#lensHandleGrad)"
+        stroke="#0E7490"
+        strokeWidth="1.2"
+      />
+      {/* Brass Ferrule */}
+      <rect
+        x="26"
+        y="26"
+        width="7"
+        height="3"
+        rx="1"
+        transform="rotate(-45 26 26)"
+        fill="url(#lensBrassGrad)"
+        stroke="#78350F"
+        strokeWidth="0.8"
+      />
+      {/* Outer Brass Ring */}
+      <circle cx="18" cy="18" r="14" fill="url(#lensBrassGrad)" stroke="#78350F" strokeWidth="1.6" />
+      {/* Inner Rim Lip */}
+      <circle cx="18" cy="18" r="11.5" fill="#D97706" />
+      {/* Optical Glass Lens */}
+      <circle cx="18" cy="18" r="10.5" fill="#E0F2FE" fillOpacity="0.45" stroke="#FFFFFF" strokeWidth="1" />
+      {/* Curved Glare Highlight */}
+      <path
+        d="M12 12 A8 8 0 0 1 24 12"
+        stroke="#FFFFFF"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.9"
+      />
+    </svg>
+  );
+}
+
 export default function TemukanHurufView() {
   const { addStars } = useGame();
   const { playSfx } = useAudio();
@@ -96,6 +162,11 @@ export default function TemukanHurufView() {
   const [wobbleId, setWobbleId] = useState(null);
   const [poppingId, setPoppingId] = useState(null);
 
+  // Consecutive streak counter & 6-second inactivity hint
+  const [streak, setStreak] = useState(0);
+  const [hintBubbleId, setHintBubbleId] = useState(null);
+  const idleTimerRef = useRef(null);
+
   // Juice & Particle effects
   const [splashDroplets, setSplashDroplets] = useState([]);
   const [shockwaves, setShockwaves] = useState([]);
@@ -109,6 +180,7 @@ export default function TemukanHurufView() {
   const [isScreenShaking, setIsScreenShaking] = useState(false);
   const [mascotAnimationState, setMascotAnimationState] = useState("idle"); // idle, cheer, giggle, encourage
   const [customSpeechText, setCustomSpeechText] = useState(null);
+  const [roundCount, setRoundCount] = useState(1);
 
   // Element Refs for pixel-accurate projectile flight
   const bubbleRefs = useRef({});
@@ -121,6 +193,32 @@ export default function TemukanHurufView() {
   }, [letterIndex]);
 
   const targetLetter = currentTarget.letter;
+
+  // Smart 6-second inactivity shimmer hint
+  const restartIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+    setHintBubbleId(null);
+
+    idleTimerRef.current = setTimeout(() => {
+      setBubbles((currBubbles) => {
+        setFoundIds((currFound) => {
+          if (currFound.length < 3) {
+            const remaining = currBubbles.find(
+              (b) => b.isTarget && !currFound.includes(b.id)
+            );
+            if (remaining) {
+              setHintBubbleId(remaining.id);
+            }
+          }
+          return currFound;
+        });
+        return currBubbles;
+      });
+    }, 6000);
+  }, []);
 
   // Initialize round: 10 bubbles (3 target bubbles + 7 unique distractors)
   const setupRound = useCallback((target) => {
@@ -177,6 +275,7 @@ export default function TemukanHurufView() {
     setFoundIds([]);
     setWobbleId(null);
     setPoppingId(null);
+    setHintBubbleId(null);
     setSplashDroplets([]);
     setShockwaves([]);
     setFlyingCoins([]);
@@ -185,19 +284,21 @@ export default function TemukanHurufView() {
     setIsScreenShaking(false);
     setMascotAnimationState("idle");
     setCustomSpeechText(null);
-  }, []);
+    restartIdleTimer();
+  }, [restartIdleTimer]);
 
   // Initialize round when targetLetter changes
   useEffect(() => {
     setupRound(targetLetter);
     return () => {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
   }, [targetLetter, setupRound]);
 
-  // Celebratory confetti fireworks
+  // Celebratory confetti fireworks (2.2s duration)
   const fireFireworksRockets = () => {
-    const end = Date.now() + 2000;
+    const end = Date.now() + 2200;
     const colors = ["#FDE047", "#F43F5E", "#38BDF8", "#34D399", "#C084FC", "#FB923C"];
 
     (function frame() {
@@ -235,13 +336,20 @@ export default function TemukanHurufView() {
       clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = null;
     }
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+    setHintBubbleId(null);
     playHoverSound();
+    setRoundCount((prev) => prev + 1);
     setLetterIndex(shuffleQueueRef.current.next());
   }, []);
 
   // Reset current round
   const handleResetCurrentRound = useCallback(() => {
     playHoverSound();
+    setStreak(0);
     setupRound(targetLetter);
   }, [setupRound, targetLetter]);
 
@@ -253,6 +361,8 @@ export default function TemukanHurufView() {
     if (bubble.isTarget) {
       const stageIdx = foundIds.length;
       setPoppingId(bubble.id);
+      setStreak((prev) => prev + 1);
+      restartIdleTimer();
 
       // 1. Ascending musical chime (Do -> Re -> Mi) + juicy pop synthesizer
       playXylophoneNote(stageIdx);
@@ -304,8 +414,8 @@ export default function TemukanHurufView() {
         setSplashDroplets((prev) => prev.filter((d) => !d.id.startsWith(bubble.id)));
       }, 550);
 
-      // 5. Floating text combo juice
-      const comboLabels = ["Pecah 1! ✨", "Keren! 2! 🌟", "Sempurna! 🎉"];
+      // 5. Floating text combo juice (Strict Zero Emojis Policy)
+      const comboLabels = ["Pecah 1!", "Keren! 2!", "Sempurna!"];
       const comboId = `combo-${Date.now()}`;
       setFloatingCombos((prev) => [
         ...prev,
@@ -352,7 +462,13 @@ export default function TemukanHurufView() {
         setFlyingCoins((prev) => prev.filter((c) => c.id !== coinId));
 
         if (newFound.length >= 3) {
-          // VICTORY: Screen rumble + fanfare + confetti + victory modal
+          // VICTORY: Screen rumble + fanfare + confetti + victory modal (2200ms hold)
+          if (idleTimerRef.current) {
+            clearTimeout(idleTimerRef.current);
+            idleTimerRef.current = null;
+          }
+          setHintBubbleId(null);
+
           setIsScreenShaking(true);
           setTimeout(() => setIsScreenShaking(false), 450);
 
@@ -365,12 +481,14 @@ export default function TemukanHurufView() {
 
           autoAdvanceTimer.current = setTimeout(() => {
             handleNextRound();
-          }, 3200);
+          }, 2200);
         }
       }, 420);
     } else {
-      // Wrong bubble: soft rubber bounce + comical jelly wobble (no punitive buzzer)
+      // Wrong bubble: soft rubber bounce + comical jelly wobble (reset streak gracefully to 0)
       playRubberBoingSound();
+      setStreak(0);
+      restartIdleTimer();
       setWobbleId(bubble.id);
       setTimeout(() => setWobbleId(null), 500);
 
@@ -406,6 +524,7 @@ export default function TemukanHurufView() {
   // Interactive Arena Tap (creates water ripples when tapping the open stage)
   const handleArenaTap = (e) => {
     if (roundComplete) return;
+    restartIdleTimer();
     playAmbientRippleSound();
     const rippleId = `rip-${Date.now()}-${Math.random()}`;
     const x = e.clientX;
@@ -417,10 +536,15 @@ export default function TemukanHurufView() {
     }, 550);
   };
 
-  // Manual audio pronunciation trigger
+  // Manual audio pronunciation triggers (Strict Audio Gating: only on explicit click)
   const handleSpeakTarget = () => {
     if (typeof playSfx === "function") playSfx("click");
     speakLetter(currentTarget);
+  };
+
+  const handleSpeakWord = () => {
+    if (typeof playSfx === "function") playSfx("click");
+    speakWord(currentTarget);
   };
 
   // Dynamic Encouraging Speech Bubble Text
@@ -430,48 +554,35 @@ export default function TemukanHurufView() {
       return `Ayo ketuk 3 huruf ${targetLetter} yang bersinar!`;
     }
     if (foundIds.length === 1) {
-      return "Hebat! Kurang 2 lagi!";
+      return `Mantap! Kurang 2 huruf ${targetLetter} lagi!`;
     }
     if (foundIds.length === 2) {
-      return `Tinggal 1 huruf ${targetLetter} lagi!`;
+      return `Hebat! Tinggal 1 lagi!`;
     }
     return `Luar biasa! Semua huruf ${targetLetter} ditemukan!`;
   }, [customSpeechText, foundIds.length, targetLetter]);
 
-  // 14 Ambient floating background mini soap bubbles
-  const ambientMiniBubbles = useMemo(
+  // 18 Soft translucent mini soap bubbles rising gently in background (Zero stars on wall)
+  const backgroundMiniBubbles = useMemo(
     () => [
-      { left: 6, bottom: 18, size: 24, opacity: 0.35, duration: 7.2, delay: 0 },
-      { left: 14, bottom: 12, size: 18, opacity: 0.4, duration: 6.5, delay: 1.8 },
-      { left: 22, bottom: 20, size: 30, opacity: 0.32, duration: 8.0, delay: 0.5 },
-      { left: 32, bottom: 15, size: 20, opacity: 0.42, duration: 7.4, delay: 2.5 },
-      { left: 44, bottom: 22, size: 26, opacity: 0.36, duration: 8.2, delay: 1.2 },
-      { left: 54, bottom: 16, size: 34, opacity: 0.3, duration: 8.8, delay: 0.7 },
-      { left: 63, bottom: 24, size: 22, opacity: 0.45, duration: 6.8, delay: 2.1 },
-      { left: 72, bottom: 14, size: 28, opacity: 0.38, duration: 7.6, delay: 1.4 },
-      { left: 81, bottom: 20, size: 20, opacity: 0.4, duration: 7.0, delay: 0.3 },
-      { left: 90, bottom: 15, size: 32, opacity: 0.34, duration: 8.4, delay: 2.0 },
-      { left: 96, bottom: 22, size: 18, opacity: 0.42, duration: 6.6, delay: 0.9 },
-      { left: 28, bottom: 26, size: 16, opacity: 0.35, duration: 6.2, delay: 3.1 },
-      { left: 68, bottom: 28, size: 24, opacity: 0.36, duration: 7.5, delay: 2.8 },
-      { left: 48, bottom: 24, size: 18, opacity: 0.38, duration: 6.9, delay: 3.5 },
-    ],
-    []
-  );
-
-  // 10 Twinkling 4-Point Sparkles (Zero emojis, zero star icons)
-  const ambientSparkles = useMemo(
-    () => [
-      { left: 10, top: 18, size: 20, duration: 3.5, delay: 0.2, color: "#FEF08A" },
-      { left: 22, top: 40, size: 16, duration: 4.2, delay: 1.5, color: "#FFFFFF" },
-      { left: 88, top: 20, size: 22, duration: 3.8, delay: 0.8, color: "#FDE047" },
-      { left: 92, top: 48, size: 18, duration: 4.5, delay: 2.2, color: "#FFFFFF" },
-      { left: 40, top: 16, size: 14, duration: 3.2, delay: 1.1, color: "#FEF08A" },
-      { left: 60, top: 15, size: 15, duration: 3.9, delay: 2.7, color: "#FDE047" },
-      { left: 18, top: 76, size: 16, duration: 4.0, delay: 0.6, color: "#FEF08A" },
-      { left: 80, top: 78, size: 18, duration: 3.6, delay: 1.9, color: "#FFFFFF" },
-      { left: 48, top: 74, size: 14, duration: 4.4, delay: 3.0, color: "#FDE047" },
-      { left: 74, top: 38, size: 16, duration: 3.7, delay: 1.3, color: "#FEF08A" },
+      { left: 8, bottom: 15, size: 22, opacity: 0.28, duration: 8.5, delay: 0 },
+      { left: 16, bottom: 25, size: 14, opacity: 0.35, duration: 7.2, delay: 1.5 },
+      { left: 24, bottom: 18, size: 28, opacity: 0.25, duration: 9.0, delay: 0.8 },
+      { left: 32, bottom: 35, size: 16, opacity: 0.32, duration: 7.8, delay: 2.2 },
+      { left: 40, bottom: 20, size: 24, opacity: 0.3, duration: 8.2, delay: 1.1 },
+      { left: 48, bottom: 30, size: 18, opacity: 0.35, duration: 7.5, delay: 3.0 },
+      { left: 56, bottom: 16, size: 30, opacity: 0.24, duration: 9.5, delay: 0.5 },
+      { left: 64, bottom: 28, size: 20, opacity: 0.32, duration: 8.0, delay: 1.9 },
+      { left: 72, bottom: 18, size: 26, opacity: 0.28, duration: 8.7, delay: 1.3 },
+      { left: 80, bottom: 32, size: 15, opacity: 0.36, duration: 7.0, delay: 2.7 },
+      { left: 88, bottom: 22, size: 24, opacity: 0.26, duration: 8.8, delay: 0.4 },
+      { left: 94, bottom: 14, size: 18, opacity: 0.34, duration: 7.6, delay: 2.1 },
+      { left: 12, bottom: 42, size: 12, opacity: 0.25, duration: 6.8, delay: 3.4 },
+      { left: 36, bottom: 48, size: 14, opacity: 0.28, duration: 7.3, delay: 4.1 },
+      { left: 60, bottom: 44, size: 16, opacity: 0.3, duration: 7.9, delay: 3.7 },
+      { left: 84, bottom: 46, size: 12, opacity: 0.25, duration: 6.5, delay: 4.5 },
+      { left: 20, bottom: 55, size: 14, opacity: 0.24, duration: 8.0, delay: 2.5 },
+      { left: 76, bottom: 58, size: 15, opacity: 0.26, duration: 8.3, delay: 1.7 },
     ],
     []
   );
@@ -481,75 +592,62 @@ export default function TemukanHurufView() {
       onClick={handleArenaTap}
       className="relative z-10 flex flex-col h-full w-full max-h-screen overflow-hidden justify-between select-none p-2 sm:p-3 cursor-default"
     >
-      {/* ── 1. Living Coral-Red & Ruby-Crimson Bubble Arena (Vibrant & Deep Atmosphere) ── */}
+      {/* ── 1. Living "Panggung Taman Gelembung" Stage Backdrop (True Coral-Red & Meadow) ── */}
       <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        {/* Base Atmospheric Linear Gradient */}
+        {/* Base Multi-Stop True Coral-Red Sky Linear Gradient Matching Cover Card */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
             background:
-              "linear-gradient(180deg, #F25C5C 0%, #EF4444 26%, #DC2626 55%, #B91C1C 80%, #991B1B 100%)",
+              "linear-gradient(180deg, #F46B68 0%, #E84C48 35%, #DC3632 70%, #C6302C 100%)",
           }}
         />
 
-        {/* Living Breathing Stage Spotlight Glow */}
+        {/* Soft Warm Coral-Peach Radial Center Spotlight Behind Bubble Formation */}
         <motion.div
           className="absolute inset-0 w-full h-full"
-          animate={{ opacity: [0.38, 0.58, 0.38] }}
+          animate={{ opacity: [0.75, 0.95, 0.75] }}
           transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
           style={{
             background:
-              "radial-gradient(ellipse at 50% 48%, rgba(254, 215, 170, 0.5) 0%, rgba(244, 114, 182, 0.25) 42%, rgba(153, 27, 27, 0.75) 100%)",
+              "radial-gradient(circle at 50% 54%, rgba(255, 196, 180, 0.32) 0%, transparent 68%)",
           }}
         />
 
-        {/* ── Atmospheric Sky Accessories: Fluffy Clouds, Bird & Butterfly ── */}
-        <FloatingCloud x={20} y={15} scale={0.85} duration={22} className="opacity-80" />
-        <FloatingCloud x={850} y={25} scale={0.9} duration={26} delay={3} className="hidden sm:block opacity-75" />
-        <AnimatedBird initialY={40} delay={2} className="opacity-85" />
-        <AnimatedButterfly initialY={150} delay={1} className="opacity-90" />
+        {/* ── Atmospheric Sky Accessories: Drifting Clouds Repositioned Inward Away from HUD ── */}
+        <div className="absolute top-8 left-[18%] pointer-events-none opacity-45">
+          <FloatingCloud x={0} y={0} scale={0.75} duration={26} />
+        </div>
+        <div className="absolute top-12 right-[18%] pointer-events-none opacity-45 hidden sm:block">
+          <FloatingCloud x={0} y={0} scale={0.7} duration={28} delay={3} />
+        </div>
+        <AnimatedBird initialY={35} delay={2} className="opacity-75" />
+        <AnimatedButterfly initialY={130} delay={1} className="opacity-80" />
 
-        {/* Golden Star Floating Props in Top Sky Flanks */}
-        <motion.div
-          animate={{ y: [-4, 4, -4], rotate: [-4, 4, -4] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-12 left-6 sm:left-12 w-10 h-10 sm:w-12 sm:h-12 pointer-events-none opacity-85 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]"
-        >
-          <img src="/assets/bintang-emas.png" alt="Bintang Emas" className="w-full h-full object-contain" />
-        </motion.div>
-
-        <motion.div
-          animate={{ y: [4, -4, 4], rotate: [4, -4, 4] }}
-          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-          className="absolute top-12 right-6 sm:right-12 w-10 h-10 sm:w-12 sm:h-12 pointer-events-none opacity-85 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]"
-        >
-          <img src="/assets/bintang-emas.png" alt="Bintang Emas" className="w-full h-full object-contain" />
-        </motion.div>
-
-        {/* 14 Living Ambient Micro-Bubbles Drifting & Floating Smoothly */}
-        {ambientMiniBubbles.map((ab, idx) => (
+        {/* 18 Soft Translucent Rising Mini Soap Bubbles (Strict Zero Wall Stars Policy) */}
+        {backgroundMiniBubbles.map((ab, idx) => (
           <motion.div
-            key={`ab-${idx}`}
+            key={`bmb-${idx}`}
             onClick={(e) => {
               e.stopPropagation();
               playAmbientRippleSound();
             }}
-            className="absolute rounded-full border border-white/60 pointer-events-auto cursor-pointer"
+            className="absolute rounded-full border border-white/35 bg-white/10 pointer-events-auto cursor-pointer"
             style={{
               left: `${ab.left}%`,
               bottom: `${ab.bottom}%`,
               width: `${ab.size}px`,
               height: `${ab.size}px`,
               background:
-                "radial-gradient(circle at 35% 35%, rgba(255,255,255,0.85) 0%, rgba(254,205,211,0.35) 45%, rgba(244,114,182,0.2) 100%)",
+                "radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, rgba(254,205,211,0.2) 50%, rgba(255,255,255,0.05) 100%)",
               boxShadow:
-                "inset 0 0 6px rgba(255,255,255,0.75), 0 0 10px rgba(255,255,255,0.3)",
+                "inset 0 0 4px rgba(255,255,255,0.6), 0 0 8px rgba(255,255,255,0.2)",
               opacity: ab.opacity,
             }}
             animate={{
               y: [-10, -90, -180],
-              x: [0, idx % 2 === 0 ? 15 : -15, 0],
-              opacity: [ab.opacity, ab.opacity * 1.4, 0],
+              x: [0, idx % 2 === 0 ? 12 : -12, 0],
+              opacity: [ab.opacity, ab.opacity * 1.3, 0],
               scale: [0.9, 1.05, 0.95],
             }}
             transition={{
@@ -559,60 +657,31 @@ export default function TemukanHurufView() {
               ease: "easeInOut",
             }}
           >
-            <div className="absolute top-1 left-1.5 w-1.5 h-1 bg-white/95 rounded-full -rotate-45 pointer-events-none" />
+            <div className="absolute top-1 left-1.5 w-1.5 h-1 bg-white/90 rounded-full -rotate-45 pointer-events-none" />
           </motion.div>
         ))}
 
-        {/* Twinkling 4-Point Sparkles Distributed Across the Arena */}
-        {ambientSparkles.map((sp, idx) => (
-          <motion.div
-            key={`sp-${idx}`}
-            className="absolute pointer-events-none"
-            style={{
-              left: `${sp.left}%`,
-              top: `${sp.top}%`,
-              width: `${sp.size}px`,
-              height: `${sp.size}px`,
-            }}
-            animate={{
-              opacity: [0.1, 0.8, 0.1],
-              scale: [0.75, 1.3, 0.75],
-              rotate: [0, 45, 0],
-            }}
-            transition={{
-              duration: sp.duration,
-              repeat: Infinity,
-              delay: sp.delay,
-              ease: "easeInOut",
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill={sp.color} className="w-full h-full drop-shadow-sm">
-              <path d="M12 0 Q12 12 24 12 Q12 12 12 24 Q12 12 0 12 Q12 12 12 0 Z" />
-            </svg>
-          </motion.div>
-        ))}
-
-        {/* ── Rich Multi-Layered Grassy Stage Horizon & Swaying Flowers (Bottom) ── */}
-        <div className="absolute bottom-0 inset-x-0 h-26 sm:h-28 overflow-hidden pointer-events-none z-10">
-          <svg viewBox="0 0 1440 160" fill="none" className="w-full h-full" preserveAspectRatio="none">
-            {/* Far Ruby Hill Layer */}
-            <path d="M0 70 Q360 30 720 60 T1440 40 L1440 160 L0 160 Z" fill="#991B1B" opacity="0.6" />
-            <path d="M0 90 Q480 50 960 85 T1440 70 L1440 160 L0 160 Z" fill="#7F1D1D" opacity="0.75" />
+        {/* ── Layered Lush Green Meadow Hills at the Bottom with Delicate Wildflowers ── */}
+        <div className="absolute bottom-0 inset-x-0 h-28 sm:h-32 overflow-hidden pointer-events-none z-10">
+          <svg viewBox="0 0 1440 180" fill="none" className="w-full h-full" preserveAspectRatio="none">
+            {/* Deep Ruby Horizon Layer */}
+            <path d="M0 80 Q360 40 720 70 T1440 50 L1440 180 L0 180 Z" fill="#881337" opacity="0.65" />
+            <path d="M0 100 Q480 60 960 95 T1440 80 L1440 180 L0 180 Z" fill="#701A75" opacity="0.45" />
 
             {/* Foreground Lush Green Rolling Hills */}
-            <path d="M-40 110 Q280 65 600 100 T1240 85 Q1360 80 1480 95 L1480 160 L-40 160 Z" fill="#15803D" />
-            <path d="M-20 120 Q320 80 700 115 T1460 105 L1460 160 L-20 160 Z" fill="#16A34A" />
+            <path d="M-40 115 Q280 75 600 110 T1240 95 Q1360 90 1480 105 L1480 180 L-40 180 Z" fill="#15803D" />
+            <path d="M-20 125 Q320 85 700 120 T1460 110 L1460 180 L-20 180 Z" fill="#22C55E" />
 
             {/* Swaying Flowers Across the Grass Horizon */}
-            <StageFlower cx={70} cy={105} petalColor="#FB7185" delay={0.2} />
-            <StageFlower cx={120} cy={95} petalColor="#FDE047" delay={0.8} />
-            <StageFlower cx={160} cy={110} petalColor="#38BDF8" delay={1.4} />
-            <StageFlower cx={640} cy={108} petalColor="#F472B6" delay={0.5} />
-            <StageFlower cx={700} cy={98} petalColor="#FBBF24" delay={1.1} />
-            <StageFlower cx={760} cy={112} petalColor="#A78BFA" delay={1.7} />
-            <StageFlower cx={1280} cy={92} petalColor="#FB7185" delay={0.4} />
-            <StageFlower cx={1330} cy={102} petalColor="#FDE047" delay={1.2} />
-            <StageFlower cx={1380} cy={88} petalColor="#38BDF8" delay={0.9} />
+            <StageFlower cx={80} cy={110} petalColor="#FB7185" delay={0.2} />
+            <StageFlower cx={130} cy={100} petalColor="#FDE047" delay={0.8} />
+            <StageFlower cx={170} cy={115} petalColor="#38BDF8" delay={1.4} />
+            <StageFlower cx={640} cy={115} petalColor="#F472B6" delay={0.5} />
+            <StageFlower cx={700} cy={105} petalColor="#FBBF24" delay={1.1} />
+            <StageFlower cx={760} cy={120} petalColor="#A78BFA" delay={1.7} />
+            <StageFlower cx={1280} cy={100} petalColor="#FB7185" delay={0.4} />
+            <StageFlower cx={1330} cy={110} petalColor="#FDE047" delay={1.2} />
+            <StageFlower cx={1380} cy={95} petalColor="#38BDF8" delay={0.9} />
           </svg>
         </div>
       </div>
@@ -629,24 +698,44 @@ export default function TemukanHurufView() {
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 420, damping: 20 }}
-            className="w-auto max-w-4xl mx-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-[2.5rem] bg-gradient-to-b from-[#FFFDF9] via-[#FFFBEB] to-[#FEF3C7] border-4 sm:border-[5px] border-amber-400 border-b-6 sm:border-b-8 border-b-amber-600 shadow-[0_16px_36px_rgba(136,19,55,0.45),0_0_45px_rgba(251,191,36,0.4)] ring-4 ring-amber-300/50 flex items-center justify-center gap-5 sm:gap-7 md:gap-9 relative"
+            className="w-auto max-w-4xl mx-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-[2.5rem] bg-gradient-to-b from-[#FFFDF9] via-[#FFFBEB] to-[#FEF3C7] border-4 sm:border-[5px] border-amber-400 border-b-6 sm:border-b-8 border-b-amber-600 shadow-[0_16px_36px_rgba(136,19,55,0.45),0_0_45px_rgba(251,191,36,0.4)] ring-4 ring-amber-300/50 flex items-center justify-center gap-3 sm:gap-5 md:gap-7 relative"
           >
-            {/* Left: Tactile Sky-Blue Speaker Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.12, y: -2 }}
-              whileTap={{ scale: 0.9, y: 2 }}
-              onClick={handleSpeakTarget}
-              aria-label={`Dengarkan Bunyi Huruf Target ${targetLetter}`}
-              className="w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15 rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 border-b-4 border-blue-800 text-white shadow-md cursor-pointer flex items-center justify-center active:border-b-0 active:translate-y-1 flex-shrink-0"
-              title="Ketuk untuk mendengarkan bunyi huruf"
-            >
-              <Volume2 size={24} className="stroke-[2.5]" />
-            </motion.button>
+            {/* Left: Target Word Illustration Frame + Sky-Blue Speaker Button */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08, rotate: -2 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={handleSpeakWord}
+                aria-label={`Dengarkan Kata ${currentTarget.word}`}
+                className="w-13 h-13 sm:w-15 sm:h-15 md:w-16 md:h-16 rounded-2xl bg-white border-2 border-amber-300 border-b-4 border-b-amber-500 shadow-sm p-1 cursor-pointer flex items-center justify-center overflow-hidden flex-shrink-0"
+                title={`Contoh kata: ${currentTarget.word} (Ketuk untuk dengar)`}
+              >
+                <WordIllustration
+                  word={currentTarget.word}
+                  illustrationKey={currentTarget.illustrationKey || currentTarget.word}
+                  className="w-full h-full"
+                  showBadge={false}
+                />
+              </motion.button>
 
-            {/* Center: "CARI HURUF:" + 3D Golden Target Letter Tile */}
-            <div className="flex items-center gap-3.5 sm:gap-5 flex-shrink-0">
-              <span className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#0F172A] tracking-wider leading-none uppercase drop-shadow-xs">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.12, y: -2 }}
+                whileTap={{ scale: 0.9, y: 2 }}
+                onClick={handleSpeakTarget}
+                aria-label={`Dengarkan Bunyi Huruf Target ${targetLetter}`}
+                className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 border-b-4 border-blue-800 text-white shadow-md cursor-pointer flex items-center justify-center active:border-b-0 active:translate-y-1 flex-shrink-0"
+                title="Ketuk untuk mendengarkan bunyi huruf"
+              >
+                <Volume2 size={22} className="stroke-[2.5]" />
+              </motion.button>
+            </div>
+
+            {/* Center: Magnifying Glass + "CARI HURUF:" + 3D Golden Target Letter Tile */}
+            <div className="flex items-center gap-2 sm:gap-3.5 flex-shrink-0">
+              <MagnifyingGlassIcon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+              <span className="font-display font-black text-xl sm:text-2xl md:text-3xl text-[#0F172A] tracking-wider leading-none uppercase drop-shadow-xs">
                 CARI HURUF:
               </span>
 
@@ -659,17 +748,17 @@ export default function TemukanHurufView() {
                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                 onClick={handleSpeakTarget}
                 aria-label={`Huruf Target ${targetLetter}`}
-                className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 border-2 border-white/90 border-b-6 border-b-amber-700 shadow-[0_10px_20px_rgba(217,119,6,0.5),inset_0_2px_4px_rgba(255,255,255,0.8)] flex items-center justify-center text-4xl sm:text-5xl md:text-6xl font-black text-white leading-none cursor-pointer"
+                className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 border-2 border-white/90 border-b-6 border-b-amber-700 shadow-[0_10px_20px_rgba(217,119,6,0.5),inset_0_2px_4px_rgba(255,255,255,0.8)] flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-black text-white leading-none cursor-pointer"
                 title="Huruf target yang harus dicari"
               >
                 {targetLetter}
               </motion.button>
             </div>
 
-            {/* Right: 3 Circular Golden Target Slots + Controls */}
-            <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+            {/* Right: 3 Glossy Capsule Slots + Ronde Badge + Beruntun Streak + Controls */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               {/* 3 Target Progress Slots with Ref Binding for Projectiles */}
-              <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {[0, 1, 2].map((slotIdx) => {
                   const isFilled = slotIdx < foundIds.length;
                   const isBouncing = slotBounceIndex === slotIdx;
@@ -687,41 +776,69 @@ export default function TemukanHurufView() {
                           : { scale: [1, 1.04, 1] }
                       }
                       transition={{ type: "spring", stiffness: 450, damping: 14 }}
-                      className={`w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full flex items-center justify-center relative transition-all ${
+                      className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center relative transition-all ${
                         isFilled
                           ? "bg-gradient-to-b from-[#FEF08A] via-[#FDE047] to-[#F59E0B] border-2 border-amber-500 border-b-4 border-b-amber-700 shadow-[0_6px_16px_rgba(245,158,11,0.6)] ring-2 ring-amber-300 text-amber-950 font-black"
-                          : "bg-amber-100/70 border-3 border-dashed border-amber-400/80 shadow-inner"
+                          : "bg-amber-100/70 border-2 border-dashed border-amber-400/80 shadow-inner"
                       }`}
                     >
                       {isFilled ? (
                         <>
-                          <span className="font-display font-black text-xl sm:text-2xl text-amber-950 leading-none drop-shadow-xs">
+                          <span className="font-display font-black text-lg sm:text-xl text-amber-950 leading-none drop-shadow-xs">
                             {targetLetter}
                           </span>
-                          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-xs">
-                            <Check size={11} strokeWidth={3.5} />
+                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-xs">
+                            <Check size={10} strokeWidth={3.5} />
                           </span>
                         </>
                       ) : (
-                        <span className="w-3.5 h-3.5 rounded-full bg-amber-400/60" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
                       )}
                     </motion.div>
                   );
                 })}
               </div>
 
+              {/* Ronde & Consecutive Streak Badges */}
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                {/* Ronde Counter Badge */}
+                <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-amber-200/80 border border-amber-400/80 shadow-xs flex items-center justify-center">
+                  <span className="font-display font-black text-[11px] sm:text-xs md:text-sm text-amber-900 tracking-wider whitespace-nowrap">
+                    Ronde {roundCount}
+                  </span>
+                </div>
+
+                {/* Consecutive Streak Badge (Beruntun) */}
+                <motion.div
+                  key={streak}
+                  initial={{ scale: 0.85 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                  className={`px-2 sm:px-2.5 py-1 rounded-xl border shadow-xs flex items-center justify-center transition-colors whitespace-nowrap ${
+                    streak > 0
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700 ring-2 ring-emerald-200/60"
+                      : "bg-slate-100/90 border-slate-200 text-slate-500"
+                  }`}
+                  title="Pecahkan gelembung target berturut-turut tanpa salah"
+                >
+                  <span className="font-display font-black text-[11px] sm:text-xs md:text-sm tracking-wider">
+                    Beruntun: {streak}
+                  </span>
+                </motion.div>
+              </div>
+
               {/* Control Action Buttons: Reset & Shuffle */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.12, y: -2 }}
                   whileTap={{ scale: 0.9, y: 2 }}
                   onClick={handleResetCurrentRound}
                   aria-label="Acak Ulang Posisi"
-                  className="p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-200 border-b-4 border-slate-300 text-slate-700 shadow-sm cursor-pointer active:border-b-0 active:translate-y-1"
+                  className="p-2 sm:p-2.5 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-200 border-b-4 border-slate-300 text-slate-700 shadow-sm cursor-pointer active:border-b-0 active:translate-y-1"
                   title="Acak ulang posisi gelembung"
                 >
-                  <RotateCcw size={18} className="stroke-[2.5]" />
+                  <RotateCcw size={17} className="stroke-[2.5]" />
                 </motion.button>
 
                 <motion.button
@@ -730,10 +847,10 @@ export default function TemukanHurufView() {
                   whileTap={{ scale: 0.9, y: 2 }}
                   onClick={handleNextRound}
                   aria-label="Ganti Huruf Target"
-                  className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-amber-400 to-amber-500 border-2 border-amber-300 border-b-4 border-amber-600 text-white shadow-md cursor-pointer active:border-b-0 active:translate-y-1"
+                  className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-b from-amber-400 to-amber-500 border-2 border-amber-300 border-b-4 border-amber-600 text-white shadow-md cursor-pointer active:border-b-0 active:translate-y-1"
                   title="Ganti ke huruf target acak berikutnya"
                 >
-                  <Shuffle size={18} className="stroke-[2.5]" />
+                  <Shuffle size={17} className="stroke-[2.5]" />
                 </motion.button>
               </div>
             </div>
@@ -781,11 +898,12 @@ export default function TemukanHurufView() {
             />
           ))}
 
-          {/* 10 Realistic 3D Soap Bubbles (Instant Glowing Highlight on Target Bubbles) */}
+          {/* 10 Sleek 3D Soap Bubbles (Replacing chunky yellow rings with refined golden aura + crisp inner coins & magnifying lens hover) */}
           {bubbles.map((b) => {
             const isFound = foundIds.includes(b.id);
             const isPopping = poppingId === b.id;
             const isWobble = wobbleId === b.id;
+            const isHint = hintBubbleId === b.id;
 
             if (isFound) return null;
 
@@ -803,16 +921,12 @@ export default function TemukanHurufView() {
                   transform: "translate(-50%, -50%)",
                 }}
                 whileHover={{
-                  scale: 1.15,
-                  scaleX: 1.08,
-                  scaleY: 0.94,
-                  transition: { type: "spring", stiffness: 450, damping: 14 },
+                  scale: 1.13,
+                  transition: { type: "spring", stiffness: 450, damping: 16 },
                 }}
                 whileTap={{
-                  scale: 0.88,
-                  scaleX: 0.92,
-                  scaleY: 1.12,
-                  transition: { type: "spring", stiffness: 500, damping: 10 },
+                  scale: 0.9,
+                  transition: { type: "spring", stiffness: 500, damping: 12 },
                 }}
                 animate={
                   isPopping
@@ -825,7 +939,7 @@ export default function TemukanHurufView() {
                     : b.isTarget
                     ? {
                         y: [-6, 6, -6],
-                        scale: [1, 1.08, 1],
+                        scale: [1, 1.05, 1],
                       }
                     : {
                         y: [-4.5, 4.5, -4.5],
@@ -845,51 +959,68 @@ export default function TemukanHurufView() {
                 }
                 className={`w-24 h-24 sm:w-26 sm:h-26 md:w-28 md:h-28 rounded-full flex items-center justify-center select-none cursor-pointer relative active:scale-95 transition-all group ${
                   b.isTarget
-                    ? "ring-4 sm:ring-[6px] ring-amber-300 ring-offset-2 ring-offset-amber-500/40 shadow-[0_0_36px_rgba(253,224,71,1),0_8px_20px_rgba(217,119,6,0.5)]"
-                    : "shadow-[0_10px_24px_rgba(0,0,0,0.18)] hover:ring-3 hover:ring-white/80 hover:shadow-[0_0_20px_rgba(255,255,255,0.7)]"
+                    ? "ring-2 ring-amber-200/85 shadow-[0_0_22px_rgba(253,224,71,0.65),0_10px_24px_rgba(127,29,29,0.28)]"
+                    : "shadow-[0_10px_24px_rgba(127,29,29,0.28)]"
                 }`}
               >
+                {/* 6-Second Inactivity Golden Pulse Shimmer Hint */}
+                {isHint && (
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      opacity: [0.35, 0.9, 0.35],
+                    }}
+                    transition={{
+                      duration: 1.25,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="absolute -inset-3 rounded-full border-3 border-amber-300 shadow-[0_0_25px_rgba(253,224,71,0.9)] pointer-events-none z-30"
+                  />
+                )}
+
+                {/* Interactive Magnifying Glass Hover Optical Ring */}
+                <div className="absolute -inset-1 rounded-full ring-4 ring-amber-300/90 shadow-[0_0_16px_rgba(251,191,36,0.6)] pointer-events-none z-30 opacity-0 group-hover:opacity-100 transition-opacity" />
+
                 {/* Iridescent Translucent Soap Bubble Sphere */}
-                <div className="absolute inset-0 rounded-full border-2 border-white/80 bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.75)_0%,rgba(255,255,255,0.25)_35%,rgba(254,205,211,0.18)_65%,rgba(56,189,248,0.25)_100%)] shadow-[inset_0_0_14px_rgba(255,255,255,0.75)] pointer-events-none" />
+                <div
+                  className="absolute inset-0 rounded-full border-2 border-white/80 bg-white/15 backdrop-blur-[2px] shadow-[inset_0_0_14px_rgba(255,255,255,0.75)] pointer-events-none"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.75) 0%, rgba(224,242,254,0.3) 30%, rgba(252,231,243,0.2) 65%, rgba(254,240,138,0.2) 85%, rgba(56,189,248,0.25) 100%)",
+                  }}
+                />
 
                 {/* 3D Soap Bubble Sprite (gelembung.png) */}
                 <img
                   src="/assets/gelembung.png"
                   alt="Gelembung"
                   draggable="false"
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none rounded-full opacity-80 group-hover:opacity-100 transition-opacity"
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none rounded-full opacity-75 group-hover:opacity-95 transition-opacity"
                 />
 
-                {/* Target Bubble Star Sparkle Accent */}
-                {b.isTarget && (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-                    className="absolute -inset-2 pointer-events-none z-25"
-                  >
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 text-amber-300 drop-shadow-[0_0_6px_rgba(253,224,71,1)]">
-                      <Sparkles size={14} className="fill-amber-300 text-amber-200" />
-                    </div>
-                  </motion.div>
-                )}
-
                 {/* Primary Specular Highlights */}
-                <div className="absolute top-2 left-3 w-4 h-2 bg-white/95 rounded-full -rotate-45 blur-[0.2px] pointer-events-none z-20" />
-                <div className="absolute top-4 left-2 w-1.5 h-1.5 bg-white/90 rounded-full pointer-events-none z-20" />
+                <div className="absolute top-2 left-3 w-5 h-2.5 bg-white/95 rounded-full -rotate-45 blur-[0.2px] pointer-events-none z-20" />
+                <div className="absolute top-5 left-2 w-1.5 h-1.5 bg-white/90 rounded-full pointer-events-none z-20" />
 
-                {/* Tactile Letter Coin Inside the Bubble (Direct Golden Highlight for Target) */}
+                {/* Diagonal Glass Glare Sweep Across Coin on Hover */}
+                <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none z-25">
+                  <div className="w-full h-full bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                </div>
+
+                {/* Crisp 3D Embossed Inner Letter Coin (Target: Golden-Amber; Distractor: Ivory-White) */}
                 <div
-                  className={`w-17 h-17 sm:w-19 sm:h-19 md:w-21 md:h-21 rounded-full flex items-center justify-center pointer-events-none z-20 transition-transform group-hover:scale-105 ${
+                  className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center pointer-events-none z-20 transition-transform group-hover:scale-105 ${
                     b.isTarget
-                      ? "bg-gradient-to-b from-[#FFFDF0] via-[#FEF08A] to-[#FDE047] border-3 border-amber-400 border-b-5 border-b-amber-600 shadow-[inset_0_2px_5px_rgba(255,255,255,0.95),0_6px_16px_rgba(217,119,6,0.55)]"
-                      : "bg-[#FFFFFF] border-2 border-slate-200 border-b-4 border-b-slate-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05),0_4px_10px_rgba(0,0,0,0.15)]"
+                      ? "bg-gradient-to-b from-[#FDE047] via-[#FACC15] to-[#EAB308] border-2 border-[#FEF9C3] border-b-4 border-b-[#CA8A04] shadow-inner shadow-[0_4px_12px_rgba(202,138,4,0.45)]"
+                      : "bg-gradient-to-b from-[#FFFFFF] to-[#F1F5F9] border-2 border-white border-b-4 border-b-slate-300 shadow-inner shadow-[0_4px_8px_rgba(0,0,0,0.1)]"
                   }`}
                 >
                   <span
-                    className={`font-display font-black text-4xl sm:text-5xl md:text-5xl leading-none ${
+                    className={`font-display font-black text-3xl md:text-4xl text-[#0F172A] leading-none ${
                       b.isTarget
-                        ? "text-[#0F172A] drop-shadow-[0_1.5px_0_#FDE68A]"
-                        : "text-[#1E293B] drop-shadow-xs"
+                        ? "drop-shadow-[0_1px_1px_rgba(254,240,138,0.8)]"
+                        : "drop-shadow-xs"
                     }`}
                   >
                     {b.letter}
@@ -921,16 +1052,8 @@ export default function TemukanHurufView() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Interactive Tap-Friendly Mascot Cutouts & Toy Block Prop */}
+          {/* Interactive Tap-Friendly Mascot Cutouts */}
           <div className="relative flex items-end justify-center -mb-1">
-            {/* 3D Toy Alphabet Block Accessory on Grass beside Saka */}
-            <motion.div
-              whileHover={{ rotate: 8, scale: 1.1 }}
-              className="w-10 h-10 sm:w-12 sm:h-12 -mr-3 mb-1 z-15 pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] hidden sm:block"
-            >
-              <img src="/assets/balok-kayu-3d.png" alt="Balok Kayu" className="w-full h-full object-contain" />
-            </motion.div>
-
             {/* Saka Mascot Cutout */}
             <motion.button
               type="button"
@@ -961,7 +1084,7 @@ export default function TemukanHurufView() {
               <img
                 src="/assets/saka-maskot-1-cutout.png"
                 alt="Saka Maskot"
-                className="h-22 sm:h-26 md:h-28 w-auto object-contain object-bottom drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+                className="h-28 sm:h-34 md:h-38 lg:h-42 w-auto object-contain object-bottom drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
@@ -990,35 +1113,23 @@ export default function TemukanHurufView() {
                   ? { duration: 0.65, delay: 0.08, ease: "easeOut" }
                   : { duration: 3.5, repeat: Infinity, delay: 0.4, ease: "easeInOut" }
               }
-              className="cursor-pointer pointer-events-auto p-0 border-0 bg-transparent outline-none flex items-end -ml-3 focus:outline-none z-20"
+              className="cursor-pointer pointer-events-auto p-0 border-0 bg-transparent outline-none flex items-end -ml-4 focus:outline-none z-20"
               title="Ketuk Tika untuk mendengar semangatnya!"
             >
               <img
                 src="/assets/tika-maskot-1-cutout.png"
                 alt="Tika Maskot"
-                className="h-22 sm:h-26 md:h-28 w-auto object-contain object-bottom drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+                className="h-28 sm:h-34 md:h-38 lg:h-42 w-auto object-contain object-bottom drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
           </div>
 
           {/* Soft Ground Stage Mound & Contact Shadows */}
-          <div className="relative w-40 sm:w-44 h-3 flex items-center justify-around pointer-events-none -mt-1">
-            <div className="w-16 h-3 bg-[#450A0A]/40 rounded-full blur-[2px]" />
-            <div className="w-16 h-3 bg-[#450A0A]/40 rounded-full blur-[2px]" />
+          <div className="relative w-48 sm:w-56 h-3 flex items-center justify-around pointer-events-none -mt-1">
+            <div className="w-20 h-3 bg-[#064E3B]/40 rounded-full blur-[2px]" />
+            <div className="w-20 h-3 bg-[#064E3B]/40 rounded-full blur-[2px]" />
           </div>
-        </div>
-
-        {/* ── Stage Accessory (Bottom-Right): Playful Toy Star Pedestal ── */}
-        <div className="fixed bottom-2 right-4 sm:right-8 z-20 pointer-events-none select-none hidden sm:flex flex-col items-center">
-          <motion.div
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
-            className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-[0_6px_16px_rgba(251,191,36,0.5)]"
-          >
-            <img src="/assets/bintang-emas.png" alt="Bintang Emas" className="w-full h-full object-contain" />
-          </motion.div>
-          <div className="w-14 h-2 bg-[#15803D]/60 rounded-full blur-[1px] mt-1" />
         </div>
       </motion.div>
 
@@ -1057,7 +1168,7 @@ export default function TemukanHurufView() {
               duration: 0.42,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="fixed -translate-x-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-[#FEF08A] via-[#FDE047] to-[#F59E0B] border-3 border-white border-b-4 border-b-amber-700 shadow-[0_0_24px_rgba(251,191,36,1),0_8px_16px_rgba(0,0,0,0.3)] flex items-center justify-center font-display font-black text-2xl sm:text-3xl text-amber-950 z-50"
+            className="fixed -translate-x-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-[#FDE047] via-[#FACC15] to-[#EAB308] border-2 border-[#FEF9C3] border-b-4 border-b-[#CA8A04] shadow-[0_0_24px_rgba(251,191,36,1),0_8px_16px_rgba(0,0,0,0.3)] flex items-center justify-center font-display font-black text-3xl sm:text-4xl text-[#0F172A] z-50"
           >
             {coin.letter}
             {/* Sparkling Trail Sparks */}

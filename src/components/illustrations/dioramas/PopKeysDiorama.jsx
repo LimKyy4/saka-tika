@@ -197,21 +197,6 @@ export default function PopKeysDiorama({ isActive = true, className = "" }) {
         </motion.g>
 
         {/* ── 5. Stylized Floating Musical Melody Notes ── */}
-        {/* Eighth Note (Left Floating) */}
-        <motion.g
-          transform="translate(76, 42)"
-          animate={isActive ? { y: [0, -8, 0], rotate: [-8, 4, -8] } : {}}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {/* Note Head */}
-          <ellipse cx="0" cy="0" rx="6" ry="4.5" fill="#F43F5E" transform="rotate(-25)" />
-          {/* Note Stem */}
-          <rect x="3" y="-18" width="3" height="18" rx="1.5" fill="#F43F5E" />
-          {/* Note Flag */}
-          <path d="M6,-18 Q14,-14 10,-6" fill="none" stroke="#F43F5E" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="-1" cy="-1" r="1.5" fill="#FFFFFF" opacity="0.8" />
-        </motion.g>
-
         {/* Beamed Sixteenth Notes (Right Floating Peak) */}
         <motion.g
           transform="translate(196, 36)"
