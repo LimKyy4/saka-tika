@@ -41,9 +41,21 @@ function speak(text) {
  * Speak the letter name.
  * Accepts either letter object ({ letter: "B", phonetic: "be" }) or simple string ("B").
  */
+let pendingSpeakTimer = null;
+
+function scheduleSpeak(fn, delayMs) {
+  if (pendingSpeakTimer) {
+    clearTimeout(pendingSpeakTimer);
+  }
+  pendingSpeakTimer = setTimeout(() => {
+    pendingSpeakTimer = null;
+    fn();
+  }, delayMs);
+}
+
 export function speakLetter(param) {
   playHoverSound();
-  setTimeout(() => {
+  scheduleSpeak(() => {
     if (typeof param === "string") {
       speak(`Huruf ${param}`);
     } else if (param && param.letter) {
@@ -58,7 +70,7 @@ export function speakLetter(param) {
  */
 export function speakWord(param) {
   playHoverSound();
-  setTimeout(() => {
+  scheduleSpeak(() => {
     if (typeof param === "string") {
       speak(param);
     } else if (param && param.word) {
@@ -73,13 +85,19 @@ export function speakWord(param) {
 export function speakInstruction(text) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  setTimeout(() => speak(text), 50);
+  scheduleSpeak(() => speak(text), 50);
 }
 
 // Pre-warm voices list (browsers require user interaction first)
 if (typeof window !== "undefined" && window.speechSynthesis) {
   window.speechSynthesis.getVoices();
-  window.speechSynthesis.addEventListener("voiceschanged", () => {
-    window.speechSynthesis.getVoices();
-  });
+  if (typeof window.speechSynthesis.addEventListener === "function") {
+    window.speechSynthesis.addEventListener(
+      "voiceschanged",
+      () => {
+        window.speechSynthesis?.getVoices();
+      },
+      { once: true }
+    );
+  }
 }

@@ -66,7 +66,7 @@ export const ALPHABET_DATA = [
     examples: [
       { word: "Ember", illustrationKey: "ember" },
       { word: "Elang", illustrationKey: "elang" },
-      { word: "Es Krim", illustrationKey: "eskrim" },
+      { word: "Es Krim", illustrationKey: "es_krim" },
     ],
   },
   {
@@ -143,7 +143,7 @@ export const ALPHABET_DATA = [
     illustrationKey: "kucing",
     examples: [
       { word: "Kucing", illustrationKey: "kucing" },
-      { word: "Kupu-kupu", illustrationKey: "kupukupu" },
+      { word: "Kupu-kupu", illustrationKey: "kupu_kupu" },
       { word: "Kapal", illustrationKey: "kapal" },
     ],
   },
@@ -312,7 +312,7 @@ export const ALPHABET_DATA = [
     illustrationKey: "xilofon",
     examples: [
       { word: "Xilofon", illustrationKey: "xilofon" },
-      { word: "X-Ray", illustrationKey: "xray" },
+      { word: "X-Ray", illustrationKey: "x_ray" },
       { word: "Xerus", illustrationKey: "xerus" },
     ],
   },

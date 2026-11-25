@@ -1,42 +1,31 @@
 // src/views/modules/MenulisHurufView.jsx
-// SAKA TIKA: "Menulis Huruf" Paired Progression (A -> a -> B -> b ... -> Z -> z) & Symmetrical Studio Polish
-// 1. Perfectly Balanced & Symmetrical 3-Column Stage (Left Mascot, Center Spotlight Easel, Right Control Dock)
-// 2. Interactive Crayon/Marker Color Palette (5 Child-Friendly Vibrant Inks with Sound Feedback)
-// 3. Tap-Interactive Mascot Companion Card & Burst Celebrations (Saka & Tika on 3D Grass Mound)
-// 4. Interactive Bouncy Object Card with Phonetic Audio & Elastic Jiggle Animation
-// 5. Full 26-Letter Alphabet Ribbon (A-Z) with Gentle Spring Physics & Active Pulse Halo
+// SAKA TIKA: "Menulis Huruf" Clutter-Free Hero Wooden Board, Bottom Suara/Hapus Bar,
+// and "HORE! KAMU HEBAT!" Celebration Finale.
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
-// STRICT ZERO EMOJIS POLICY: Only lucide-react icons and custom vector assets.
-// STRICT ZERO STAR ICONS POLICY: Zero star icons rendered anywhere in the UI.
+// STRICT ZERO EMOJIS & ZERO STAR ICONS POLICY: Only lucide-react icons (no Star) and custom vectors.
 
-import { useState, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
   Volume2,
   RotateCcw,
   Check,
   Lock,
-  Palette,
-  Pencil,
+  Play,
 } from "lucide-react";
 
 import { useAudio } from "../../context/AudioContext.jsx";
 import { ALPHABET_DATA } from "../../data/masterDataset.js";
-import { getLetterPath } from "../../data/alphabetPaths.js";
-import { speakWord, speakInstruction } from "../../utils/speechEngine.js";
-import { playXylophoneNote } from "../../utils/soundSynthesizer.js";
+import { speakInstruction } from "../../utils/speechEngine.js";
 import LetterCanvas from "../../components/canvas/LetterCanvas.jsx";
-import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
+
+const DEFAULT_INK_COLOR = "#2563EB";
 
 export default function MenulisHurufView() {
   const { playSfx } = useAudio();
 
-  // ── 52-Step Paired Progression State (Stored in localStorage) ──────
-  // Step 0: A (Upper), Step 1: a (Lower)
-  // Step 2: B (Upper), Step 3: b (Lower) ...
-  // Step 50: Z (Upper), Step 51: z (Lower)
-  // Step 52: All 52 letters completed!
+  // 52-Step Paired Progression State (Stored in localStorage)
   const [pairedMaxStep, setPairedMaxStep] = useState(() => {
     try {
       const stored = localStorage.getItem("saka_tika_menulis_paired_step");
@@ -44,7 +33,6 @@ export default function MenulisHurufView() {
         const val = parseInt(stored, 10);
         return isNaN(val) ? 0 : Math.min(52, Math.max(0, val));
       }
-      // Migrate legacy individual upper/lower unlocked keys if present
       const storedUpper = localStorage.getItem("saka_tika_menulis_upper_unlocked");
       if (storedUpper !== null) {
         const uVal = parseInt(storedUpper, 10) || 0;
@@ -53,10 +41,9 @@ export default function MenulisHurufView() {
     } catch {
       // fallback
     }
-    return 0; // Step 0: 'A' upper is unlocked by default
+    return 0;
   });
 
-  // Calculate initial letter index and mode based on stored progress
   const initialStep = Math.min(51, pairedMaxStep);
   const initialIdx = Math.floor(initialStep / 2);
   const initialMode = initialStep % 2 === 0 ? "upper" : "lower";
@@ -66,28 +53,23 @@ export default function MenulisHurufView() {
   const [wobbleIdx, setWobbleIdx] = useState(null);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [isMascotJumping, setIsMascotJumping] = useState(false);
-  const [isObjectBouncing, setIsObjectBouncing] = useState(false);
   const [completionCheer, setCompletionCheer] = useState(null);
 
-  // ── Interactive Crayon / Marker Ink Color Palette ─────────────────
-  const CRAYON_COLORS = useMemo(
-    () => [
-      { id: "blue", hex: "#2563EB", name: "Biru" },
-      { id: "emerald", hex: "#10B981", name: "Hijau" },
-      { id: "red", hex: "#EF4444", name: "Merah" },
-      { id: "amber", hex: "#F59E0B", name: "Oranye" },
-      { id: "purple", hex: "#8B5CF6", name: "Ungu" },
-    ],
-    []
-  );
-  const [activeInkColor, setActiveInkColor] = useState(CRAYON_COLORS[0].hex);
+  // Grand celebration overlay state after 1.8s completed-ink hold
+  const [celebrationLetter, setCelebrationLetter] = useState(null);
+  const autoAdvanceTimerRef = useRef(null);
 
-  // Active letter data
   const letterObj = ALPHABET_DATA[selectedIdx] || ALPHABET_DATA[0];
   const currentLetterChar = mode === "lower" ? letterObj.lowercase : letterObj.letter;
-  const pathData = getLetterPath(currentLetterChar, mode);
 
-  // Mode switch handler (Huruf Besar / Huruf Kecil)
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSetMode = (newMode) => {
     if (mode === newMode) return;
     playSfx("click");
@@ -98,11 +80,8 @@ export default function MenulisHurufView() {
     speakInstruction(`Huruf ${char} ${label}.`);
   };
 
-  // Dynamic child-friendly speech bubble prompt above Saka & Tika
   const speechBubbleText = useMemo(() => {
-    if (completionCheer) {
-      return completionCheer;
-    }
+    if (completionCheer) return completionCheer;
     if (wobbleIdx !== null) {
       const targetIdx = Math.floor(pairedMaxStep / 2);
       const targetObj = ALPHABET_DATA[targetIdx] || ALPHABET_DATA[0];
@@ -116,7 +95,6 @@ export default function MenulisHurufView() {
     return `Ayo tebalkan huruf ${currentLetterChar}!`;
   }, [completionCheer, wobbleIdx, pairedMaxStep, currentLetterChar]);
 
-  // Mascot cheer encouragement pool
   const mascotCheers = useMemo(
     () => [
       "Ayo semangat! Kamu pasti bisa!",
@@ -128,13 +106,11 @@ export default function MenulisHurufView() {
     []
   );
 
-  // Interactive Mascot Tap Action (Fun for TK children)
   const handleMascotTap = () => {
     playSfx("hover");
     setIsMascotJumping(true);
     setTimeout(() => setIsMascotJumping(false), 800);
 
-    // Celebratory local confetti burst near mascots
     confetti({
       particleCount: 36,
       spread: 60,
@@ -146,13 +122,6 @@ export default function MenulisHurufView() {
     speakInstruction(randomCheer);
   };
 
-  // Color selection with tactile sound
-  const handleSelectColor = (hex, idx) => {
-    setActiveInkColor(hex);
-    playXylophoneNote(idx % 3);
-  };
-
-  // Letter Ribbon Selection (with sequential lock check per pair)
   const handleSelectLetter = (idx) => {
     const letterStepStart = idx * 2;
     if (letterStepStart > pairedMaxStep) {
@@ -181,42 +150,26 @@ export default function MenulisHurufView() {
     }
   };
 
-  // Audio hints
   const handleSpeakLetter = () => {
     playSfx("click");
     const char = mode === "lower" ? letterObj.lowercase : letterObj.letter;
     const modeLabel = mode === "lower" ? "kecil" : "besar";
-    const msg = `Huruf ${char} ${modeLabel}, bunyinya '${letterObj.phonetic}'!`;
-    speakInstruction(msg);
+    speakInstruction(`Huruf ${char} ${modeLabel}, bunyinya '${letterObj.phonetic}'!`);
   };
 
-  const handleSpeakWord = () => {
-    playSfx("click");
-    setIsObjectBouncing(true);
-    setTimeout(() => setIsObjectBouncing(false), 700);
-    speakWord(letterObj);
-  };
-
-  // Eraser handler
   const handleEraserClick = () => {
     playSfx("click");
     setResetTrigger((prev) => prev + 1);
     speakInstruction("Kanvas sudah bersih, ayo mulai lagi!");
   };
 
-  // Optional stroke update callback
-  const handleStrokeUpdate = useCallback(() => {
-    // Canvas handles internal stroke feedback seamlessly
-  }, []);
-
-  // Completion callback: invoked immediately when the final stroke is finished
   const handleLetterCompleted = useCallback(() => {
     setIsMascotJumping(true);
-    setCompletionCheer("Hebat! Lanjut ke huruf berikutnya!");
+    setCompletionCheer("Hore! Tulisanmu rapi sekali!");
     setTimeout(() => {
       setIsMascotJumping(false);
       setCompletionCheer(null);
-    }, 1800);
+    }, 2000);
 
     const currentStep = selectedIdx * 2 + (mode === "lower" ? 1 : 0);
     if (currentStep === pairedMaxStep && pairedMaxStep < 52) {
@@ -234,143 +187,183 @@ export default function MenulisHurufView() {
     }
   }, [selectedIdx, mode, pairedMaxStep]);
 
-  // Advance callback: invoked AFTER the 1.8-second grand completion hold finishes
-  const handleAdvanceNext = useCallback(() => {
+  const handleStrokeCompleted = useCallback(() => {
+    setIsMascotJumping(true);
+    setCompletionCheer("Bagus sekali! Teruskan garisnya!");
+    setTimeout(() => {
+      setIsMascotJumping(false);
+      setCompletionCheer(null);
+    }, 1100);
+  }, []);
+
+  const advanceToNextLetter = useCallback(() => {
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+    setCelebrationLetter(null);
+
     if (mode === "upper") {
       setMode("lower");
       setResetTrigger((prev) => prev + 1);
       const char = letterObj.lowercase;
       speakInstruction(`Hebat! Sekarang tulis huruf ${char} kecil ya!`);
+    } else if (selectedIdx < 25) {
+      const nextIdx = selectedIdx + 1;
+      setSelectedIdx(nextIdx);
+      setMode("upper");
+      setResetTrigger((prev) => prev + 1);
+      const nextChar = ALPHABET_DATA[nextIdx].letter;
+      speakInstruction(`Luar biasa! Sekarang lanjut ke huruf ${nextChar} besar!`);
     } else {
-      if (selectedIdx < 25) {
-        const nextIdx = selectedIdx + 1;
-        setSelectedIdx(nextIdx);
-        setMode("upper");
-        setResetTrigger((prev) => prev + 1);
-        const nextChar = ALPHABET_DATA[nextIdx].letter;
-        speakInstruction(`Luar biasa! Sekarang lanjut ke huruf ${nextChar} besar!`);
-      } else {
-        speakInstruction("Hore! Selamat! Kamu hebat sekali sudah berhasil menulis semua huruf dari A sampai Z!");
-      }
+      setResetTrigger((prev) => prev + 1);
+      speakInstruction("Hore! Kamu hebat sekali sudah menulis semua huruf A sampai Z!");
     }
   }, [mode, selectedIdx, letterObj]);
 
-  // Deterministic sparkles in background sky
-  const sparkles = useMemo(
+  // Invoked by LetterCanvas immediately after the 1.8s completed-ink hold
+  const handleTriggerCelebration = useCallback(
+    (completedChar) => {
+      playSfx("fanfare");
+      playSfx("success");
+
+      confetti({
+        particleCount: 85,
+        angle: 60,
+        spread: 70,
+        origin: { x: 0.18, y: 0.6 },
+        colors: ["#F59E0B", "#2563EB", "#10B981", "#EF4444", "#EC4899"],
+      });
+      confetti({
+        particleCount: 85,
+        angle: 120,
+        spread: 70,
+        origin: { x: 0.82, y: 0.6 },
+        colors: ["#F59E0B", "#2563EB", "#10B981", "#EF4444", "#EC4899"],
+      });
+      confetti({
+        particleCount: 100,
+        spread: 95,
+        origin: { y: 0.45 },
+        colors: ["#FDE047", "#F59E0B", "#38BDF8", "#34D399", "#F43F5E"],
+      });
+
+      setCelebrationLetter(completedChar);
+
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+      }
+      autoAdvanceTimerRef.current = setTimeout(() => {
+        advanceToNextLetter();
+      }, 2200);
+    },
+    [playSfx, advanceToNextLetter]
+  );
+
+  // Gentle floating golden-cream workshop light motes (zero Star icons)
+  const ambientDots = useMemo(
     () => [
-      { top: "6%", left: "10%", size: 12, color: "#7DD3FC", delay: 0 },
-      { top: "12%", left: "20%", size: 9, color: "#FDE68A", delay: 0.8 },
-      { top: "8%", left: "42%", size: 13, color: "#FEF08A", delay: 1.4 },
-      { top: "14%", left: "58%", size: 8, color: "#7DD3FC", delay: 0.4 },
-      { top: "7%", left: "78%", size: 11, color: "#FDE68A", delay: 1.1 },
-      { top: "15%", left: "88%", size: 10, color: "#7DD3FC", delay: 0.6 },
+      { top: "10%", left: "10%", size: 10, color: "#FFFBEB", delay: 0, dur: 3.4 },
+      { top: "18%", left: "21%", size: 7, color: "#FDE68A", delay: 0.8, dur: 4.1 },
+      { top: "28%", left: "7%", size: 12, color: "#FEF3C7", delay: 1.4, dur: 3.8 },
+      { top: "54%", left: "14%", size: 8, color: "#7DD3FC", delay: 0.5, dur: 4.3 },
+      { top: "12%", left: "80%", size: 10, color: "#FFFBEB", delay: 1.1, dur: 3.6 },
+      { top: "20%", left: "91%", size: 8, color: "#7DD3FC", delay: 0.4, dur: 4.0 },
+      { top: "36%", left: "94%", size: 11, color: "#FDE68A", delay: 1.7, dur: 3.9 },
+      { top: "62%", left: "91%", size: 9, color: "#FEF3C7", delay: 0.9, dur: 4.2 },
+      { top: "74%", left: "86%", size: 7, color: "#FDE68A", delay: 1.3, dur: 3.5 },
+      { top: "76%", left: "24%", size: 8, color: "#FFFBEB", delay: 0.2, dur: 4.4 },
     ],
     []
   );
 
-  // Calculate completed pairs count for display
-  const completedPairsCount = Math.min(26, Math.floor(pairedMaxStep / 2));
-
   return (
     <main className="relative z-10 flex flex-col h-full w-full max-h-screen overflow-hidden justify-between select-none px-2 sm:px-4 py-2">
-      {/* ── 1. Custom Golden-Honey & Caramel Amber Workshop Backdrop ── */}
+      {/* Golden-Honey & Caramel Amber Workshop Backdrop */}
       <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        {/* Base Atmospheric Gradient */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
             background: "linear-gradient(180deg, #F59E0B 0%, #E68A00 35%, #D97706 70%, #B45309 100%)",
           }}
         />
-
-        {/* Soft Sunlit Radial Spotlight Glow Behind the Wooden Easel */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 50%, rgba(254, 243, 199, 0.55) 0%, rgba(251, 191, 36, 0.2) 40%, rgba(245, 158, 11, 0) 70%)",
+              "radial-gradient(ellipse at 55% 50%, rgba(254, 243, 199, 0.58) 0%, rgba(251, 191, 36, 0.22) 42%, rgba(245, 158, 11, 0) 72%)",
           }}
         />
-
-        {/* Warm-Amber Outer Vignette to Gently Darken Peripheral Corners */}
         <div
           className="absolute inset-0 w-full h-full pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(120, 53, 15, 0.32) 100%)",
+              "radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(120, 53, 15, 0.3) 100%)",
           }}
         />
 
-        {/* Floating Glowing Sparkles (Cyan-Blue & Warm Gold) */}
-        {sparkles.map((sp, idx) => (
+        {ambientDots.map((dot, idx) => (
           <motion.div
             key={idx}
-            className="absolute pointer-events-none"
+            className="absolute rounded-full pointer-events-none"
             style={{
-              top: sp.top,
-              left: sp.left,
-              width: sp.size,
-              height: sp.size,
+              top: dot.top,
+              left: dot.left,
+              width: dot.size,
+              height: dot.size,
+              backgroundColor: dot.color,
+              boxShadow: `0 0 10px ${dot.color}`,
             }}
             animate={{
-              opacity: [0.3, 0.95, 0.3],
-              scale: [0.85, 1.25, 0.85],
-              rotate: [0, 90, 180],
+              y: [0, -16, 0],
+              opacity: [0.22, 0.82, 0.22],
+              scale: [0.85, 1.22, 0.85],
             }}
             transition={{
-              duration: 3.2,
+              duration: dot.dur,
               repeat: Infinity,
-              delay: sp.delay,
+              delay: dot.delay,
               ease: "easeInOut",
             }}
-          >
-            <svg viewBox="0 0 24 24" fill={sp.color} className="w-full h-full drop-shadow-xs">
-              <path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z" />
-            </svg>
-          </motion.div>
+          />
         ))}
 
-        {/* Upper-Left Corner Ornament: Cartoon Yellow Pencil with Active Ink Color Sync */}
-        <div className="absolute top-16 left-3 sm:top-18 sm:left-4 w-16 h-16 sm:w-20 sm:h-20 opacity-40 sm:opacity-50 pointer-events-none drop-shadow-md z-0 transition-all duration-300">
-          <svg viewBox="0 0 90 90" fill="none" className="w-full h-full">
-            <path
-              d="M15 75 Q32 85 46 64 T64 32"
-              stroke="#7DD3FC"
-              strokeWidth="2.5"
-              strokeDasharray="3 3"
-              strokeLinecap="round"
-            />
-            <g transform="translate(32, 14) rotate(45)">
-              <rect x="0" y="0" width="12" height="40" rx="2" fill="#FBBF24" stroke="#0F172A" strokeWidth="2" />
-              <line x1="4" y1="0" x2="4" y2="40" stroke="#F59E0B" strokeWidth="1.5" />
-              <line x1="8" y1="0" x2="8" y2="40" stroke={activeInkColor} strokeWidth="1.8" />
-              <rect x="0" y="-8" width="12" height="8" fill="#CBD5E1" stroke="#0F172A" strokeWidth="2" />
-              <path d="M0 -8 Q6 -16 12 -8 Z" fill="#F472B6" stroke="#0F172A" strokeWidth="2" />
-              <path d="M0 40 L6 52 L12 40 Z" fill="#FDE68A" stroke="#0F172A" strokeWidth="2" />
-              <path d="M4 48 L6 52 L8 48 Z" fill={activeInkColor} />
-            </g>
+        {/* Top-Left Playful Pencil Silhouette Accent */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ y: [0, -8, 0], rotate: [-14, -10, -14] }}
+          transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden md:block absolute top-18 left-5 w-14 h-14 opacity-45 pointer-events-none"
+        >
+          <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-sm">
+            <rect x="22" y="10" width="20" height="36" rx="6" fill="#FDE68A" stroke="#78350F" strokeWidth="2.5" />
+            <rect x="22" y="10" width="20" height="8" rx="3" fill="#FDA4AF" stroke="#78350F" strokeWidth="2.5" />
+            <path d="M22 44 L32 57 L42 44 Z" fill="#FFFBEB" stroke="#78350F" strokeWidth="2.5" strokeLinejoin="round" />
+            <circle cx="32" cy="54" r="2.2" fill="#78350F" />
           </svg>
-        </div>
+        </motion.div>
 
-        {/* Upper-Right Corner Ornament: Artist Color-Dot Palette & Writing Lines */}
-        <div className="absolute top-22 right-6 w-16 h-16 sm:w-20 sm:h-20 opacity-80 pointer-events-none drop-shadow-md z-0">
-          <svg viewBox="0 0 100 70" fill="none" className="w-full h-full">
+        {/* Top-Right Playful Paint Palette Ornament */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ y: [0, 8, 0], rotate: [10, 15, 10] }}
+          transition={{ duration: 5.0, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden md:block absolute top-20 right-6 w-16 h-16 opacity-45 pointer-events-none"
+        >
+          <svg viewBox="0 0 72 72" fill="none" className="w-full h-full drop-shadow-sm">
             <path
-              d="M15 35 C15 15 35 8 55 10 C75 12 90 25 90 42 C90 58 75 65 58 62 C48 60 44 48 35 48 C28 48 24 55 18 50 C15 45 15 40 15 35 Z"
-              fill="#FDE68A"
-              stroke="#0F172A"
+              d="M36 10 C20 10 10 22 10 36 C10 51 22 61 36 61 C44 61 48 56 46 50 C45 47 47 44 51 44 C58 44 62 39 62 33 C62 19 50 10 36 10 Z"
+              fill="#FFFDF5"
+              stroke="#78350F"
               strokeWidth="2.5"
-              strokeLinejoin="round"
             />
-            <ellipse cx="72" cy="48" rx="6" ry="8" fill="#D97706" stroke="#0F172A" strokeWidth="2" />
-            <circle cx="32" cy="22" r="5.5" fill="#EF4444" stroke="#0F172A" strokeWidth="1.5" />
-            <circle cx="50" cy="18" r="5.5" fill="#FACC15" stroke="#0F172A" strokeWidth="1.5" />
-            <circle cx="68" cy="24" r="5.5" fill="#38BDF8" stroke="#0F172A" strokeWidth="1.5" />
-            <circle cx="80" cy="35" r="5" fill="#10B981" stroke="#0F172A" strokeWidth="1.5" />
-            <line x1="22" y1="36" x2="48" y2="36" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="2 2" />
-            <line x1="22" y1="41" x2="48" y2="41" stroke="#F87171" strokeWidth="1.5" />
+            <circle cx="24" cy="27" r="4.2" fill="#EF4444" />
+            <circle cx="38" cy="22" r="4.2" fill="#3B82F6" />
+            <circle cx="50" cy="29" r="4.2" fill="#10B981" />
+            <circle cx="24" cy="43" r="4.2" fill="#F59E0B" />
+            <circle cx="36" cy="51" r="3.8" fill="#B45309" opacity="0.25" />
           </svg>
-        </div>
+        </motion.div>
 
         {/* Layered Warm Ochre Hills along Bottom Edge */}
         <div className="absolute bottom-0 inset-x-0 h-36 overflow-hidden pointer-events-none opacity-35">
@@ -381,26 +374,20 @@ export default function MenulisHurufView() {
         </div>
       </div>
 
-      {/* ── 2. Subtle Dark Tint Layer ───────────────────────── */}
       <div className="fixed inset-0 bg-[#000000]/10 pointer-events-none z-0" />
 
-      {/* ── 3. Main Workspace Container ─────────────────────── */}
+      {/* Main Workspace Container */}
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between w-full mx-auto">
-        
-        {/* ── Top HUD Row: 2-Row × 13-Column Compact High-Contrast Alphabet Tray (A–M & N–Z) ── */}
-        {/* Centered on the same horizontal plane between top-left "← Menu" and top-right audio toggle */}
+        {/* Top HUD Row: 2-Row x 13-Column Compact Alphabet Tray (A-M & N-Z) */}
         <header className="w-full flex-shrink-0 pt-0.5 sm:pt-1 pb-1 px-20 sm:px-28 lg:px-32 flex items-center justify-center z-30 pointer-events-none">
           <div className="w-fit mx-auto bg-[#FFFDF9]/95 border-2 border-amber-200 border-b-4 border-b-amber-300/80 rounded-2xl px-2.5 sm:px-3 py-1 sm:py-1.5 shadow-md pointer-events-auto">
             <div className="grid grid-cols-[repeat(13,minmax(0,1fr))] gap-1 sm:gap-1.5 justify-items-center">
               {ALPHABET_DATA.map((item, idx) => {
                 const isSelected = idx === selectedIdx;
                 const letterStepStart = idx * 2;
-                // Both upper and lower for this letter are completed
                 const isPairDone = letterStepStart + 1 < pairedMaxStep;
-                // Currently active target letter in progression
                 const isTarget =
                   pairedMaxStep === letterStepStart || pairedMaxStep === letterStepStart + 1;
-                // Letter not yet unlocked
                 const isLocked = letterStepStart > pairedMaxStep;
                 const isWobbling = wobbleIdx === idx;
 
@@ -420,7 +407,7 @@ export default function MenulisHurufView() {
                       isSelected
                         ? "shadow-md scale-105 z-20 text-white font-black ring-2 ring-amber-400 border-b-2"
                         : isTarget
-                        ? "bg-sky-500 border-2 border-white text-white shadow-md scale-105 ring-2 ring-sky-300 font-black z-10"
+                        ? "bg-sky-700 border-2 border-white text-white shadow-md scale-105 ring-2 ring-sky-300 font-black z-10"
                         : isPairDone
                         ? "bg-white border-2 border-emerald-400 text-slate-900 shadow-xs font-black hover:bg-emerald-50/50"
                         : "bg-slate-700 border border-slate-600 text-white/90 font-extrabold"
@@ -436,14 +423,12 @@ export default function MenulisHurufView() {
                   >
                     {letterDisplay}
 
-                    {/* Crisp Emerald Checkmark Badge for Completed Letters (Zero Star Icons Policy) */}
                     {isPairDone && (
                       <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white flex items-center justify-center shadow-xs text-white pointer-events-none z-10">
                         <Check size={8} strokeWidth={3.5} />
                       </span>
                     )}
 
-                    {/* Golden Padlock Badge for Locked Letters */}
                     {isLocked && (
                       <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-slate-900 border border-slate-600 flex items-center justify-center shadow-xs text-amber-300 pointer-events-none z-10">
                         <Lock size={7.5} strokeWidth={2.5} />
@@ -456,78 +441,68 @@ export default function MenulisHurufView() {
           </div>
         </header>
 
-        {/* ── Main Stage: Spotlight Wooden Easel & Balanced Flanks ── */}
-        <div className="flex-1 min-h-0 overflow-hidden grid grid-cols-[210px_1fr_215px] sm:grid-cols-[230px_1fr_235px] lg:grid-cols-[245px_1fr_250px] gap-3 sm:gap-4 lg:gap-5 items-center justify-center w-full max-w-[1420px] mx-auto px-3 sm:px-5 my-auto">
-          
-          {/* ══════════════════════════════════════════════════════
-              LEFT COLUMN: Saka & Tika Mascot Cheer Stage & Grounded Grass Mound
-             ══════════════════════════════════════════════════════ */}
-          <aside className="w-full flex flex-col justify-end items-center h-full max-h-[72vh] pb-0 select-none overflow-visible">
-            
-            {/* Speech Bubble Above Mascots */}
+        {/* Main 2-Column Stage: Grounded Left Mascots + Expanded Hero Wooden Writing Board */}
+        <div className="flex-1 min-h-0 overflow-hidden grid grid-cols-[210px_1fr] sm:grid-cols-[240px_1fr] lg:grid-cols-[270px_1fr] gap-4 sm:gap-6 items-center justify-center w-full max-w-[1380px] mx-auto px-3 sm:px-6 my-auto">
+          {/* LEFT COLUMN: Grounded Saka & Tika Mascot Stage */}
+          <aside className="w-full flex flex-col justify-end items-center h-full max-h-[72vh] pb-1 select-none overflow-visible">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               key={speechBubbleText}
-              className="relative mb-2 px-3 py-1.5 bg-[#FFFDF9] border-2 border-white border-b-3 border-b-amber-200/80 rounded-2xl shadow-md text-center max-w-[210px] pointer-events-none z-30"
+              className="relative mb-2 px-3.5 py-1.5 bg-[#FFFDF9] border-2 border-white border-b-3 border-b-amber-200/80 rounded-2xl shadow-md text-center max-w-[225px] pointer-events-none z-30"
             >
               <span className="font-display font-bold text-xs sm:text-sm text-[#1B4965] leading-tight block">
                 {speechBubbleText}
               </span>
-              {/* Speech Bubble Downward Tail */}
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-[6px] border-x-transparent border-t-[8px] border-t-[#FFFDF9]" />
             </motion.div>
 
-            {/* Saka & Tika Mascot Cutouts (Tap to Cheer with Confetti!) */}
             <div
               onClick={handleMascotTap}
               title="Ketuk Saka & Tika untuk bersorak!"
               className="relative flex items-end justify-center z-10 -mb-2 cursor-pointer group"
             >
-              {/* Saka Mascot Cutout (Left) */}
               <motion.img
                 src="/assets/saka-maskot-1-cutout.png"
                 alt="Saka Maskot"
+                draggable="false"
                 animate={
                   isMascotJumping
-                    ? { y: [-24, 0, -12, 0], scale: [1, 1.1, 1], rotate: [-4, 4, 0] }
-                    : { y: [0, -4, 0] }
+                    ? { y: [-24, 0, -14, 0], scale: [1, 1.1, 1], rotate: [-4, 4, 0] }
+                    : { y: [0, -5, 0], rotate: [-1.2, 1.2, -1.2] }
                 }
                 transition={
                   isMascotJumping
-                    ? { duration: 0.75, ease: "easeOut" }
+                    ? { duration: 0.72, ease: "easeOut" }
                     : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
                 }
                 className="h-36 sm:h-42 lg:h-48 w-auto object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.22)] select-none pointer-events-none z-10 transition-transform group-hover:scale-105"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
 
-              {/* Tika Mascot Cutout (Right) */}
               <motion.img
-                src="/assets/tika-maskot-1-cutout.png"
+                src="/assets/icon-tika-utama.png"
                 alt="Tika Maskot"
+                draggable="false"
                 animate={
                   isMascotJumping
-                    ? { y: [-26, 0, -14, 0], scale: [1, 1.1, 1], rotate: [4, -4, 0] }
-                    : { y: [0, -4, 0] }
+                    ? { y: [-26, 0, -16, 0], scale: [1, 1.1, 1], rotate: [4, -4, 0] }
+                    : { y: [0, -5, 0], rotate: [1.2, -1.2, 1.2] }
                 }
                 transition={
                   isMascotJumping
-                    ? { duration: 0.75, delay: 0.08, ease: "easeOut" }
-                    : { duration: 3.5, repeat: Infinity, delay: 0.4, ease: "easeInOut" }
+                    ? { duration: 0.72, delay: 0.08, ease: "easeOut" }
+                    : { duration: 3.6, repeat: Infinity, delay: 0.45, ease: "easeInOut" }
                 }
                 className="h-36 sm:h-42 lg:h-48 w-auto object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.22)] select-none pointer-events-none z-10 -ml-4 transition-transform group-hover:scale-105"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </div>
 
-            {/* Seamless 3D Lush Green Grass Hill Mound with Contact Shadows */}
-            <div className="relative w-full max-w-[210px] sm:max-w-[230px] flex flex-col items-center z-20">
-              {/* Soft Contact Shadows Under Mascots' Sneakers */}
-              <div className="absolute -top-1 left-5 w-12 h-2.5 bg-[#064E3B]/35 rounded-full blur-[2px] pointer-events-none" />
-              <div className="absolute -top-1 right-5 w-12 h-2.5 bg-[#064E3B]/35 rounded-full blur-[2px] pointer-events-none" />
+            <div className="relative w-full max-w-[220px] sm:max-w-[245px] flex flex-col items-center z-20">
+              <div className="absolute -top-1 left-6 w-12 h-2.5 bg-[#064E3B]/35 rounded-full blur-[2px] pointer-events-none" />
+              <div className="absolute -top-1 right-6 w-12 h-2.5 bg-[#064E3B]/35 rounded-full blur-[2px] pointer-events-none" />
 
-              {/* 3D Mound Block */}
               <div className="w-full h-12 sm:h-14 rounded-t-[2.2rem] bg-gradient-to-b from-[#4ADE80] via-[#22C55E] to-[#15803D] shadow-lg border-t-2 border-white/60 relative overflow-hidden flex items-center justify-center">
                 <div className="absolute top-0 inset-x-4 h-1.5 bg-[#86EFAC]/70 rounded-full" />
                 <svg viewBox="0 0 240 60" fill="none" className="w-full h-full opacity-60 pointer-events-none">
@@ -538,206 +513,234 @@ export default function MenulisHurufView() {
                 </svg>
               </div>
             </div>
-
           </aside>
 
-          {/* ══════════════════════════════════════════════════════
-              CENTER COLUMN: Hero Spotlight Wooden Writing Board
-             ══════════════════════════════════════════════════════ */}
-          <section className="flex-1 min-h-0 overflow-hidden flex flex-col items-center justify-center relative w-full max-w-[880px] lg:max-w-[940px] xl:max-w-[980px] mx-auto">
-            
-            {/* Luminous Warm Radial Spotlight Glow Directly Behind the Easel */}
-            <div className="absolute -inset-10 sm:-inset-16 bg-[radial-gradient(ellipse_at_50%_50%,rgba(254,243,199,0.7)_0%,rgba(251,191,36,0.25)_50%,transparent_75%)] pointer-events-none blur-xl -z-10" />
+          {/* CENTER-RIGHT COLUMN: Hero Enlarged Wooden Board & Bottom Action Bar */}
+          <section className="flex-1 min-h-0 flex flex-col items-center justify-center relative w-full mx-auto">
+            {/* Breathing Warm Golden-White Radial Spotlight Glow Behind Wooden Easel */}
+            <motion.div
+              aria-hidden="true"
+              animate={{ opacity: [0.7, 1, 0.7], scale: [0.98, 1.03, 0.98] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -inset-10 sm:-inset-14 bg-[radial-gradient(ellipse_at_50%_48%,rgba(255,253,240,0.84)_0%,rgba(254,243,199,0.44)_45%,transparent_75%)] pointer-events-none blur-xl -z-10"
+            />
 
-            {/* Easel Top Header: Interactive Mode Tabs (Left) & Progress Pill (Right) */}
-            <div className="w-full flex items-center justify-between px-1 sm:px-2 mb-1.5 flex-shrink-0 z-20">
-              
-              {/* Left Group: Mode Tabs (Huruf Besar / Huruf Kecil) */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className="flex items-center bg-white/95 backdrop-blur-md rounded-2xl p-1 border-2 border-white shadow-sm gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleSetMode("upper")}
-                    className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-xl font-display font-black text-xs sm:text-sm transition-all cursor-pointer ${
-                      mode === "upper"
-                        ? "bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    }`}
-                  >
-                    Huruf Besar (ABC)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSetMode("lower")}
-                    className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-xl font-display font-black text-xs sm:text-sm transition-all cursor-pointer ${
-                      mode === "lower"
-                        ? "bg-gradient-to-b from-[#10B981] to-[#059669] text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    }`}
-                  >
-                    Huruf Kecil (abc)
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Group: Clean Progress Pill (Zero Star Icons Policy) */}
-              <div className="bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7] border-2 border-amber-400 rounded-2xl px-3 sm:px-3.5 py-1 sm:py-1.5 shadow-sm flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                <Pencil size={13} className="text-amber-700 stroke-[2.5]" />
-                <span className="font-display font-black text-xs sm:text-sm text-amber-950">
-                  Selesai: {completedPairsCount} / 26 Huruf
-                </span>
+            {/* Top-Left Mode Tabs Only (Selesai pill completely removed) */}
+            <div className="w-[64vw] max-w-[940px] flex items-center justify-start px-1 mb-2 flex-shrink-0 z-20">
+              <div className="flex items-center bg-white/95 backdrop-blur-md rounded-2xl p-1 border-2 border-white shadow-sm gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleSetMode("upper")}
+                  className={`px-3.5 sm:px-5 py-1.5 rounded-xl font-display font-black text-xs sm:text-sm transition-all cursor-pointer ${
+                    mode === "upper"
+                      ? "bg-gradient-to-b from-[#0369A1] to-[#075985] text-white shadow-xs"
+                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                  }`}
+                >
+                  Huruf Besar (ABC)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetMode("lower")}
+                  className={`px-3.5 sm:px-5 py-1.5 rounded-xl font-display font-black text-xs sm:text-sm transition-all cursor-pointer ${
+                    mode === "lower"
+                      ? "bg-gradient-to-b from-[#047857] to-[#065F46] text-white shadow-xs"
+                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                  }`}
+                >
+                  Huruf Kecil (abc)
+                </button>
               </div>
             </div>
 
-            {/* Hero 3D Storybook Artist Easel with Honey-Oak Frame (Maximally Expanded Canvas) */}
-            <div className="relative w-full h-[62vh] sm:h-[65vh] lg:h-[68vh] max-h-[580px] rounded-[2.2rem] p-2.5 sm:p-3.5 lg:p-4 bg-gradient-to-b from-[#E2A76F] via-[#B87B45] to-[#783D16] border-[10px] sm:border-[12px] lg:border-[14px] border-[#8C4E1D] border-b-[14px] sm:border-b-[16px] lg:border-b-[18px] border-b-[#4A250B] ring-4 ring-amber-300/80 shadow-[0_24px_50px_rgba(120,53,15,0.45),inset_0_2px_4px_rgba(255,255,255,0.35)] flex flex-col justify-between">
-              
-              {/* Top Gloss Light Reflex */}
-              <div className="absolute top-1.5 inset-x-6 h-[2px] bg-white/50 rounded-full pointer-events-none" />
+            {/* Enlarged Multi-Layered 3D Oak/Walnut Wooden Writing Board (Papan Tulis Kayu) */}
+            <div className="relative w-[64vw] max-w-[940px] h-[56vh] min-h-[360px] max-h-[480px] bg-gradient-to-b from-[#B47844] via-[#9C6231] to-[#7C4A21] border-4 border-[#D9A066] rounded-[2rem] p-3.5 md:p-4 shadow-[0_18px_0_rgba(101,56,18,0.45),0_26px_45px_rgba(0,0,0,0.25)] flex flex-col justify-between">
+              {/* Subtle Woodgrain Texture Lines on Frame */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-[1.85rem] opacity-20 overflow-hidden"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(69,26,3,0.35) 29px, transparent 31px)",
+                }}
+              />
+              {/* Top Gloss Highlight */}
+              <div
+                aria-hidden="true"
+                className="absolute top-1.5 inset-x-8 h-[2px] bg-[#FDE68A]/55 rounded-full pointer-events-none"
+              />
 
-              {/* Wooden Stand Pegs Anchored Below */}
-              <div className="absolute -bottom-5 sm:-bottom-6 left-1/4 w-4 sm:w-5 h-6 sm:h-7 bg-gradient-to-r from-[#78350F] to-[#451A03] rounded-b-lg shadow-md -z-10" />
-              <div className="absolute -bottom-5 sm:-bottom-6 right-1/4 w-4 sm:w-5 h-6 sm:h-7 bg-gradient-to-r from-[#78350F] to-[#451A03] rounded-b-lg shadow-md -z-10" />
-
-              {/* Cream Writing Surface Hosting Dual-Layer Canvas Engine */}
-              <div className="flex-1 w-full h-full rounded-2xl overflow-hidden relative border-2 border-[#E2CEB5] shadow-inner bg-[#FFFDF8]">
+              {/* Crisp Inner Recessed Cream Paper */}
+              <div className="relative z-10 flex-1 min-h-0 w-full rounded-[1.35rem] overflow-hidden border-2 border-[#E7D4BC] shadow-inner bg-[#FFFDF9]">
                 <LetterCanvas
                   letterObj={letterObj}
                   mode={mode}
-                  activeColor={activeInkColor}
-                  onNextLetter={handleAdvanceNext}
-                  hasNextLetter={selectedIdx < 25 || mode === "upper"}
-                  onStrokeUpdate={handleStrokeUpdate}
+                  activeColor={DEFAULT_INK_COLOR}
+                  onNextLetter={handleTriggerCelebration}
+                  onStrokeCompleted={handleStrokeCompleted}
                   onLetterCompleted={handleLetterCompleted}
                   resetTrigger={resetTrigger}
                 />
               </div>
 
+              {/* Raised 3D Wooden Chalk/Marker Ledge Along Bottom Rim */}
+              <div
+                aria-hidden="true"
+                className="relative z-10 mx-auto w-[92%] h-2.5 sm:h-3 mt-2 rounded-full bg-gradient-to-b from-[#D9A066] via-[#A96B37] to-[#6B3B16] border-t border-[#FDE68A]/60 shadow-[0_4px_6px_rgba(69,26,3,0.45)]"
+              />
             </div>
 
-          </section>
-
-          {/* ══════════════════════════════════════════════════════
-              RIGHT COLUMN: Streamlined Object Card, Marker Color Tray & Action Dock
-             ══════════════════════════════════════════════════════ */}
-          <aside className="w-full flex flex-col justify-between items-center h-full max-h-[72vh] py-0.5 select-none overflow-hidden">
-            
-            {/* ── 1. Full-Color Object Illustration Card ── */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={handleSpeakWord}
-              aria-label={`Dengarkan contoh kata ${letterObj.word}`}
-              className="w-full bg-white/95 rounded-3xl border-3 border-amber-200 shadow-xl p-2 sm:p-2.5 flex flex-col items-center justify-center cursor-pointer group transition-all"
-            >
-              {/* Glossy cream-white rounded square illustration frame */}
-              <motion.div
-                animate={
-                  isObjectBouncing
-                    ? { scale: [1, 1.12, 0.96, 1.03, 1], rotate: [0, -4, 4, 0] }
-                    : { scale: 1, rotate: 0 }
-                }
-                transition={{ duration: 0.65, ease: "easeOut" }}
-                className="w-22 h-22 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-[#FFFDF9] rounded-2xl p-2 border-2 border-amber-200/90 shadow-inner flex items-center justify-center group-hover:scale-105 transition-transform"
-              >
-                <WordIllustration
-                  illustrationKey={letterObj.illustrationKey}
-                  word={letterObj.word}
-                  color={letterObj.color}
-                  showBadge={false}
-                  className="w-full h-full object-contain drop-shadow-xs"
-                />
-              </motion.div>
-
-              {/* High-Contrast Word Title */}
-              <span className="font-display font-black text-base sm:text-lg lg:text-xl text-slate-800 mt-1 leading-tight tracking-wide truncate max-w-full">
-                {letterObj.word}
-              </span>
-
-              {/* Sky-Blue Audio Pill */}
-              <div className="mt-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-sky-400 to-blue-500 text-white shadow-xs flex items-center gap-1.5">
-                <Volume2 size={11} className="stroke-[2.5]" />
-                <span className="font-sans font-bold text-[11px] leading-tight whitespace-nowrap">
-                  Ketuk untuk Dengar
-                </span>
-              </div>
-            </motion.button>
-
-            {/* ── 2. Interactive Crayon / Marker Ink Color Palette ── */}
-            <div className="w-full flex flex-col items-center bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-md p-2">
-              <div className="w-full flex items-center justify-between px-1 mb-1.5">
-                <span className="font-display font-bold text-xs text-[#1B4965] flex items-center gap-1">
-                  <Palette size={13} className="text-amber-600 stroke-[2.5]" />
-                  Warna Spidol:
-                </span>
-                <span className="font-sans font-black text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded uppercase">
-                  {CRAYON_COLORS.find((c) => c.hex === activeInkColor)?.name || "Biru"}
-                </span>
-              </div>
-
-              {/* 5 Vibrant Crayon Dot Buttons with Spring Haptic Pop */}
-              <div className="w-full flex items-center justify-between gap-1">
-                {CRAYON_COLORS.map((crayon, i) => {
-                  const isSelectedColor = activeInkColor === crayon.hex;
-                  return (
-                    <motion.button
-                      key={crayon.id}
-                      type="button"
-                      whileHover={{ scale: 1.25, y: -2 }}
-                      whileTap={{ scale: 0.88 }}
-                      onClick={() => handleSelectColor(crayon.hex, i)}
-                      aria-label={`Pilih warna ${crayon.name}`}
-                      className={`w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-full flex items-center justify-center relative cursor-pointer transition-all ${
-                        isSelectedColor
-                          ? "ring-4 ring-amber-400 scale-110 shadow-md z-10 -translate-y-0.5"
-                          : "opacity-80 hover:opacity-100 shadow-xs hover:scale-105"
-                      }`}
-                      style={{ backgroundColor: crayon.hex }}
-                    >
-                      {isSelectedColor && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-white shadow-xs" />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ── 3. Tactile Action Controls (Suara & Hapus Side-by-Side) ── */}
-            <div className="w-full grid grid-cols-2 gap-2">
-              {/* Compact Voice Hint Button */}
+            {/* Clean Centered Horizontal Action Bar Directly Beneath Bottom Wooden Frame */}
+            <div className="flex items-center justify-center gap-4 mt-4 flex-shrink-0 z-20">
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.05, y: -1 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95, y: 2 }}
+                transition={{ type: "spring", stiffness: 450, damping: 16 }}
                 onClick={handleSpeakLetter}
                 aria-label={`Dengarkan bunyi huruf ${currentLetterChar}`}
-                className="w-full py-2 px-2.5 rounded-2xl bg-gradient-to-b from-[#38BDF8] to-[#0284C7] border-b-4 border-[#0369A1] text-white shadow-md flex items-center justify-center gap-1 cursor-pointer active:border-b-2 active:translate-y-0.5"
+                className="px-7 py-2.5 rounded-2xl bg-gradient-to-b from-[#0369A1] to-[#075985] border-2 border-white border-b-[5px] border-b-[#075985] text-white font-display font-extrabold text-base shadow-md flex items-center gap-2.5 cursor-pointer hover:-translate-y-0.5 hover:brightness-105 active:border-b-2 active:translate-y-1 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white"
               >
-                <Volume2 size={15} />
-                <span className="font-display font-black text-xs sm:text-sm">Suara</span>
+                <Volume2 size={20} aria-hidden="true" className="stroke-[2.5]" />
+                <span>Suara</span>
               </motion.button>
 
-              {/* Compact Tactile Eraser Button */}
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.05, y: -1 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95, y: 2 }}
+                transition={{ type: "spring", stiffness: 450, damping: 16 }}
                 onClick={handleEraserClick}
-                aria-label="Hapus dan bersihkan kanvas"
-                className="w-full py-2 px-2.5 rounded-2xl bg-gradient-to-b from-[#FDE047] to-[#F59E0B] border-b-4 border-[#B45309] text-[#78350F] shadow-md flex items-center justify-center gap-1 cursor-pointer active:border-b-2 active:translate-y-0.5"
+                aria-label="Hapus dan bersihkan papan tulis"
+                className="px-7 py-2.5 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-400 border-2 border-white border-b-[5px] border-b-amber-600 text-slate-900 font-display font-extrabold text-base shadow-md flex items-center gap-2.5 cursor-pointer hover:-translate-y-0.5 hover:brightness-105 active:border-b-2 active:translate-y-1 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white"
               >
-                <RotateCcw size={14} />
-                <span className="font-display font-black text-xs sm:text-sm">Hapus</span>
+                <RotateCcw size={19} aria-hidden="true" className="stroke-[2.6]" />
+                <span>Hapus</span>
               </motion.button>
             </div>
-
-          </aside>
-
+          </section>
         </div>
-
       </div>
+
+      {/* Grand Celebration Finale Overlay ("HORE! KAMU HEBAT!", Zero Stars & Zero Emojis) */}
+      <AnimatePresence>
+        {celebrationLetter && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto select-none">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/50 backdrop-blur-xs"
+            />
+
+            <motion.div
+              initial={{ scale: 0.35, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: -20 }}
+              transition={{ type: "spring", stiffness: 420, damping: 20 }}
+              className="relative z-10 flex flex-col items-center justify-center text-center px-8 py-6 max-w-md w-full bg-[#FFFDF9] rounded-[2rem] border-4 border-amber-300 border-b-8 border-b-amber-500 shadow-[0_20px_50px_rgba(15,23,42,0.35)] ring-8 ring-amber-400/40"
+            >
+              {/* Rotating Warm Golden Radial Sunburst Rays */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                className="absolute w-72 h-72 -z-10 pointer-events-none opacity-45"
+              >
+                <svg viewBox="0 0 200 200" className="w-full h-full fill-amber-300">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <polygon
+                      key={i}
+                      points="100,100 92,0 108,0"
+                      transform={`rotate(${i * 30} 100 100)`}
+                    />
+                  ))}
+                </svg>
+              </motion.div>
+
+              {/* Festive Firecracker & Party Ribbon Burst Emblem (Zero Stars, Zero Emojis) */}
+              <div className="w-28 h-28 mb-2 relative flex items-center justify-center">
+                <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
+                  <defs>
+                    <linearGradient id="menulisCrackerRed" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#EF4444" />
+                      <stop offset="50%" stopColor="#DC2626" />
+                      <stop offset="100%" stopColor="#991B1B" />
+                    </linearGradient>
+                    <linearGradient id="menulisCrackerGold" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#FDE047" />
+                      <stop offset="100%" stopColor="#F59E0B" />
+                    </linearGradient>
+                  </defs>
+
+                  <g stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="60" y1="12" x2="60" y2="4" strokeDasharray="3 3" />
+                    <line x1="95" y1="25" x2="102" y2="18" />
+                    <line x1="108" y1="60" x2="116" y2="60" strokeDasharray="3 3" />
+                    <line x1="95" y1="95" x2="102" y2="102" />
+                    <line x1="60" y1="108" x2="60" y2="116" strokeDasharray="3 3" />
+                    <line x1="25" y1="95" x2="18" y2="102" />
+                    <line x1="12" y1="60" x2="4" y2="60" strokeDasharray="3 3" />
+                    <line x1="25" y1="25" x2="18" y2="18" />
+                  </g>
+
+                  <circle cx="60" cy="8" r="3.5" fill="#38BDF8" />
+                  <circle cx="100" cy="20" r="4" fill="#F43F5E" />
+                  <circle cx="114" cy="60" r="3.5" fill="#34D399" />
+                  <circle cx="100" cy="100" r="4" fill="#FDE047" />
+                  <circle cx="20" cy="100" r="3.5" fill="#A78BFA" />
+                  <circle cx="6" cy="60" r="4" fill="#F43F5E" />
+                  <circle cx="20" cy="20" r="3.5" fill="#38BDF8" />
+
+                  <g transform="translate(60, 60) rotate(-25) translate(-60, -60)">
+                    <rect x="52" y="28" width="16" height="64" rx="4" fill="url(#menulisCrackerRed)" stroke="#7F1D1D" strokeWidth="1.5" />
+                    <rect x="52" y="34" width="16" height="8" fill="url(#menulisCrackerGold)" />
+                    <rect x="52" y="78" width="16" height="8" fill="url(#menulisCrackerGold)" />
+                    <path d="M 60 28 Q 60 18 68 14" stroke="#D97706" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <circle cx="68" cy="14" r="3" fill="#FEF08A" />
+                  </g>
+
+                  <g transform="translate(60, 60) rotate(25) translate(-60, -60)">
+                    <rect x="52" y="28" width="16" height="64" rx="4" fill="url(#menulisCrackerRed)" stroke="#7F1D1D" strokeWidth="1.5" />
+                    <rect x="52" y="34" width="16" height="8" fill="url(#menulisCrackerGold)" />
+                    <rect x="52" y="78" width="16" height="8" fill="url(#menulisCrackerGold)" />
+                    <path d="M 60 28 Q 60 18 52 14" stroke="#D97706" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <circle cx="52" cy="14" r="3" fill="#FEF08A" />
+                  </g>
+
+                  <circle cx="60" cy="60" r="10" fill="#FEF08A" />
+                  <circle cx="60" cy="60" r="5" fill="#FFFFFF" />
+                </svg>
+              </div>
+
+              <h2 className="font-display font-black text-3xl md:text-4xl text-amber-600 tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]">
+                HORE! KAMU HEBAT!
+              </h2>
+
+              <p className="font-sans font-bold text-sm sm:text-base text-slate-700 mt-2 leading-relaxed">
+                Kamu Berhasil Menulis Huruf{" "}
+                <span className="font-display font-black text-xl text-blue-700 px-0.5">
+                  {celebrationLetter}
+                </span>{" "}
+                dengan Rapi!
+              </p>
+
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.06, y: -2 }}
+                whileTap={{ scale: 0.95, y: 1 }}
+                onClick={() => {
+                  playSfx("click");
+                  advanceToNextLetter();
+                }}
+                className="mt-5 px-6 py-3 rounded-2xl bg-gradient-to-b from-[#B45309] to-[#9A3412] border-2 border-white border-b-6 border-b-[#7C2D12] text-white font-display font-black text-base sm:text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Play size={18} aria-hidden="true" className="fill-white" />
+                <span>LANJUT HURUF BARU!</span>
+              </motion.button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

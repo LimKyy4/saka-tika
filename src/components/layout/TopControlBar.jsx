@@ -23,7 +23,8 @@ export default function TopControlBar() {
   if (isHome) {
     return (
       <header className="fixed top-4 sm:top-5 left-4 sm:left-6 right-4 sm:right-6 flex items-start justify-between pointer-events-none z-40 select-none">
-        <motion.div
+        <motion.button
+          type="button"
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95, y: 1 }}
           transition={{ type: "spring", stiffness: 450, damping: 16 }}
@@ -31,21 +32,21 @@ export default function TopControlBar() {
             playSfx("click");
             navigateTo("/");
           }}
-          className="pointer-events-auto bg-[#FFFDF9]/95 backdrop-blur-xs border-2 border-white shadow-[0_6px_0_rgba(14,116,144,0.18),0_10px_20px_rgba(0,0,0,0.08)] rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer select-none"
-          role="button"
-          tabIndex={0}
+          className="pointer-events-auto bg-[#FFFDF9]/95 backdrop-blur-xs border-2 border-white shadow-[0_6px_0_rgba(14,116,144,0.18),0_10px_20px_rgba(0,0,0,0.08)] rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400"
           aria-label="Saka Tika Beranda"
         >
           <img
             src="/assets/buttons/home.png"
             alt="Beranda"
+            width={32}
+            height={32}
             draggable="false"
             className="w-7 h-7 sm:w-8 sm:h-8 object-contain drop-shadow pointer-events-none"
           />
           <span className="font-display font-black text-sm sm:text-base text-[#1B4965] tracking-tight">
             Saka Tika
           </span>
-        </motion.div>
+        </motion.button>
 
         {/* Audio Toggle Control */}
         <div className="relative pointer-events-auto flex items-center justify-center mt-0.5 sm:mt-1 mr-1 sm:mr-2">
@@ -122,7 +123,34 @@ export default function TopControlBar() {
 
   return (
     <header className="fixed top-3.5 sm:top-5 left-4 sm:left-6 right-4 sm:right-6 flex items-start justify-between pointer-events-none z-40 select-none">
-      <div className="flex items-center gap-2.5 sm:gap-3 pointer-events-auto">
+      <div className="flex items-center gap-3 pointer-events-auto">
+        {isMenu && (
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95, y: 1 }}
+            transition={{ type: "spring", stiffness: 450, damping: 16 }}
+            onClick={() => {
+              playSfx("click");
+              navigateTo("/");
+            }}
+            aria-label="Saka Tika Beranda"
+            className="bg-[#FFFDF9]/95 backdrop-blur-xs border-2 border-white shadow-[0_6px_0_rgba(76,29,149,0.12),0_10px_20px_rgba(0,0,0,0.08)] rounded-full px-3.5 py-2 sm:px-4 sm:py-2 flex items-center gap-2 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400"
+          >
+            <img
+              src="/assets/buttons/home.png"
+              alt="Beranda"
+              width={28}
+              height={28}
+              draggable="false"
+              className="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow pointer-events-none"
+            />
+            <span className="font-display font-black text-sm sm:text-base text-[#1B4965] tracking-tight">
+              Saka Tika
+            </span>
+          </motion.button>
+        )}
+
         <motion.button
           type="button"
           whileHover={{ scale: 1.06, y: -2 }}
@@ -133,9 +161,9 @@ export default function TopControlBar() {
             navigateTo(backTarget);
           }}
           aria-label={`Kembali ke ${backLabel}`}
-          className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-[#FFFDF9]/95 backdrop-blur-xs border-2 border-white border-b-4 ${borderBottomColor} shadow-[0_4px_12px_rgba(14,116,144,0.12)] font-display font-bold text-sm sm:text-base text-slate-800 cursor-pointer active:border-b-2 active:translate-y-1 transition-all select-none`}
+          className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-[#FFFDF9]/95 backdrop-blur-xs border-2 border-white border-b-4 ${borderBottomColor} shadow-[0_4px_12px_rgba(14,116,144,0.12)] font-display font-bold text-sm sm:text-base text-slate-800 cursor-pointer active:border-b-2 active:translate-y-1 transition-all select-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400`}
         >
-          <ArrowLeft size={18} className={`${arrowColor} stroke-[2.8]`} />
+          <ArrowLeft size={18} aria-hidden="true" className={`${arrowColor} stroke-[2.8]`} />
           <span>{backLabel}</span>
         </motion.button>
       </div>

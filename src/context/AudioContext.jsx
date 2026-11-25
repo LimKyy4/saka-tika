@@ -3,7 +3,7 @@
 // Features studio BGM rotation using Howler, automated synth fallback, and voice guidance.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import { createContext, useState, useEffect, useCallback, useRef, useContext } from "react";
+import { createContext, useState, useEffect, useCallback, useMemo, useRef, useContext } from "react";
 import { Howl, Howler } from "howler";
 import * as synth from "../utils/soundSynthesizer.js";
 
@@ -21,24 +21,11 @@ const BGM_PLAYLIST = [
   "/audio/bgm/light-step-8021.mp3",
 ];
 
-export function AudioProvider({ children }) {
-  const [isBgmEnabled, setIsBgmEnabled] = useState(() => {
-    try {
-      const stored = localStorage.getItem("saka_tika_bgm");
-      return stored ? JSON.parse(stored) : true;
-    } catch {
-      return true;
-    }
-  });
-
-  const [isSfxEnabled, setIsSfxEnabled] = useState(() => {
-    try {
-      const stored = localStorage.getItem("saka_tika_sfx");
-      return stored ? JSON.parse(stored) : true;
-    } catch {
-      return true;
-    }
-  });
+export function AudioProvider({ children, isIntroActive = false }) {
+  // Always initialize audio ON at cold launch so BGM and SFX start active
+  const [isBgmEnabled, setIsBgmEnabled] = useState(true);
+  const [isSfxEnabled, setIsSfxEnabled] = useState(true);
+  const [isBgmDucked, setIsBgmDucked] = useState(false);
 
   // Track user gesture to prevent browser autoplay policy warnings
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -52,12 +39,20 @@ export function AudioProvider({ children }) {
   // Stop active BGM (Howl or synth)
   const stopBgmInternal = useCallback(() => {
     if (bgmHowlRef.current) {
-      bgmHowlRef.current.stop();
-      bgmHowlRef.current.unload();
+      try {
+        bgmHowlRef.current.stop();
+        bgmHowlRef.current.unload();
+      } catch {
+        // Ignore teardown errors on partially initialized Howl instances
+      }
       bgmHowlRef.current = null;
     }
     if (synthControllerRef.current) {
-      synthControllerRef.current.stop();
+      try {
+        synthControllerRef.current.stop();
+      } catch {
+        // Ignore Web Audio teardown errors
+      }
       synthControllerRef.current = null;
     }
   }, []);
@@ -140,10 +135,12 @@ export function AudioProvider({ children }) {
     };
   }, []);
 
-  // Manage BGM play/pause based on toggle state and user interaction
+  // Manage BGM play/pause based on toggle state, intro state, song ducking, and browser audio permission
   useEffect(() => {
-    // Only attempt BGM start once the user has performed at least one gesture
-    if (!hasInteracted) return;
+    if (isIntroActive || isBgmDucked || !hasInteracted) {
+      stopBgmInternal();
+      return;
+    }
 
     if (isBgmEnabled) {
       playTrackInternal(currentTrackIdxRef.current);
@@ -154,7 +151,7 @@ export function AudioProvider({ children }) {
     return () => {
       stopBgmInternal();
     };
-  }, [hasInteracted, isBgmEnabled, playTrackInternal, stopBgmInternal]);
+  }, [isIntroActive, isBgmDucked, hasInteracted, isBgmEnabled, playTrackInternal, stopBgmInternal]);
 
   // Persist settings
   useEffect(() => {
@@ -258,14 +255,19 @@ export function AudioProvider({ children }) {
     setIsSfxEnabled((prev) => !prev);
   }, []);
 
-  const value = {
-    isBgmEnabled,
-    isSfxEnabled,
-    toggleBgm,
-    toggleSfx,
-    playSfx,
-    playMenuVoice,
-  };
+  const value = useMemo(
+    () => ({
+      isBgmEnabled,
+      isSfxEnabled,
+      isBgmDucked,
+      setIsBgmDucked,
+      toggleBgm,
+      toggleSfx,
+      playSfx,
+      playMenuVoice,
+    }),
+    [isBgmEnabled, isSfxEnabled, isBgmDucked, toggleBgm, toggleSfx, playSfx, playMenuVoice]
+  );
 
   return <AudioContext.Provider value={value}>{children}</AudioContext.Provider>;
 }

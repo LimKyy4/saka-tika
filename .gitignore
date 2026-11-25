@@ -1,5 +1,12 @@
 node_modules
 dist
 .vercel
+.env
+.env.local
+*.rar
+*.zip
+*.ai
+Games Smart TK/
+/assets/
 .DS_Store
 *.log

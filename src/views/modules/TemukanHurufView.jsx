@@ -1,27 +1,19 @@
 // src/views/modules/TemukanHurufView.jsx
-// SAKA TIKA: "Juicy Arcade Bubble World" - Studio Grade Kindergarten Edition
-// 1. Direct Instant Target Highlight: Target bubbles shine immediately with glowing golden halo & amber coin.
-// 2. Rich Multi-Layered Landscape: Rolling grassy hills, cartoon swaying flowers, 3D toy blocks & golden star props.
-// 3. Living Sky Atmosphere: Soft drifting clouds, fluttering butterfly, and gliding songbird.
-// 4. Juicy Bubble Physics: Translucent 3D soap bubbles, squish & stretch on touch/hover, organic floating drift.
-// 5. Fly-To-Slot Comet Projectiles: Popped letter coins shoot up to header slots with sparks & chime ("TING!").
-// 6. Interactive Mascots: Saka & Tika can be tapped to bounce, giggle, and give voice encouragement!
-// 7. Interactive Arena: Ambient mini-bubbles can be popped, background taps create ripple shockwaves.
-// 8. Glorious Victory Celebration: Screen rumble, firecracker fireworks, rotating sunburst, and snappy "Lanjut" button.
+// SAKA TIKA: "Temukan Huruf" - Clean Clutter-Free Console, 100% Uniform Hint-Free Bubbles,
+// & Living Coral Bubble Garden Stage.
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
-// STRICT ZERO EMOJIS POLICY: Exclusively lucide-react icons or custom vector assets.
-// STRICT AUDIO CONTROL: Never auto-play voice narration or SFX on initial mount.
+// STRICT ZERO EMOJIS & ZERO STAR ICONS POLICY: Only lucide-react icons (no Star) and custom vectors.
+// STRICT AUDIO GATING: Never auto-play voice narration or SFX on initial mount or round start.
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Volume2, RotateCcw, Shuffle, Check, Sparkles, Play } from "lucide-react";
+import { Volume2, Shuffle, Check, Sparkles, Play } from "lucide-react";
 
 import { useGame } from "../../context/GameContext.jsx";
 import { useAudio } from "../../context/AudioContext.jsx";
 import { ALPHABET_DATA } from "../../data/masterDataset.js";
-import { speakLetter, speakWord, speakInstruction } from "../../utils/speechEngine.js";
-import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
+import { speakLetter } from "../../utils/speechEngine.js";
 import {
   playBubblePopSound,
   playRubberBoingSound,
@@ -41,108 +33,62 @@ import {
   FloatingCloud,
 } from "../../components/illustrations/AmbientDecor.jsx";
 
-// 10 Balanced, non-overlapping anchor positions arranged in a spacious 2-row curved formation
+// 10 Balanced, wide-spread anchor positions in a 2-row curved formation (keeps bottom-left mascots clear)
 const BUBBLE_ZONE_ANCHORS = [
-  // Row 1: Top Curved Formation (5 bubbles across upper stage)
-  { left: 16, top: 29 },
-  { left: 33, top: 25 },
-  { left: 50, top: 24 },
-  { left: 67, top: 25 },
-  { left: 84, top: 29 },
-  // Row 2: Bottom Curved Formation (5 bubbles across lower-mid stage)
-  { left: 24, top: 62 },
-  { left: 39, top: 58 },
-  { left: 54, top: 57 },
-  { left: 69, top: 58 },
-  { left: 84, top: 62 },
+  // Row 1: Upper Curved Arc (5 bubbles)
+  { left: 11, top: 25 },
+  { left: 30.5, top: 20 },
+  { left: 50, top: 18 },
+  { left: 69.5, top: 20 },
+  { left: 89, top: 25 },
+  // Row 2: Lower-Mid Curved Arc (5 bubbles, clear of bottom-left Saka & Tika)
+  { left: 19, top: 61 },
+  { left: 35, top: 56 },
+  { left: 52, top: 54 },
+  { left: 69, top: 56 },
+  { left: 86, top: 61 },
 ];
 
-// Cute Swaying Cartoon Flower for Stage Mound
+// Swaying wildflower blossom for the foreground meadow hills
 function StageFlower({ cx, cy, petalColor, centerColor = "#FDE047", delay = 0 }) {
   return (
     <motion.g
-      animate={{ rotate: [-7, 7, -7] }}
-      transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay }}
+      animate={{ rotate: [-5, 5, -5] }}
+      transition={{ duration: 3.1, repeat: Infinity, ease: "easeInOut", delay }}
       style={{ originX: `${cx}px`, originY: `${cy + 14}px` }}
     >
       <path
         d={`M${cx},${cy + 14} Q${cx - 2},${cy + 7} ${cx},${cy}`}
         stroke="#15803D"
-        strokeWidth="2.5"
+        strokeWidth="2.4"
         fill="none"
         strokeLinecap="round"
       />
-      <circle cx={cx} cy={cy - 4} r="3.5" fill={petalColor} />
-      <circle cx={cx + 4} cy={cy} r="3.5" fill={petalColor} />
-      <circle cx={cx} cy={cy + 4} r="3.5" fill={petalColor} />
-      <circle cx={cx - 4} cy={cy} r="3.5" fill={petalColor} />
-      <circle cx={cx} cy={cy} r="3.2" fill={centerColor} />
+      <circle cx={cx} cy={cy - 4} r="3.6" fill={petalColor} />
+      <circle cx={cx + 4} cy={cy} r="3.6" fill={petalColor} />
+      <circle cx={cx} cy={cy + 4} r="3.6" fill={petalColor} />
+      <circle cx={cx - 4} cy={cy} r="3.6" fill={petalColor} />
+      <circle cx={cx} cy={cy} r="3.0" fill={centerColor} />
     </motion.g>
   );
 }
 
-// Custom Vector Gold-Rimmed Brass Magnifying Glass with Turquoise Handle
-function MagnifyingGlassIcon({ className = "w-6 h-6 sm:w-7 sm:h-7" }) {
+// Gentle grass tuft along meadow crest
+function GrassTuft({ x, y, delay = 0 }) {
   return (
-    <svg
-      viewBox="0 0 48 48"
-      fill="none"
-      className={`${className} flex-shrink-0 drop-shadow-xs`}
-      xmlns="http://www.w3.org/2000/svg"
+    <motion.g
+      animate={{ rotate: [-4, 4, -4] }}
+      transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay }}
+      style={{ originX: `${x}px`, originY: `${y}px` }}
     >
-      <defs>
-        <linearGradient id="lensBrassGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#FEF08A" />
-          <stop offset="40%" stopColor="#FBBF24" />
-          <stop offset="85%" stopColor="#D97706" />
-          <stop offset="100%" stopColor="#78350F" />
-        </linearGradient>
-        <linearGradient id="lensHandleGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#67E8F9" />
-          <stop offset="50%" stopColor="#06B6D4" />
-          <stop offset="100%" stopColor="#0E7490" />
-        </linearGradient>
-      </defs>
-      {/* Handle */}
-      <rect
-        x="30"
-        y="30"
-        width="6"
-        height="15"
-        rx="3"
-        transform="rotate(-45 30 30)"
-        fill="url(#lensHandleGrad)"
-        stroke="#0E7490"
-        strokeWidth="1.2"
-      />
-      {/* Brass Ferrule */}
-      <rect
-        x="26"
-        y="26"
-        width="7"
-        height="3"
-        rx="1"
-        transform="rotate(-45 26 26)"
-        fill="url(#lensBrassGrad)"
-        stroke="#78350F"
-        strokeWidth="0.8"
-      />
-      {/* Outer Brass Ring */}
-      <circle cx="18" cy="18" r="14" fill="url(#lensBrassGrad)" stroke="#78350F" strokeWidth="1.6" />
-      {/* Inner Rim Lip */}
-      <circle cx="18" cy="18" r="11.5" fill="#D97706" />
-      {/* Optical Glass Lens */}
-      <circle cx="18" cy="18" r="10.5" fill="#E0F2FE" fillOpacity="0.45" stroke="#FFFFFF" strokeWidth="1" />
-      {/* Curved Glare Highlight */}
       <path
-        d="M12 12 A8 8 0 0 1 24 12"
-        stroke="#FFFFFF"
-        strokeWidth="2"
+        d={`M${x},${y} Q${x - 4},${y - 10} ${x - 7},${y - 14} M${x},${y} Q${x},${y - 12} ${x + 1},${y - 16} M${x},${y} Q${x + 4},${y - 9} ${x + 7},${y - 13}`}
+        stroke="#86EFAC"
+        strokeWidth="2.2"
         strokeLinecap="round"
         fill="none"
-        opacity="0.9"
       />
-    </svg>
+    </motion.g>
   );
 }
 
@@ -150,7 +96,7 @@ export default function TemukanHurufView() {
   const { addStars } = useGame();
   const { playSfx } = useAudio();
 
-  // Non-repeating Fisher-Yates shuffle queue initialization
+  // Non-repeating Fisher-Yates shuffle queue
   const shuffleQueueRef = useRef(null);
   if (!shuffleQueueRef.current) {
     shuffleQueueRef.current = new ShuffleQueue(ALPHABET_DATA.length);
@@ -160,14 +106,9 @@ export default function TemukanHurufView() {
   const [bubbles, setBubbles] = useState([]);
   const [foundIds, setFoundIds] = useState([]);
   const [wobbleId, setWobbleId] = useState(null);
-  const [poppingId, setPoppingId] = useState(null);
+  const [poppingIds, setPoppingIds] = useState([]);
 
-  // Consecutive streak counter & 6-second inactivity hint
-  const [streak, setStreak] = useState(0);
-  const [hintBubbleId, setHintBubbleId] = useState(null);
-  const idleTimerRef = useRef(null);
-
-  // Juice & Particle effects
+  // Visual pop & projectile effects
   const [splashDroplets, setSplashDroplets] = useState([]);
   const [shockwaves, setShockwaves] = useState([]);
   const [flyingCoins, setFlyingCoins] = useState([]);
@@ -175,52 +116,25 @@ export default function TemukanHurufView() {
   const [floatingCombos, setFloatingCombos] = useState([]);
   const [slotBounceIndex, setSlotBounceIndex] = useState(null);
 
-  // Game state
+  // Game & mascot reaction state
   const [roundComplete, setRoundComplete] = useState(false);
   const [isScreenShaking, setIsScreenShaking] = useState(false);
-  const [mascotAnimationState, setMascotAnimationState] = useState("idle"); // idle, cheer, giggle, encourage
-  const [customSpeechText, setCustomSpeechText] = useState(null);
-  const [roundCount, setRoundCount] = useState(1);
+  const [mascotAnimationState, setMascotAnimationState] = useState("idle");
 
-  // Element Refs for pixel-accurate projectile flight
+  // Element refs for pixel-accurate projectile flight
   const bubbleRefs = useRef({});
   const slotRefs = [useRef(null), useRef(null), useRef(null)];
   const autoAdvanceTimer = useRef(null);
+  const confettiRafRef = useRef(null);
+  const foundCountRef = useRef(0);
 
-  // Active target letter object from master dataset
   const currentTarget = useMemo(() => {
     return ALPHABET_DATA[letterIndex % ALPHABET_DATA.length];
   }, [letterIndex]);
 
   const targetLetter = currentTarget.letter;
 
-  // Smart 6-second inactivity shimmer hint
-  const restartIdleTimer = useCallback(() => {
-    if (idleTimerRef.current) {
-      clearTimeout(idleTimerRef.current);
-      idleTimerRef.current = null;
-    }
-    setHintBubbleId(null);
-
-    idleTimerRef.current = setTimeout(() => {
-      setBubbles((currBubbles) => {
-        setFoundIds((currFound) => {
-          if (currFound.length < 3) {
-            const remaining = currBubbles.find(
-              (b) => b.isTarget && !currFound.includes(b.id)
-            );
-            if (remaining) {
-              setHintBubbleId(remaining.id);
-            }
-          }
-          return currFound;
-        });
-        return currBubbles;
-      });
-    }, 6000);
-  }, []);
-
-  // Initialize round: 10 bubbles (3 target bubbles + 7 unique distractors)
+  // Build round: 10 completely uniform bubbles (3 targets + 7 distinct distractors)
   const setupRound = useCallback((target) => {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
@@ -231,21 +145,15 @@ export default function TemukanHurufView() {
     const distractorsPool = allLetters.filter((l) => l !== target);
     const shuffledDistractors = [...distractorsPool].sort(() => 0.5 - Math.random());
 
-    const targetCount = 3;
-    const distractorCount = 7;
     const items = [];
-
-    // 3 Target bubbles
-    for (let i = 0; i < targetCount; i++) {
+    for (let i = 0; i < 3; i++) {
       items.push({
         id: `target-${i}-${Date.now()}-${Math.random()}`,
         letter: target,
         isTarget: true,
       });
     }
-
-    // 7 Distractor bubbles
-    for (let i = 0; i < distractorCount; i++) {
+    for (let i = 0; i < 7; i++) {
       items.push({
         id: `distractor-${i}-${Date.now()}-${Math.random()}`,
         letter: shuffledDistractors[i % shuffledDistractors.length],
@@ -253,29 +161,28 @@ export default function TemukanHurufView() {
       });
     }
 
-    // Shuffle and assign clean 2-row curved anchor positions
     const shuffledItems = items.sort(() => 0.5 - Math.random());
     const positionedBubbles = shuffledItems.map((item, idx) => {
-      const anchor = BUBBLE_ZONE_ANCHORS[idx] || { left: 50, top: 50 };
-      const jitterX = (Math.random() - 0.5) * 1.8;
-      const jitterY = (Math.random() - 0.5) * 1.8;
-      const floatDuration = 3.0 + Math.random() * 1.5;
-      const floatDelay = idx * 0.16;
+      const anchor = BUBBLE_ZONE_ANCHORS[idx] || { left: 50, top: 45 };
+      const jitterX = (Math.random() - 0.5) * 1.6;
+      const jitterY = (Math.random() - 0.5) * 1.6;
+      const floatDuration = 3.4 + Math.random() * 1.4;
+      const floatDelay = idx * 0.19;
 
       return {
         ...item,
-        x: Math.max(12, Math.min(88, anchor.left + jitterX)),
-        y: Math.max(22, Math.min(72, anchor.top + jitterY)),
+        x: Math.max(8, Math.min(92, anchor.left + jitterX)),
+        y: Math.max(16, Math.min(66, anchor.top + jitterY)),
         floatDuration,
         floatDelay,
       };
     });
 
     setBubbles(positionedBubbles);
+    foundCountRef.current = 0;
     setFoundIds([]);
     setWobbleId(null);
-    setPoppingId(null);
-    setHintBubbleId(null);
+    setPoppingIds([]);
     setSplashDroplets([]);
     setShockwaves([]);
     setFlyingCoins([]);
@@ -283,21 +190,24 @@ export default function TemukanHurufView() {
     setRoundComplete(false);
     setIsScreenShaking(false);
     setMascotAnimationState("idle");
-    setCustomSpeechText(null);
-    restartIdleTimer();
-  }, [restartIdleTimer]);
+  }, []);
 
-  // Initialize round when targetLetter changes
   useEffect(() => {
     setupRound(targetLetter);
     return () => {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (confettiRafRef.current) {
+        cancelAnimationFrame(confettiRafRef.current);
+        confettiRafRef.current = null;
+      }
     };
   }, [targetLetter, setupRound]);
 
-  // Celebratory confetti fireworks (2.2s duration)
+  // Multi-angle confetti fireworks (~2.2s)
   const fireFireworksRockets = () => {
+    if (confettiRafRef.current) {
+      cancelAnimationFrame(confettiRafRef.current);
+    }
     const end = Date.now() + 2200;
     const colors = ["#FDE047", "#F43F5E", "#38BDF8", "#34D399", "#C084FC", "#FB923C"];
 
@@ -325,57 +235,45 @@ export default function TemukanHurufView() {
       });
 
       if (Date.now() < end) {
-        requestAnimationFrame(frame);
+        confettiRafRef.current = requestAnimationFrame(frame);
+      } else {
+        confettiRafRef.current = null;
       }
     })();
   };
 
-  // Next round transition
+  // Switch to a new random target letter
   const handleNextRound = useCallback(() => {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = null;
     }
-    if (idleTimerRef.current) {
-      clearTimeout(idleTimerRef.current);
-      idleTimerRef.current = null;
-    }
-    setHintBubbleId(null);
     playHoverSound();
-    setRoundCount((prev) => prev + 1);
     setLetterIndex(shuffleQueueRef.current.next());
   }, []);
 
-  // Reset current round
-  const handleResetCurrentRound = useCallback(() => {
-    playHoverSound();
-    setStreak(0);
-    setupRound(targetLetter);
-  }, [setupRound, targetLetter]);
-
-  // Handle bubble tap / click interaction
+  // Bubble tap / pop handler
   const handleBubbleClick = (bubble, event) => {
     event?.stopPropagation();
-    if (roundComplete || foundIds.includes(bubble.id) || poppingId === bubble.id) return;
+    if (roundComplete || foundIds.includes(bubble.id) || poppingIds.includes(bubble.id)) return;
 
     if (bubble.isTarget) {
-      const stageIdx = foundIds.length;
-      setPoppingId(bubble.id);
-      setStreak((prev) => prev + 1);
-      restartIdleTimer();
+      const stageIdx = foundCountRef.current;
+      if (stageIdx >= 3) return;
+      foundCountRef.current = stageIdx + 1;
+      setPoppingIds((prev) => [...prev, bubble.id]);
 
-      // 1. Ascending musical chime (Do -> Re -> Mi) + juicy pop synthesizer
+      // Ascending Do-Re-Mi chimes + bubble pop SFX
       playXylophoneNote(stageIdx);
       playBubblePopSound(stageIdx);
       playCoinWhooshSound();
 
-      // 2. Measure starting pixel position from bubble and target slot
       const bubbleEl = bubbleRefs.current[bubble.id];
       const slotEl = slotRefs[stageIdx]?.current;
       let startX = window.innerWidth * (bubble.x / 100);
       let startY = window.innerHeight * (bubble.y / 100);
-      let endX = window.innerWidth * 0.65;
-      let endY = 60;
+      let endX = window.innerWidth * 0.62;
+      let endY = 64;
 
       if (bubbleEl) {
         const bRect = bubbleEl.getBoundingClientRect();
@@ -388,17 +286,15 @@ export default function TemukanHurufView() {
         endY = sRect.top + sRect.height / 2;
       }
 
-      // 3. Spawn expanding shockwave ring
       const shockwaveId = `sw-${Date.now()}-${Math.random()}`;
       setShockwaves((prev) => [...prev, { id: shockwaveId, x: startX, y: startY }]);
       setTimeout(() => {
         setShockwaves((prev) => prev.filter((sw) => sw.id !== shockwaveId));
       }, 450);
 
-      // 4. Spawn burst of 12 water droplets & golden sparkle particles
-      const newDroplets = Array.from({ length: 12 }).map((_, i) => {
-        const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.35;
-        const dist = 4.5 + Math.random() * 5.5;
+      const newDroplets = Array.from({ length: 14 }).map((_, i) => {
+        const angle = (i / 14) * Math.PI * 2 + Math.random() * 0.35;
+        const dist = 4.5 + Math.random() * 6;
         return {
           id: `${bubble.id}-drop-${i}-${Date.now()}`,
           startX: bubble.x,
@@ -414,14 +310,13 @@ export default function TemukanHurufView() {
         setSplashDroplets((prev) => prev.filter((d) => !d.id.startsWith(bubble.id)));
       }, 550);
 
-      // 5. Floating text combo juice (Strict Zero Emojis Policy)
-      const comboLabels = ["Pecah 1!", "Keren! 2!", "Sempurna!"];
+      const comboLabels = ["POP!", "KEREN!", "HEBAT!"];
       const comboId = `combo-${Date.now()}`;
       setFloatingCombos((prev) => [
         ...prev,
         {
           id: comboId,
-          text: comboLabels[stageIdx] || "Hebat!",
+          text: comboLabels[stageIdx] || "POP!",
           x: bubble.x,
           y: bubble.y - 4,
         },
@@ -430,11 +325,10 @@ export default function TemukanHurufView() {
         setFloatingCombos((prev) => prev.filter((c) => c.id !== comboId));
       }, 750);
 
-      // 6. Mascot cheer reaction
+      // Synchronized Saka & Tika cheer hop
       setMascotAnimationState("cheer");
       setTimeout(() => setMascotAnimationState("idle"), 800);
 
-      // 7. Launch Flying Coin Projectile towards the header slot
       const coinId = `coin-${Date.now()}-${stageIdx}`;
       setFlyingCoins((prev) => [
         ...prev,
@@ -445,144 +339,105 @@ export default function TemukanHurufView() {
           startY,
           endX,
           endY,
-          stageIdx,
-          bubbleId: bubble.id,
         },
       ]);
 
-      // 8. Snap coin into slot after flight completion (~400ms)
       setTimeout(() => {
         playSlotSnapSound(stageIdx);
         setSlotBounceIndex(stageIdx);
         setTimeout(() => setSlotBounceIndex(null), 400);
 
-        const newFound = [...foundIds, bubble.id];
-        setFoundIds(newFound);
-        setPoppingId(null);
-        setFlyingCoins((prev) => prev.filter((c) => c.id !== coinId));
+        setFoundIds((prev) => {
+          const next = prev.includes(bubble.id) ? prev : [...prev, bubble.id];
+          if (next.length >= 3) {
+            setIsScreenShaking(true);
+            setTimeout(() => setIsScreenShaking(false), 450);
 
-        if (newFound.length >= 3) {
-          // VICTORY: Screen rumble + fanfare + confetti + victory modal (2200ms hold)
-          if (idleTimerRef.current) {
-            clearTimeout(idleTimerRef.current);
-            idleTimerRef.current = null;
+            setRoundComplete(true);
+            playSuccessSound();
+            playFanfareSound();
+            if (typeof addStars === "function") addStars(1);
+
+            fireFireworksRockets();
+
+            autoAdvanceTimer.current = setTimeout(() => {
+              handleNextRound();
+            }, 2400);
           }
-          setHintBubbleId(null);
-
-          setIsScreenShaking(true);
-          setTimeout(() => setIsScreenShaking(false), 450);
-
-          setRoundComplete(true);
-          playSuccessSound();
-          playFanfareSound();
-          if (typeof addStars === "function") addStars(1);
-
-          fireFireworksRockets();
-
-          autoAdvanceTimer.current = setTimeout(() => {
-            handleNextRound();
-          }, 2200);
-        }
+          return next;
+        });
+        setPoppingIds((prev) => prev.filter((id) => id !== bubble.id));
+        setFlyingCoins((prev) => prev.filter((c) => c.id !== coinId));
       }, 420);
     } else {
-      // Wrong bubble: soft rubber bounce + comical jelly wobble (reset streak gracefully to 0)
+      // Gentle rubbery bounce + jelly wobble on distractor tap (non-punitive)
       playRubberBoingSound();
-      setStreak(0);
-      restartIdleTimer();
       setWobbleId(bubble.id);
       setTimeout(() => setWobbleId(null), 500);
 
       setMascotAnimationState("encourage");
-      setTimeout(() => setMascotAnimationState("idle"), 600);
-
-      setCustomSpeechText(`Bukan ${bubble.letter}, ayo cari huruf ${targetLetter} ya!`);
-      setTimeout(() => setCustomSpeechText(null), 2500);
+      setTimeout(() => setMascotAnimationState("idle"), 550);
     }
   };
 
-  // Interactive Mascot Tap Handler
-  const handleMascotTap = (mascotName) => {
+  // Interactive mascot tap (giggle + hop, no speech bubble)
+  const handleMascotTap = (e) => {
+    e?.stopPropagation();
     playMascotGiggleSound();
     setMascotAnimationState("giggle");
     setTimeout(() => setMascotAnimationState("idle"), 850);
-
-    const quotes = [
-      `Ayo semangat! Ketuk 3 huruf ${targetLetter} yang bersinar!`,
-      `Kamu hebat! Temukan huruf ${targetLetter} yang berwarna emas ya!`,
-      `Saka dan Tika siap bermain bersamamu!`,
-      `Huruf ${targetLetter} bersinar terang di gelembung!`,
-    ];
-    const pickedQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    setCustomSpeechText(pickedQuote);
-    speakInstruction(pickedQuote);
-
-    setTimeout(() => {
-      setCustomSpeechText(null);
-    }, 3500);
   };
 
-  // Interactive Arena Tap (creates water ripples when tapping the open stage)
+  // Interactive backdrop ripple
   const handleArenaTap = (e) => {
     if (roundComplete) return;
-    restartIdleTimer();
     playAmbientRippleSound();
     const rippleId = `rip-${Date.now()}-${Math.random()}`;
-    const x = e.clientX;
-    const y = e.clientY;
-
-    setArenaRipples((prev) => [...prev, { id: rippleId, x, y }]);
+    setArenaRipples((prev) => [...prev, { id: rippleId, x: e.clientX, y: e.clientY }]);
     setTimeout(() => {
       setArenaRipples((prev) => prev.filter((r) => r.id !== rippleId));
     }, 550);
   };
 
-  // Manual audio pronunciation triggers (Strict Audio Gating: only on explicit click)
-  const handleSpeakTarget = () => {
+  // Manual audio narration only when speaker or letter tile is clicked
+  const handleSpeakTarget = (e) => {
+    e?.stopPropagation();
     if (typeof playSfx === "function") playSfx("click");
     speakLetter(currentTarget);
   };
 
-  const handleSpeakWord = () => {
-    if (typeof playSfx === "function") playSfx("click");
-    speakWord(currentTarget);
-  };
-
-  // Dynamic Encouraging Speech Bubble Text
-  const speechBubbleText = useMemo(() => {
-    if (customSpeechText) return customSpeechText;
-    if (foundIds.length === 0) {
-      return `Ayo ketuk 3 huruf ${targetLetter} yang bersinar!`;
-    }
-    if (foundIds.length === 1) {
-      return `Mantap! Kurang 2 huruf ${targetLetter} lagi!`;
-    }
-    if (foundIds.length === 2) {
-      return `Hebat! Tinggal 1 lagi!`;
-    }
-    return `Luar biasa! Semua huruf ${targetLetter} ditemukan!`;
-  }, [customSpeechText, foundIds.length, targetLetter]);
-
-  // 18 Soft translucent mini soap bubbles rising gently in background (Zero stars on wall)
+  // 18 Rising translucent micro soap bubbles kept well within inner horizontal bounds
   const backgroundMiniBubbles = useMemo(
     () => [
-      { left: 8, bottom: 15, size: 22, opacity: 0.28, duration: 8.5, delay: 0 },
-      { left: 16, bottom: 25, size: 14, opacity: 0.35, duration: 7.2, delay: 1.5 },
-      { left: 24, bottom: 18, size: 28, opacity: 0.25, duration: 9.0, delay: 0.8 },
-      { left: 32, bottom: 35, size: 16, opacity: 0.32, duration: 7.8, delay: 2.2 },
-      { left: 40, bottom: 20, size: 24, opacity: 0.3, duration: 8.2, delay: 1.1 },
-      { left: 48, bottom: 30, size: 18, opacity: 0.35, duration: 7.5, delay: 3.0 },
-      { left: 56, bottom: 16, size: 30, opacity: 0.24, duration: 9.5, delay: 0.5 },
-      { left: 64, bottom: 28, size: 20, opacity: 0.32, duration: 8.0, delay: 1.9 },
-      { left: 72, bottom: 18, size: 26, opacity: 0.28, duration: 8.7, delay: 1.3 },
-      { left: 80, bottom: 32, size: 15, opacity: 0.36, duration: 7.0, delay: 2.7 },
-      { left: 88, bottom: 22, size: 24, opacity: 0.26, duration: 8.8, delay: 0.4 },
-      { left: 94, bottom: 14, size: 18, opacity: 0.34, duration: 7.6, delay: 2.1 },
-      { left: 12, bottom: 42, size: 12, opacity: 0.25, duration: 6.8, delay: 3.4 },
-      { left: 36, bottom: 48, size: 14, opacity: 0.28, duration: 7.3, delay: 4.1 },
-      { left: 60, bottom: 44, size: 16, opacity: 0.3, duration: 7.9, delay: 3.7 },
-      { left: 84, bottom: 46, size: 12, opacity: 0.25, duration: 6.5, delay: 4.5 },
-      { left: 20, bottom: 55, size: 14, opacity: 0.24, duration: 8.0, delay: 2.5 },
-      { left: 76, bottom: 58, size: 15, opacity: 0.26, duration: 8.3, delay: 1.7 },
+      { left: 8, bottom: 10, size: 22, opacity: 0.34, duration: 8.4, delay: 0 },
+      { left: 14, bottom: 18, size: 13, opacity: 0.4, duration: 7.1, delay: 1.4 },
+      { left: 21, bottom: 12, size: 30, opacity: 0.28, duration: 9.2, delay: 0.7 },
+      { left: 29, bottom: 26, size: 16, opacity: 0.36, duration: 7.7, delay: 2.1 },
+      { left: 37, bottom: 14, size: 26, opacity: 0.32, duration: 8.5, delay: 1.0 },
+      { left: 45, bottom: 22, size: 18, opacity: 0.38, duration: 7.4, delay: 2.9 },
+      { left: 53, bottom: 11, size: 34, opacity: 0.26, duration: 9.6, delay: 0.4 },
+      { left: 61, bottom: 24, size: 20, opacity: 0.35, duration: 8.1, delay: 1.8 },
+      { left: 69, bottom: 14, size: 28, opacity: 0.3, duration: 8.8, delay: 1.2 },
+      { left: 77, bottom: 28, size: 14, opacity: 0.4, duration: 6.9, delay: 2.5 },
+      { left: 83, bottom: 16, size: 24, opacity: 0.3, duration: 8.9, delay: 0.3 },
+      { left: 88, bottom: 12, size: 19, opacity: 0.36, duration: 7.5, delay: 2.0 },
+      { left: 10, bottom: 38, size: 11, opacity: 0.28, duration: 6.8, delay: 3.2 },
+      { left: 34, bottom: 42, size: 15, opacity: 0.3, duration: 7.3, delay: 4.0 },
+      { left: 58, bottom: 40, size: 17, opacity: 0.32, duration: 7.9, delay: 3.6 },
+      { left: 80, bottom: 42, size: 12, opacity: 0.28, duration: 6.6, delay: 4.4 },
+      { left: 25, bottom: 52, size: 14, opacity: 0.26, duration: 8.0, delay: 2.4 },
+      { left: 74, bottom: 54, size: 16, opacity: 0.28, duration: 8.3, delay: 1.6 },
+    ],
+    []
+  );
+
+  // Subtle giant background alphabet silhouettes kept inward so edges never clip
+  const alphabetWatermarks = useMemo(
+    () => [
+      { char: "A", className: "top-16 left-10 -rotate-12 text-[105px] md:text-[135px]" },
+      { char: "B", className: "top-18 right-14 rotate-12 text-[100px] md:text-[130px]" },
+      { char: "C", className: "bottom-36 right-16 -rotate-6 text-[95px] md:text-[124px]" },
+      { char: "S", className: "bottom-40 left-[22%] rotate-6 text-[95px] md:text-[120px] hidden lg:block" },
     ],
     []
   );
@@ -592,63 +447,83 @@ export default function TemukanHurufView() {
       onClick={handleArenaTap}
       className="relative z-10 flex flex-col h-full w-full max-h-screen overflow-hidden justify-between select-none p-2 sm:p-3 cursor-default"
     >
-      {/* ── 1. Living "Panggung Taman Gelembung" Stage Backdrop (True Coral-Red & Meadow) ── */}
+      {/* ── 1. Living "Coral Bubble Garden" Stage Backdrop ── */}
       <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        {/* Base Multi-Stop True Coral-Red Sky Linear Gradient Matching Cover Card */}
+        {/* Warm Coral-to-Ruby Multi-Stop Gradient */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{
             background:
-              "linear-gradient(180deg, #F46B68 0%, #E84C48 35%, #DC3632 70%, #C6302C 100%)",
+              "linear-gradient(180deg, #F46B68 0%, #E54848 50%, #B92B2B 100%)",
           }}
         />
 
-        {/* Soft Warm Coral-Peach Radial Center Spotlight Behind Bubble Formation */}
+        {/* Diagonal Translucent Warm Stage Light Rays Fanning From Upper Center */}
+        <div
+          aria-hidden="true"
+          className="absolute -top-12 left-1/2 -translate-x-1/2 w-[140vw] h-[88vh] opacity-30"
+          style={{
+            background:
+              "conic-gradient(from 155deg at 50% 0%, transparent 0deg, rgba(255,228,214,0.45) 14deg, transparent 28deg, rgba(255,237,213,0.4) 40deg, transparent 54deg, rgba(255,228,214,0.45) 68deg, transparent 84deg)",
+          }}
+        />
+
+        {/* Warm Coral-Peach Radial Center Spotlight Behind Playfield */}
         <motion.div
           className="absolute inset-0 w-full h-full"
-          animate={{ opacity: [0.75, 0.95, 0.75] }}
+          animate={{ opacity: [0.72, 0.96, 0.72] }}
           transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
           style={{
             background:
-              "radial-gradient(circle at 50% 54%, rgba(255, 196, 180, 0.32) 0%, transparent 68%)",
+              "radial-gradient(ellipse at 52% 48%, rgba(255, 214, 198, 0.36) 0%, rgba(244, 107, 104, 0.12) 45%, transparent 72%)",
           }}
         />
 
-        {/* ── Atmospheric Sky Accessories: Drifting Clouds Repositioned Inward Away from HUD ── */}
-        <div className="absolute top-8 left-[18%] pointer-events-none opacity-45">
-          <FloatingCloud x={0} y={0} scale={0.75} duration={26} />
-        </div>
-        <div className="absolute top-12 right-[18%] pointer-events-none opacity-45 hidden sm:block">
-          <FloatingCloud x={0} y={0} scale={0.7} duration={28} delay={3} />
-        </div>
-        <AnimatedBird initialY={35} delay={2} className="opacity-75" />
-        <AnimatedButterfly initialY={130} delay={1} className="opacity-80" />
+        {/* Subtle Oversized Alphabet Watermark Silhouettes */}
+        {alphabetWatermarks.map((wm) => (
+          <span
+            key={wm.char}
+            aria-hidden="true"
+            className={`absolute font-display font-black text-white opacity-[0.06] leading-none pointer-events-none select-none ${wm.className}`}
+          >
+            {wm.char}
+          </span>
+        ))}
 
-        {/* 18 Soft Translucent Rising Mini Soap Bubbles (Strict Zero Wall Stars Policy) */}
+        {/* 3 Fluffy Drifting Upper Clouds Away from HUD Corners */}
+        <div className="absolute top-6 left-[20%] opacity-35">
+          <FloatingCloud x={0} y={0} scale={0.78} duration={26} />
+        </div>
+        <div className="absolute top-4 left-[52%] -translate-x-1/2 opacity-30 hidden md:block">
+          <FloatingCloud x={0} y={0} scale={0.62} duration={30} delay={1.8} />
+        </div>
+        <div className="absolute top-9 right-[18%] opacity-35 hidden sm:block">
+          <FloatingCloud x={0} y={0} scale={0.72} duration={28} delay={3.2} />
+        </div>
+        <AnimatedBird initialY={44} delay={2} className="opacity-70" />
+        <AnimatedButterfly initialY={135} delay={1} className="opacity-75" />
+
+        {/* 18 Abundant Rising Translucent Micro Soap Bubbles */}
         {backgroundMiniBubbles.map((ab, idx) => (
           <motion.div
             key={`bmb-${idx}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              playAmbientRippleSound();
-            }}
-            className="absolute rounded-full border border-white/35 bg-white/10 pointer-events-auto cursor-pointer"
+            className="absolute rounded-full border border-white/40 pointer-events-none"
             style={{
               left: `${ab.left}%`,
               bottom: `${ab.bottom}%`,
               width: `${ab.size}px`,
               height: `${ab.size}px`,
               background:
-                "radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, rgba(254,205,211,0.2) 50%, rgba(255,255,255,0.05) 100%)",
+                "radial-gradient(circle at 32% 30%, rgba(255,255,255,0.75) 0%, rgba(254,205,211,0.22) 52%, rgba(255,255,255,0.06) 100%)",
               boxShadow:
-                "inset 0 0 4px rgba(255,255,255,0.6), 0 0 8px rgba(255,255,255,0.2)",
+                "inset 0 0 5px rgba(255,255,255,0.65), 0 0 8px rgba(255,255,255,0.22)",
               opacity: ab.opacity,
             }}
             animate={{
-              y: [-10, -90, -180],
-              x: [0, idx % 2 === 0 ? 12 : -12, 0],
-              opacity: [ab.opacity, ab.opacity * 1.3, 0],
-              scale: [0.9, 1.05, 0.95],
+              y: [-8, -110, -210],
+              x: [0, idx % 2 === 0 ? 14 : -14, 0],
+              opacity: [ab.opacity, ab.opacity * 1.25, 0],
+              scale: [0.9, 1.06, 0.94],
             }}
             transition={{
               duration: ab.duration,
@@ -657,223 +532,193 @@ export default function TemukanHurufView() {
               ease: "easeInOut",
             }}
           >
-            <div className="absolute top-1 left-1.5 w-1.5 h-1 bg-white/90 rounded-full -rotate-45 pointer-events-none" />
+            <div className="absolute top-1 left-1.5 w-1.5 h-1 bg-white/95 rounded-full -rotate-45 pointer-events-none" />
           </motion.div>
         ))}
 
-        {/* ── Layered Lush Green Meadow Hills at the Bottom with Delicate Wildflowers ── */}
-        <div className="absolute bottom-0 inset-x-0 h-28 sm:h-32 overflow-hidden pointer-events-none z-10">
-          <svg viewBox="0 0 1440 180" fill="none" className="w-full h-full" preserveAspectRatio="none">
-            {/* Deep Ruby Horizon Layer */}
-            <path d="M0 80 Q360 40 720 70 T1440 50 L1440 180 L0 180 Z" fill="#881337" opacity="0.65" />
-            <path d="M0 100 Q480 60 960 95 T1440 80 L1440 180 L0 180 Z" fill="#701A75" opacity="0.45" />
+        {/* Two Overlapping Lush Curved 3D Meadow Hills + 14 Swaying Wildflowers & Grass Tufts */}
+        <div className="absolute bottom-0 inset-x-0 h-32 sm:h-36 md:h-40 overflow-hidden pointer-events-none z-10">
+          <svg viewBox="0 0 1440 200" fill="none" className="w-full h-full" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="frontMeadowGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#22C55E" />
+                <stop offset="100%" stopColor="#15803D" />
+              </linearGradient>
+            </defs>
 
-            {/* Foreground Lush Green Rolling Hills */}
-            <path d="M-40 115 Q280 75 600 110 T1240 95 Q1360 90 1480 105 L1480 180 L-40 180 Z" fill="#15803D" />
-            <path d="M-20 125 Q320 85 700 120 T1460 110 L1460 180 L-20 180 Z" fill="#22C55E" />
+            {/* Warm Olive-Emerald Back Rolling Hill */}
+            <path
+              d="M-40 105 Q260 55 580 98 T1180 78 Q1340 72 1480 92 L1480 200 L-40 200 Z"
+              fill="#16A34A"
+            />
+            {/* Back hill subtle rim highlight */}
+            <path
+              d="M-40 105 Q260 55 580 98 T1180 78 Q1340 72 1480 92"
+              stroke="#4ADE80"
+              strokeOpacity="0.45"
+              strokeWidth="3"
+              fill="none"
+            />
 
-            {/* Swaying Flowers Across the Grass Horizon */}
-            <StageFlower cx={80} cy={110} petalColor="#FB7185" delay={0.2} />
-            <StageFlower cx={130} cy={100} petalColor="#FDE047" delay={0.8} />
-            <StageFlower cx={170} cy={115} petalColor="#38BDF8" delay={1.4} />
-            <StageFlower cx={640} cy={115} petalColor="#F472B6" delay={0.5} />
-            <StageFlower cx={700} cy={105} petalColor="#FBBF24" delay={1.1} />
-            <StageFlower cx={760} cy={120} petalColor="#A78BFA" delay={1.7} />
-            <StageFlower cx={1280} cy={100} petalColor="#FB7185" delay={0.4} />
-            <StageFlower cx={1330} cy={110} petalColor="#FDE047" delay={1.2} />
-            <StageFlower cx={1380} cy={95} petalColor="#38BDF8" delay={0.9} />
+            {/* Sweeping Front Vibrant Meadow Lawn */}
+            <path
+              d="M-20 132 Q320 82 720 124 T1460 112 L1460 200 L-20 200 Z"
+              fill="url(#frontMeadowGrad)"
+            />
+            <path
+              d="M-20 132 Q320 82 720 124 T1460 112"
+              stroke="#86EFAC"
+              strokeOpacity="0.6"
+              strokeWidth="4"
+              fill="none"
+            />
+
+            {/* Grass Tufts along Hill Crests */}
+            <GrassTuft x={310} y={108} delay={0.2} />
+            <GrassTuft x={540} y={120} delay={0.9} />
+            <GrassTuft x={860} y={118} delay={0.5} />
+            <GrassTuft x={1120} y={112} delay={1.3} />
+            <GrassTuft x={1360} y={114} delay={0.7} />
+
+            {/* 14 Swaying Daisies & Coral Wildflowers along Both Hill Crests */}
+            <StageFlower cx={60} cy={120} petalColor="#FFFFFF" delay={0.1} />
+            <StageFlower cx={115} cy={110} petalColor="#FB7185" delay={0.6} />
+            <StageFlower cx={175} cy={124} petalColor="#FEF08A" delay={1.1} />
+            <StageFlower cx={245} cy={96} petalColor="#FFFFFF" delay={0.4} />
+            <StageFlower cx={365} cy={104} petalColor="#FB7185" delay={0.9} />
+            <StageFlower cx={455} cy={112} petalColor="#FEF08A" delay={1.4} />
+            <StageFlower cx={595} cy={116} petalColor="#FFFFFF" delay={0.3} />
+            <StageFlower cx={680} cy={108} petalColor="#FB7185" delay={1.0} />
+            <StageFlower cx={785} cy={118} petalColor="#FEF08A" delay={1.6} />
+            <StageFlower cx={925} cy={106} petalColor="#FFFFFF" delay={0.5} />
+            <StageFlower cx={1025} cy={96} petalColor="#FB7185" delay={1.2} />
+            <StageFlower cx={1195} cy={104} petalColor="#FEF08A" delay={0.8} />
+            <StageFlower cx={1295} cy={98} petalColor="#FFFFFF" delay={1.5} />
+            <StageFlower cx={1395} cy={106} petalColor="#FB7185" delay={0.2} />
           </svg>
         </div>
       </div>
 
-      {/* ── 2. Screen Shake Container for Game Rumble Juice ── */}
+      {/* ── 2. Screen Shake Wrapper & Clean Main Stage (overflow-visible prevents HUD/bubble halo clipping) ── */}
       <motion.div
         animate={isScreenShaking ? { x: [-5, 5, -3, 3, -1, 1, 0], y: [-3, 3, -1, 1, 0] } : {}}
         transition={{ duration: 0.4 }}
-        className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col justify-between max-w-7xl w-full mx-auto"
+        className="relative z-10 flex-1 min-h-0 overflow-visible flex flex-col justify-between max-w-7xl w-full mx-auto"
       >
-        {/* ── Top Header: Tactile 3D Target Question & Progress Bar ── */}
-        <header className="w-full px-2 pt-1 sm:pt-2 flex justify-center flex-shrink-0 z-30">
+        {/* Streamlined Top "CARI HURUF" Console (Generous min-h & overflow-visible for unclipped slots) */}
+        <header className="w-full px-2 pt-2 sm:pt-3 flex justify-center flex-shrink-0 z-30 overflow-visible">
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 420, damping: 20 }}
-            className="w-auto max-w-4xl mx-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-[2.5rem] bg-gradient-to-b from-[#FFFDF9] via-[#FFFBEB] to-[#FEF3C7] border-4 sm:border-[5px] border-amber-400 border-b-6 sm:border-b-8 border-b-amber-600 shadow-[0_16px_36px_rgba(136,19,55,0.45),0_0_45px_rgba(251,191,36,0.4)] ring-4 ring-amber-300/50 flex items-center justify-center gap-3 sm:gap-5 md:gap-7 relative"
+            className="w-fit mx-auto px-7 sm:px-8 py-4 min-h-[76px] rounded-[2rem] bg-[#FFFDF9]/95 border-4 border-amber-300 border-b-6 border-b-amber-500 shadow-[0_12px_0_rgba(153,27,27,0.32)] flex items-center justify-center gap-4 sm:gap-5 md:gap-7 relative overflow-visible"
           >
-            {/* Left: Target Word Illustration Frame + Sky-Blue Speaker Button */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.08, rotate: -2 }}
-                whileTap={{ scale: 0.92 }}
-                onClick={handleSpeakWord}
-                aria-label={`Dengarkan Kata ${currentTarget.word}`}
-                className="w-13 h-13 sm:w-15 sm:h-15 md:w-16 md:h-16 rounded-2xl bg-white border-2 border-amber-300 border-b-4 border-b-amber-500 shadow-sm p-1 cursor-pointer flex items-center justify-center overflow-hidden flex-shrink-0"
-                title={`Contoh kata: ${currentTarget.word} (Ketuk untuk dengar)`}
-              >
-                <WordIllustration
-                  word={currentTarget.word}
-                  illustrationKey={currentTarget.illustrationKey || currentTarget.word}
-                  className="w-full h-full"
-                  showBadge={false}
-                />
-              </motion.button>
+            {/* 1. Manual Audio Button (Strict Audio Gating) */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.1, y: -2 }}
+              whileTap={{ scale: 0.92, y: 2 }}
+              onClick={handleSpeakTarget}
+              aria-label={`Dengarkan bunyi huruf ${targetLetter}`}
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-b from-[#0284C7] to-[#0369A1] border-2 border-white border-b-4 border-b-[#075985] text-white shadow-md cursor-pointer flex items-center justify-center active:border-b-2 active:translate-y-1 flex-shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+            >
+              <Volume2 size={21} aria-hidden="true" className="stroke-[2.5]" />
+            </motion.button>
 
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.12, y: -2 }}
-                whileTap={{ scale: 0.9, y: 2 }}
-                onClick={handleSpeakTarget}
-                aria-label={`Dengarkan Bunyi Huruf Target ${targetLetter}`}
-                className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 border-b-4 border-blue-800 text-white shadow-md cursor-pointer flex items-center justify-center active:border-b-0 active:translate-y-1 flex-shrink-0"
-                title="Ketuk untuk mendengarkan bunyi huruf"
-              >
-                <Volume2 size={22} className="stroke-[2.5]" />
-              </motion.button>
-            </div>
-
-            {/* Center: Magnifying Glass + "CARI HURUF:" + 3D Golden Target Letter Tile */}
-            <div className="flex items-center gap-2 sm:gap-3.5 flex-shrink-0">
-              <MagnifyingGlassIcon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-              <span className="font-display font-black text-xl sm:text-2xl md:text-3xl text-[#0F172A] tracking-wider leading-none uppercase drop-shadow-xs">
+            {/* 2. Oversized "CARI HURUF:" + 3D Golden-Amber Target Letter Tile */}
+            <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+              <span className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#0F172A] tracking-wide leading-none uppercase">
                 CARI HURUF:
               </span>
 
-              {/* 3D Golden-Amber Target Letter Tile with Breathing Pulse */}
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.1, rotate: 2 }}
+                whileHover={{ scale: 1.08, rotate: 2 }}
                 whileTap={{ scale: 0.92 }}
-                animate={{ scale: [1, 1.07, 1] }}
+                animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                 onClick={handleSpeakTarget}
-                aria-label={`Huruf Target ${targetLetter}`}
-                className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 border-2 border-white/90 border-b-6 border-b-amber-700 shadow-[0_10px_20px_rgba(217,119,6,0.5),inset_0_2px_4px_rgba(255,255,255,0.8)] flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-black text-white leading-none cursor-pointer"
-                title="Huruf target yang harus dicari"
+                aria-label={`Huruf target ${targetLetter}`}
+                className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-2xl bg-gradient-to-b from-[#D97706] to-[#B45309] border-2 border-amber-200 border-b-4 border-b-[#78350F] shadow-md flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-display font-black text-white leading-none cursor-pointer flex-shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
               >
                 {targetLetter}
               </motion.button>
             </div>
 
-            {/* Right: 3 Glossy Capsule Slots + Ronde Badge + Beruntun Streak + Controls */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              {/* 3 Target Progress Slots with Ref Binding for Projectiles */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                {[0, 1, 2].map((slotIdx) => {
-                  const isFilled = slotIdx < foundIds.length;
-                  const isBouncing = slotBounceIndex === slotIdx;
+            {/* 3. Three Glossy Progress Capsule Slots (Zero Star Icons, Unclipped Borders) */}
+            <div className="flex items-center gap-2 sm:gap-2.5 py-0.5 flex-shrink-0 overflow-visible">
+              {[0, 1, 2].map((slotIdx) => {
+                const isFilled = slotIdx < foundIds.length;
+                const isBouncing = slotBounceIndex === slotIdx;
 
-                  return (
-                    <motion.div
-                      key={slotIdx}
-                      ref={slotRefs[slotIdx]}
-                      initial={false}
-                      animate={
-                        isBouncing
-                          ? { scale: [0.7, 1.35, 1], rotate: [0, -10, 0] }
-                          : isFilled
-                          ? { scale: 1 }
-                          : { scale: [1, 1.04, 1] }
-                      }
-                      transition={{ type: "spring", stiffness: 450, damping: 14 }}
-                      className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center relative transition-all ${
-                        isFilled
-                          ? "bg-gradient-to-b from-[#FEF08A] via-[#FDE047] to-[#F59E0B] border-2 border-amber-500 border-b-4 border-b-amber-700 shadow-[0_6px_16px_rgba(245,158,11,0.6)] ring-2 ring-amber-300 text-amber-950 font-black"
-                          : "bg-amber-100/70 border-2 border-dashed border-amber-400/80 shadow-inner"
-                      }`}
-                    >
-                      {isFilled ? (
-                        <>
-                          <span className="font-display font-black text-lg sm:text-xl text-amber-950 leading-none drop-shadow-xs">
-                            {targetLetter}
-                          </span>
-                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-xs">
-                            <Check size={10} strokeWidth={3.5} />
-                          </span>
-                        </>
-                      ) : (
-                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {/* Ronde & Consecutive Streak Badges */}
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                {/* Ronde Counter Badge */}
-                <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-amber-200/80 border border-amber-400/80 shadow-xs flex items-center justify-center">
-                  <span className="font-display font-black text-[11px] sm:text-xs md:text-sm text-amber-900 tracking-wider whitespace-nowrap">
-                    Ronde {roundCount}
-                  </span>
-                </div>
-
-                {/* Consecutive Streak Badge (Beruntun) */}
-                <motion.div
-                  key={streak}
-                  initial={{ scale: 0.85 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className={`px-2 sm:px-2.5 py-1 rounded-xl border shadow-xs flex items-center justify-center transition-colors whitespace-nowrap ${
-                    streak > 0
-                      ? "bg-emerald-50 border-emerald-300 text-emerald-700 ring-2 ring-emerald-200/60"
-                      : "bg-slate-100/90 border-slate-200 text-slate-500"
-                  }`}
-                  title="Pecahkan gelembung target berturut-turut tanpa salah"
-                >
-                  <span className="font-display font-black text-[11px] sm:text-xs md:text-sm tracking-wider">
-                    Beruntun: {streak}
-                  </span>
-                </motion.div>
-              </div>
-
-              {/* Control Action Buttons: Reset & Shuffle */}
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.12, y: -2 }}
-                  whileTap={{ scale: 0.9, y: 2 }}
-                  onClick={handleResetCurrentRound}
-                  aria-label="Acak Ulang Posisi"
-                  className="p-2 sm:p-2.5 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-200 border-b-4 border-slate-300 text-slate-700 shadow-sm cursor-pointer active:border-b-0 active:translate-y-1"
-                  title="Acak ulang posisi gelembung"
-                >
-                  <RotateCcw size={17} className="stroke-[2.5]" />
-                </motion.button>
-
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.12, y: -2 }}
-                  whileTap={{ scale: 0.9, y: 2 }}
-                  onClick={handleNextRound}
-                  aria-label="Ganti Huruf Target"
-                  className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-b from-amber-400 to-amber-500 border-2 border-amber-300 border-b-4 border-amber-600 text-white shadow-md cursor-pointer active:border-b-0 active:translate-y-1"
-                  title="Ganti ke huruf target acak berikutnya"
-                >
-                  <Shuffle size={17} className="stroke-[2.5]" />
-                </motion.button>
-              </div>
+                return (
+                  <motion.div
+                    key={slotIdx}
+                    ref={slotRefs[slotIdx]}
+                    initial={false}
+                    animate={
+                      isBouncing
+                        ? { scale: [0.7, 1.32, 1], rotate: [0, -10, 0] }
+                        : { scale: 1 }
+                    }
+                    transition={{ type: "spring", stiffness: 450, damping: 14 }}
+                    className={`w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center relative shrink-0 transition-all ${
+                      isFilled
+                        ? "bg-gradient-to-b from-[#059669] to-[#047857] border-2 border-[#065F46] ring-2 ring-amber-300 text-white shadow-md"
+                        : "bg-amber-50/80 border-[3px] border-dashed border-amber-400 shadow-inner"
+                    }`}
+                  >
+                    {isFilled ? (
+                      <>
+                        <span className="font-display font-black text-xl sm:text-2xl text-white leading-none">
+                          {targetLetter}
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-slate-900 shadow-xs"
+                        >
+                          <Check size={10} strokeWidth={3.5} />
+                        </span>
+                      </>
+                    ) : (
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
+
+            {/* 4. Circular Shuffle / New Letter Button */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.1, y: -2 }}
+              whileTap={{ scale: 0.92, y: 2 }}
+              onClick={handleNextRound}
+              aria-label="Ganti ke huruf target acak berikutnya"
+              className="w-11 h-11 rounded-full bg-white hover:bg-slate-50 border-2 border-slate-200 border-b-4 border-b-slate-300 text-slate-700 shadow-sm cursor-pointer flex items-center justify-center active:border-b-2 active:translate-y-1 flex-shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+            >
+              <Shuffle size={18} aria-hidden="true" className="stroke-[2.5]" />
+            </motion.button>
           </motion.div>
         </header>
 
-        {/* ── Main Playing Field: 10 Soap Bubbles with Direct Target Highlight ── */}
-        <section className="relative z-20 flex-1 min-h-0 w-full max-w-6xl mx-auto px-4 my-auto overflow-hidden">
-          {/* Floating Combo Badge Juice */}
+        {/* ── Wide Curved Arena: 10 Identical Hint-Free Glossy Soap Bubbles (overflow-visible) ── */}
+        <section className="relative z-20 flex-1 min-h-0 max-w-5xl w-full mx-auto px-6 my-auto overflow-visible">
+          {/* Floating Pop Juice Badges */}
           {floatingCombos.map((cb) => (
             <motion.div
               key={cb.id}
               initial={{ left: `${cb.x}%`, top: `${cb.y}%`, opacity: 0, scale: 0.5, y: 0 }}
               animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.25, 1, 0.9], y: -45 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-45 px-3 py-1 rounded-full bg-gradient-to-r from-amber-300 to-amber-500 border-2 border-white text-white font-display font-black text-sm sm:text-base shadow-lg drop-shadow-sm flex items-center gap-1"
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-45 px-3 py-1 rounded-full bg-[#B45309] border-2 border-white text-white font-display font-black text-sm sm:text-base shadow-lg flex items-center gap-1"
             >
-              <Sparkles size={14} className="text-yellow-100" />
+              <Sparkles size={14} aria-hidden="true" className="text-amber-200" />
               <span>{cb.text}</span>
             </motion.div>
           ))}
 
-          {/* Water Droplets and Gold Sparks on Correct Tap */}
+          {/* Water Droplets and Sparkles on Correct Pop */}
           {splashDroplets.map((d) => (
             <motion.div
               key={d.id}
@@ -898,244 +743,188 @@ export default function TemukanHurufView() {
             />
           ))}
 
-          {/* 10 Sleek 3D Soap Bubbles (Replacing chunky yellow rings with refined golden aura + crisp inner coins & magnifying lens hover) */}
+          {/* All 10 Playable Bubbles (Wrapped cleanly so Framer Motion transforms never wipe out centering) */}
           {bubbles.map((b) => {
             const isFound = foundIds.includes(b.id);
-            const isPopping = poppingId === b.id;
+            const isPopping = poppingIds.includes(b.id);
             const isWobble = wobbleId === b.id;
-            const isHint = hintBubbleId === b.id;
 
             if (isFound) return null;
 
             return (
-              <motion.button
+              <div
                 key={b.id}
-                ref={(el) => (bubbleRefs.current[b.id] = el)}
-                type="button"
-                onClick={(e) => handleBubbleClick(b, e)}
-                disabled={roundComplete}
-                style={{
-                  position: "absolute",
-                  left: `${b.x}%`,
-                  top: `${b.y}%`,
-                  transform: "translate(-50%, -50%)",
-                }}
-                whileHover={{
-                  scale: 1.13,
-                  transition: { type: "spring", stiffness: 450, damping: 16 },
-                }}
-                whileTap={{
-                  scale: 0.9,
-                  transition: { type: "spring", stiffness: 500, damping: 12 },
-                }}
-                animate={
-                  isPopping
-                    ? { scale: [1, 1.45, 0], opacity: [1, 0.9, 0] }
-                    : isWobble
-                    ? {
-                        rotate: [-14, 14, -8, 8, -3, 3, 0],
-                        scale: [1, 1.14, 0.92, 1.05, 1],
-                      }
-                    : b.isTarget
-                    ? {
-                        y: [-6, 6, -6],
-                        scale: [1, 1.05, 1],
-                      }
-                    : {
-                        y: [-4.5, 4.5, -4.5],
-                      }
-                }
-                transition={
-                  isPopping
-                    ? { duration: 0.3, ease: "easeOut" }
-                    : isWobble
-                    ? { duration: 0.45, ease: "easeInOut" }
-                    : {
-                        duration: b.floatDuration,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: b.floatDelay,
-                      }
-                }
-                className={`w-24 h-24 sm:w-26 sm:h-26 md:w-28 md:h-28 rounded-full flex items-center justify-center select-none cursor-pointer relative active:scale-95 transition-all group ${
-                  b.isTarget
-                    ? "ring-2 ring-amber-200/85 shadow-[0_0_22px_rgba(253,224,71,0.65),0_10px_24px_rgba(127,29,29,0.28)]"
-                    : "shadow-[0_10px_24px_rgba(127,29,29,0.28)]"
-                }`}
+                style={{ left: `${b.x}%`, top: `${b.y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
               >
-                {/* 6-Second Inactivity Golden Pulse Shimmer Hint */}
-                {isHint && (
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.3, 1],
-                      opacity: [0.35, 0.9, 0.35],
-                    }}
-                    transition={{
-                      duration: 1.25,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                    className="absolute -inset-3 rounded-full border-3 border-amber-300 shadow-[0_0_25px_rgba(253,224,71,0.9)] pointer-events-none z-30"
-                  />
-                )}
-
-                {/* Interactive Magnifying Glass Hover Optical Ring */}
-                <div className="absolute -inset-1 rounded-full ring-4 ring-amber-300/90 shadow-[0_0_16px_rgba(251,191,36,0.6)] pointer-events-none z-30 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                {/* Iridescent Translucent Soap Bubble Sphere */}
-                <div
-                  className="absolute inset-0 rounded-full border-2 border-white/80 bg-white/15 backdrop-blur-[2px] shadow-[inset_0_0_14px_rgba(255,255,255,0.75)] pointer-events-none"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.75) 0%, rgba(224,242,254,0.3) 30%, rgba(252,231,243,0.2) 65%, rgba(254,240,138,0.2) 85%, rgba(56,189,248,0.25) 100%)",
+                <motion.button
+                  ref={(el) => (bubbleRefs.current[b.id] = el)}
+                  type="button"
+                  onClick={(e) => handleBubbleClick(b, e)}
+                  disabled={roundComplete}
+                  aria-label={`Gelembung huruf ${b.letter}`}
+                  whileHover={{
+                    scale: 1.12,
+                    transition: { type: "spring", stiffness: 450, damping: 16 },
                   }}
-                />
-
-                {/* 3D Soap Bubble Sprite (gelembung.png) */}
-                <img
-                  src="/assets/gelembung.png"
-                  alt="Gelembung"
-                  draggable="false"
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none rounded-full opacity-75 group-hover:opacity-95 transition-opacity"
-                />
-
-                {/* Primary Specular Highlights */}
-                <div className="absolute top-2 left-3 w-5 h-2.5 bg-white/95 rounded-full -rotate-45 blur-[0.2px] pointer-events-none z-20" />
-                <div className="absolute top-5 left-2 w-1.5 h-1.5 bg-white/90 rounded-full pointer-events-none z-20" />
-
-                {/* Diagonal Glass Glare Sweep Across Coin on Hover */}
-                <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none z-25">
-                  <div className="w-full h-full bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                </div>
-
-                {/* Crisp 3D Embossed Inner Letter Coin (Target: Golden-Amber; Distractor: Ivory-White) */}
-                <div
-                  className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center pointer-events-none z-20 transition-transform group-hover:scale-105 ${
-                    b.isTarget
-                      ? "bg-gradient-to-b from-[#FDE047] via-[#FACC15] to-[#EAB308] border-2 border-[#FEF9C3] border-b-4 border-b-[#CA8A04] shadow-inner shadow-[0_4px_12px_rgba(202,138,4,0.45)]"
-                      : "bg-gradient-to-b from-[#FFFFFF] to-[#F1F5F9] border-2 border-white border-b-4 border-b-slate-300 shadow-inner shadow-[0_4px_8px_rgba(0,0,0,0.1)]"
-                  }`}
+                  whileTap={{
+                    scale: 0.9,
+                    transition: { type: "spring", stiffness: 500, damping: 12 },
+                  }}
+                  animate={
+                    isPopping
+                      ? { scale: [1, 1.45, 0], opacity: [1, 0.9, 0] }
+                      : isWobble
+                      ? {
+                          x: [-7, 7, -5, 5, 0],
+                          rotate: [-10, 10, -6, 6, 0],
+                          scale: [1, 1.08, 0.94, 1.03, 1],
+                        }
+                      : {
+                          y: [-6, 6, -6],
+                          rotate: [-2.5, 2.5, -2.5],
+                        }
+                  }
+                  transition={
+                    isPopping
+                      ? { duration: 0.3, ease: "easeOut" }
+                      : isWobble
+                      ? { duration: 0.45, ease: "easeInOut" }
+                      : {
+                          duration: b.floatDuration,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: b.floatDelay,
+                        }
+                  }
+                  className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full flex items-center justify-center select-none cursor-pointer relative active:scale-95 transition-shadow group shadow-[0_12px_26px_rgba(127,29,29,0.28)]"
                 >
-                  <span
-                    className={`font-display font-black text-3xl md:text-4xl text-[#0F172A] leading-none ${
-                      b.isTarget
-                        ? "drop-shadow-[0_1px_1px_rgba(254,240,138,0.8)]"
-                        : "drop-shadow-xs"
-                    }`}
-                  >
-                    {b.letter}
-                  </span>
-                </div>
-              </motion.button>
+                  {/* Uniform White Specular Rim Sheen on Hover */}
+                  <div className="absolute -inset-1 rounded-full ring-3 ring-white/90 shadow-[0_0_18px_rgba(255,255,255,0.65)] pointer-events-none z-30 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  {/* Uniform Iridescent Translucent Soap-Bubble Shell */}
+                  <div
+                    className="absolute inset-0 rounded-full border-[2.5px] border-white/85 bg-white/15 backdrop-blur-[2px] shadow-[inset_0_0_14px_rgba(255,255,255,0.75)] pointer-events-none"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.78) 0%, rgba(224,242,254,0.32) 32%, rgba(252,231,243,0.22) 66%, rgba(254,240,138,0.18) 85%, rgba(56,189,248,0.24) 100%)",
+                    }}
+                  />
+
+                  {/* Uniform Bubble Sprite Texture */}
+                  <img
+                    src="/assets/gelembung.png"
+                    alt=""
+                    aria-hidden="true"
+                    draggable="false"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none rounded-full opacity-75 group-hover:opacity-95 transition-opacity"
+                  />
+
+                  {/* Top-Left Curved Specular Highlight */}
+                  <div className="absolute top-2.5 left-3.5 w-6 h-3 bg-white/95 rounded-full -rotate-45 blur-[0.2px] pointer-events-none z-20" />
+                  <div className="absolute top-6 left-2.5 w-2 h-2 bg-white/90 rounded-full pointer-events-none z-20" />
+
+                  {/* Diagonal Specular Sheen Sweep on Hover */}
+                  <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none z-25">
+                    <div className="w-full h-full bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  </div>
+
+                  {/* 100% Uniform Solid Ivory-White Inner Letter Coin (Unclipped glyphs J, Q, G) */}
+                  <div className="w-18 h-18 md:w-20 md:h-20 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#F1F5F9] border-2 border-white border-b-4 border-b-slate-300 shadow-inner flex items-center justify-center overflow-visible pointer-events-none z-20 transition-transform group-hover:scale-105">
+                    <span className="font-display font-black text-3xl md:text-4xl leading-normal text-[#0F172A] select-none">
+                      {b.letter}
+                    </span>
+                  </div>
+                </motion.button>
+              </div>
             );
           })}
         </section>
+      </motion.div>
 
-        {/* ── Interactive Saka & Tika Mascot Stage Mound (Bottom-Left) + 3D Toy Block Prop ── */}
-        <div className="fixed bottom-0 left-2 sm:left-4 z-30 select-none flex flex-col items-center">
-          {/* Dynamic Encouraging Speech Bubble with Cartoon Tail */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={speechBubbleText}
-              initial={{ opacity: 0, y: 8, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.9 }}
-              transition={{ duration: 0.22 }}
-              className="mb-1.5 px-3 py-1.5 rounded-2xl bg-white/95 border-2 border-amber-400 shadow-lg flex items-center gap-1.5 max-w-[240px] text-center relative pointer-events-none"
-            >
-              <Sparkles size={13} className="text-amber-500 flex-shrink-0" />
-              <span className="font-sans font-black text-[11px] sm:text-xs text-amber-950 leading-tight">
-                {speechBubbleText}
-              </span>
-              {/* Cartoon Speech Bubble Pointer Tail */}
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r-2 border-b-2 border-amber-400 rotate-45" />
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Interactive Tap-Friendly Mascot Cutouts */}
+      {/* ── Foreground Saka & Tika Positioned Cleanly In Front of Green Meadow Hill (z-20) ── */}
+      <div className="fixed bottom-3 md:bottom-4 left-4 sm:left-6 z-20 select-none flex flex-col items-center">
           <div className="relative flex items-end justify-center -mb-1">
-            {/* Saka Mascot Cutout */}
             <motion.button
               type="button"
-              onClick={() => handleMascotTap("saka")}
-              whileHover={{ scale: 1.08, y: -4 }}
+              onClick={handleMascotTap}
+              whileHover={{ scale: 1.07, y: -4 }}
               whileTap={{ scale: 0.94 }}
+              aria-label="Saka Maskot"
               animate={
                 roundComplete
-                  ? { y: [-18, 0, -10, 0], scale: [1, 1.06, 1] }
+                  ? { y: [0, -18, 0], scale: [1, 1.06, 1] }
                   : mascotAnimationState === "cheer"
-                  ? { y: [-16, 0, -8, 0], scale: [1, 1.05, 1] }
+                  ? { y: [0, -18, 0], scale: [1, 1.06, 1] }
                   : mascotAnimationState === "giggle"
-                  ? { y: [-20, 0, -12, 0], rotate: [0, -6, 4, 0] }
+                  ? { y: [0, -18, 0], rotate: [0, -6, 4, 0] }
                   : mascotAnimationState === "encourage"
                   ? { y: [-4, 0], rotate: [-3, 3, 0] }
-                  : { y: [0, -2.5, 0] }
+                  : { y: [0, -3.5, 0], rotate: [-1, 1, -1] }
               }
               transition={
                 roundComplete
-                  ? { duration: 0.75, repeat: Infinity, ease: "easeOut" }
-                  : mascotAnimationState === "giggle"
-                  ? { duration: 0.65, ease: "easeOut" }
+                  ? { duration: 0.72, repeat: Infinity, ease: "easeOut" }
+                  : mascotAnimationState === "cheer" || mascotAnimationState === "giggle"
+                  ? { duration: 0.68, ease: "easeOut" }
                   : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }
               }
-              className="cursor-pointer pointer-events-auto p-0 border-0 bg-transparent outline-none flex items-end focus:outline-none z-20"
-              title="Ketuk Saka untuk mendengar semangatnya!"
+              className="cursor-pointer pointer-events-auto p-0 border-0 bg-transparent outline-none flex items-end z-20"
             >
               <img
                 src="/assets/saka-maskot-1-cutout.png"
                 alt="Saka Maskot"
-                className="h-28 sm:h-34 md:h-38 lg:h-42 w-auto object-contain object-bottom drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+                draggable="false"
+                className="h-[24vh] min-h-[160px] max-h-[225px] w-auto object-contain object-bottom drop-shadow-[0_6px_12px_rgba(0,0,0,0.3)]"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
 
-            {/* Tika Mascot Cutout */}
             <motion.button
               type="button"
-              onClick={() => handleMascotTap("tika")}
-              whileHover={{ scale: 1.08, y: -4 }}
+              onClick={handleMascotTap}
+              whileHover={{ scale: 1.07, y: -4 }}
               whileTap={{ scale: 0.94 }}
+              aria-label="Tika Maskot"
               animate={
                 roundComplete
-                  ? { y: [-20, 0, -12, 0], scale: [1, 1.06, 1] }
+                  ? { y: [0, -18, 0], scale: [1, 1.06, 1] }
                   : mascotAnimationState === "cheer"
-                  ? { y: [-18, 0, -9, 0], scale: [1, 1.05, 1] }
+                  ? { y: [0, -18, 0], scale: [1, 1.06, 1] }
                   : mascotAnimationState === "giggle"
-                  ? { y: [-20, 0, -12, 0], rotate: [0, 6, -4, 0] }
+                  ? { y: [0, -18, 0], rotate: [0, 6, -4, 0] }
                   : mascotAnimationState === "encourage"
                   ? { y: [-4, 0], rotate: [3, -3, 0] }
-                  : { y: [0, -3, 0] }
+                  : { y: [0, -3.5, 0], rotate: [1, -1, 1] }
               }
               transition={
                 roundComplete
-                  ? { duration: 0.75, delay: 0.08, repeat: Infinity, ease: "easeOut" }
-                  : mascotAnimationState === "giggle"
-                  ? { duration: 0.65, delay: 0.08, ease: "easeOut" }
-                  : { duration: 3.5, repeat: Infinity, delay: 0.4, ease: "easeInOut" }
+                  ? { duration: 0.72, delay: 0.08, repeat: Infinity, ease: "easeOut" }
+                  : mascotAnimationState === "cheer" || mascotAnimationState === "giggle"
+                  ? { duration: 0.68, delay: 0.08, ease: "easeOut" }
+                  : { duration: 3.6, repeat: Infinity, delay: 0.4, ease: "easeInOut" }
               }
-              className="cursor-pointer pointer-events-auto p-0 border-0 bg-transparent outline-none flex items-end -ml-4 focus:outline-none z-20"
-              title="Ketuk Tika untuk mendengar semangatnya!"
+              className="cursor-pointer pointer-events-auto p-0 border-0 bg-transparent outline-none flex items-end -ml-5 z-20"
             >
               <img
-                src="/assets/tika-maskot-1-cutout.png"
+                src="/assets/icon-tika-utama.png"
                 alt="Tika Maskot"
-                className="h-28 sm:h-34 md:h-38 lg:h-42 w-auto object-contain object-bottom drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+                draggable="false"
+                className="h-[24vh] min-h-[160px] max-h-[225px] w-auto object-contain object-bottom drop-shadow-[0_6px_12px_rgba(0,0,0,0.3)]"
                 style={{ imageRendering: "-webkit-optimize-contrast" }}
               />
             </motion.button>
           </div>
 
-          {/* Soft Ground Stage Mound & Contact Shadows */}
-          <div className="relative w-48 sm:w-56 h-3 flex items-center justify-around pointer-events-none -mt-1">
-            <div className="w-20 h-3 bg-[#064E3B]/40 rounded-full blur-[2px]" />
-            <div className="w-20 h-3 bg-[#064E3B]/40 rounded-full blur-[2px]" />
+          {/* Elliptical Shoe Contact Shadows */}
+          <div className="relative w-52 sm:w-60 h-3 flex items-center justify-around pointer-events-none -mt-1.5 z-10">
+            <div className="w-22 h-3 bg-[#064E3B]/40 rounded-full blur-[2px]" />
+            <div className="w-22 h-3 bg-[#064E3B]/40 rounded-full blur-[2px]" />
           </div>
         </div>
-      </motion.div>
 
-      {/* ── 3. Overlay Layer: Shockwaves, Flying Coins & Background Tap Ripples ── */}
+      {/* ── 3. Overlay Layer: Shockwaves, Flying Coins & Tap Ripples ── */}
       <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-        {/* Popping Shockwave Expanding Rings */}
         {shockwaves.map((sw) => (
           <motion.div
             key={sw.id}
@@ -1147,7 +936,6 @@ export default function TemukanHurufView() {
           />
         ))}
 
-        {/* Flying Coin Projectiles (From popped bubble to matching target slot) */}
         {flyingCoins.map((coin) => (
           <motion.div
             key={coin.id}
@@ -1171,7 +959,6 @@ export default function TemukanHurufView() {
             className="fixed -translate-x-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-[#FDE047] via-[#FACC15] to-[#EAB308] border-2 border-[#FEF9C3] border-b-4 border-b-[#CA8A04] shadow-[0_0_24px_rgba(251,191,36,1),0_8px_16px_rgba(0,0,0,0.3)] flex items-center justify-center font-display font-black text-3xl sm:text-4xl text-[#0F172A] z-50"
           >
             {coin.letter}
-            {/* Sparkling Trail Sparks */}
             <motion.span
               animate={{ opacity: [1, 0], scale: [1, 0.3] }}
               transition={{ duration: 0.3, repeat: Infinity }}
@@ -1180,7 +967,6 @@ export default function TemukanHurufView() {
           </motion.div>
         ))}
 
-        {/* Arena Touch Tap Ripples */}
         {arenaRipples.map((rip) => (
           <motion.div
             key={rip.id}
@@ -1193,11 +979,10 @@ export default function TemukanHurufView() {
         ))}
       </div>
 
-      {/* ── 4. Celebratory Victory Modal: "CONGRATULATION!" with Petasan & Fireworks ── */}
+      {/* ── 4. Single "HORE! KAMU HEBAT!" Celebration Overlay (Zero Stars, Zero Emojis) ── */}
       <AnimatePresence>
         {roundComplete && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto">
-            {/* Semi-translucent celebratory backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1205,7 +990,6 @@ export default function TemukanHurufView() {
               className="absolute inset-0 bg-black/45 backdrop-blur-xs"
             />
 
-            {/* Main Celebratory 3D Card */}
             <motion.div
               initial={{ scale: 0.35, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -1213,7 +997,6 @@ export default function TemukanHurufView() {
               transition={{ type: "spring", stiffness: 420, damping: 20 }}
               className="relative z-10 flex flex-col items-center justify-center text-center p-6 sm:p-8 max-w-lg w-full bg-gradient-to-b from-[#FFFDF8] via-[#FFF7ED] to-[#FEF3C7] rounded-[2.5rem] border-4 border-amber-300 border-b-8 border-b-amber-500 shadow-[0_20px_60px_rgba(0,0,0,0.5)] ring-8 ring-amber-400/50"
             >
-              {/* Rotating Sunburst Rays Background */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
@@ -1230,7 +1013,6 @@ export default function TemukanHurufView() {
                 </svg>
               </motion.div>
 
-              {/* 3D Festive Firecracker ("Petasan") & Fireworks Vector Artwork */}
               <div className="w-28 h-28 sm:w-32 sm:h-32 mb-2 relative flex items-center justify-center">
                 <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
                   <defs>
@@ -1245,7 +1027,6 @@ export default function TemukanHurufView() {
                     </linearGradient>
                   </defs>
 
-                  {/* Exploding Firework Rays */}
                   <g stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round">
                     <line x1="60" y1="12" x2="60" y2="4" strokeDasharray="3 3" />
                     <line x1="95" y1="25" x2="102" y2="18" />
@@ -1257,7 +1038,6 @@ export default function TemukanHurufView() {
                     <line x1="25" y1="25" x2="18" y2="18" />
                   </g>
 
-                  {/* Sparkling Firework Comets */}
                   <circle cx="60" cy="8" r="3.5" fill="#38BDF8" />
                   <circle cx="100" cy="20" r="4" fill="#F43F5E" />
                   <circle cx="114" cy="60" r="3.5" fill="#34D399" />
@@ -1266,7 +1046,6 @@ export default function TemukanHurufView() {
                   <circle cx="6" cy="60" r="4" fill="#F43F5E" />
                   <circle cx="20" cy="20" r="3.5" fill="#38BDF8" />
 
-                  {/* Crossed Firecracker Sticks */}
                   <g transform="translate(60, 60) rotate(-25) translate(-60, -60)">
                     <rect x="52" y="28" width="16" height="64" rx="4" fill="url(#crackerRed)" stroke="#7F1D1D" strokeWidth="1.5" />
                     <rect x="52" y="34" width="16" height="8" fill="url(#crackerGold)" />
@@ -1283,35 +1062,31 @@ export default function TemukanHurufView() {
                     <circle cx="52" cy="14" r="3" fill="#FEF08A" />
                   </g>
 
-                  {/* Center Sparkle Explosion Flash */}
                   <circle cx="60" cy="60" r="10" fill="#FEF08A" />
                   <circle cx="60" cy="60" r="5" fill="#FFFFFF" />
                 </svg>
               </div>
 
-              {/* Bold Celebratory Title */}
               <h2 className="font-display font-black text-3xl sm:text-4xl text-[#B91C1C] tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(251,191,36,0.5)]">
                 HORE! KAMU HEBAT!
               </h2>
 
-              {/* Mission Success Affirmation Message */}
               <p className="font-sans font-black text-sm sm:text-base text-amber-950 mt-2 leading-relaxed">
                 Semua 3 Gelembung Huruf{" "}
-                <span className="font-display font-black text-xl sm:text-2xl text-red-600 px-1">
+                <span className="font-display font-black text-xl sm:text-2xl text-red-700 px-1">
                   {targetLetter}
                 </span>{" "}
                 Berhasil Dipecahkan!
               </p>
 
-              {/* Bouncy Interactive "Lanjut Huruf Baru" Button */}
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.08, y: -2 }}
+                whileHover={{ scale: 1.06, y: -2 }}
                 whileTap={{ scale: 0.94, y: 2 }}
                 onClick={handleNextRound}
-                className="mt-4 px-6 py-3 rounded-2xl bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 border-2 border-white/90 border-b-6 border-b-amber-700 text-white font-display font-black text-lg sm:text-xl shadow-[0_10px_20px_rgba(217,119,6,0.4)] flex items-center gap-2 cursor-pointer active:border-b-2 active:translate-y-1"
+                className="mt-5 px-6 py-3 rounded-2xl bg-gradient-to-b from-[#B45309] to-[#9A3412] border-2 border-white border-b-6 border-b-[#7C2D12] text-white font-display font-black text-lg sm:text-xl shadow-lg flex items-center gap-2 cursor-pointer active:border-b-2 active:translate-y-1"
               >
-                <Play size={20} className="fill-white" />
+                <Play size={20} aria-hidden="true" className="fill-white" />
                 <span>LANJUT HURUF BARU!</span>
               </motion.button>
             </motion.div>

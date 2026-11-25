@@ -72,6 +72,8 @@ export function playClickSound() {
 }
 
 export function playHoverSound() {
+  // Skip hover sound before audioContext is unlocked by a user click/tap to prevent autoplay warnings
+  if (!audioContext || audioContext.state !== "running") return;
   playTone({ frequency: 440, duration: 0.07, type: "triangle", volume: 0.15 });
 }
 

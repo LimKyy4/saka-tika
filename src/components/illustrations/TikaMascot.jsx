@@ -3,7 +3,6 @@
 // Upgraded with authentic transparent cutout asset, staggered breathing sway, spring hop & grounded shadow.
 // STRICT ZERO EMOJIS POLICY: Only lucide-react icons or custom vector graphics.
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function TikaMascot({
@@ -13,8 +12,6 @@ export default function TikaMascot({
   speechText = "",
   showBubble = false,
 }) {
-  const [imgSrc, setImgSrc] = useState("/assets/tika-maskot-1-cutout.png");
-
   return (
     <div className={`relative flex flex-col items-center select-none ${className}`}>
       {/* Speech Bubble */}
@@ -55,9 +52,10 @@ export default function TikaMascot({
         className="relative z-10 flex items-end justify-center"
       >
         <img
-          src={imgSrc}
-          onError={() => setImgSrc("/assets/tika-maskot-utama.png")}
+          src="/assets/icon-tika-utama.png"
           alt="Maskot Tika"
+          width={190}
+          height={360}
           draggable="false"
           className="h-[25vh] min-h-[165px] max-h-[240px] w-auto object-contain pointer-events-none select-none drop-shadow-md"
           style={{ imageRendering: "-webkit-optimize-contrast" }}

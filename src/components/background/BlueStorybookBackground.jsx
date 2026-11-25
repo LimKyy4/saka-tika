@@ -181,57 +181,6 @@ export default function BlueStorybookBackground() {
         </svg>
       </div>
 
-      {/* Top-Right: Vivid Open Storybook Prop (Golden-Amber Cover & Ribbon) */}
-      <div className="absolute top-3 right-4 sm:top-4 sm:right-6 opacity-85 pointer-events-none w-24 h-18 sm:w-28 sm:h-20 drop-shadow-md">
-        <svg viewBox="0 0 100 68" fill="none" className="w-full h-full">
-          {/* Outer Cover Trim (Golden Amber / Warm Caramel) */}
-          <path
-            d="M50 22 C37 14 17 14 6 18 L6 57 C17 53 37 53 50 59 C63 53 83 53 94 57 L94 18 C83 14 63 14 50 22 Z"
-            fill="#F59E0B"
-            stroke="#0F172A"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-          />
-          {/* Book Spine Center Ridge */}
-          <path d="M50 22 L50 59" stroke="#B45309" strokeWidth="3" />
-
-          {/* Left Cream-White Page */}
-          <path
-            d="M48 21 C36 15 18 15 8 19 L8 54 C18 50 36 50 48 56 Z"
-            fill="#FFFDF7"
-            stroke="#0F172A"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-          {/* Right Cream-White Page */}
-          <path
-            d="M52 21 C64 15 82 15 92 19 L92 54 C82 50 64 50 52 56 Z"
-            fill="#FFFDF7"
-            stroke="#0F172A"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-
-          {/* Storybook Text Lines (Playful Cyan Dashes) */}
-          <path d="M16 28 C24 26 34 26 42 28" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 3" />
-          <path d="M16 35 C24 33 34 33 42 35" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 3" />
-          <path d="M16 42 C24 40 34 40 42 42" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 3" />
-
-          <path d="M58 28 C66 26 76 26 84 28" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 3" />
-          <path d="M58 35 C66 33 76 33 84 35" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 3" />
-          <path d="M58 42 C66 40 76 40 84 42" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="1 3" />
-
-          {/* Red Ribbon Bookmark Hanging from Spine */}
-          <path
-            d="M49 22 C49 32 52 46 53 62 L49 59 L45 62 C46 46 49 32 49 22 Z"
-            fill="#EF4444"
-            stroke="#0F172A"
-            strokeWidth="1.4"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-
       {/* ── 6. Rolling Blue-Teal & Soft Meadow Hills at Bottom ── */}
       <div className="absolute bottom-0 inset-x-0 h-44 overflow-hidden pointer-events-none">
         {/* Back Teal/Sky Wave Hill */}

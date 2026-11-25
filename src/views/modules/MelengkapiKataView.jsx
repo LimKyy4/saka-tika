@@ -1,13 +1,9 @@
 // src/views/modules/MelengkapiKataView.jsx
-// SAKA TIKA: Mint Sage Wooden Puzzle Workshop for "Melengkapi Kata" (Module 5)
-// - Enlarged clue illustration with dedicated "Dengar" audio button (Zero badge overlap)
-// - Crisp, 100% solid, smudge-free ivory letter blocks on 3D Honey-Pine wooden puzzle tray
-// - Seamless dual input: High-tolerance drag-and-drop & single tap-to-place with snap chimes
-// - Clean instruction label (Zero sparkle icons) and 4 colorful chunky 3D answer blocks
-// - Grounded Saka & Tika anchored on lush grass mounds with contact shadows & indented speech bubble
+// SAKA TIKA: "Melengkapi Kata" - Level Gate, Two-Zone Board (Wooden Question vs. Answer Dock),
+// and Dynamic Randomized Missing-Letter Positions.
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
-// STRICT ZERO EMOJIS & ZERO STAR ICONS POLICY: Exclusively lucide-react icons or bespoke vector graphics.
-// STRICT AUDIO CONTROL: Never auto-play voice narration or SFX on initial mount.
+// STRICT ZERO EMOJIS & ZERO STAR ICONS POLICY: Only lucide-react icons (no Star) and custom vectors.
+// STRICT AUDIO GATING: Never auto-play voice narration or SFX on initial mount or round start.
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,10 +12,10 @@ import {
   Volume2,
   RotateCcw,
   Shuffle,
-  CheckCircle2,
   Check,
   Puzzle,
   Layers,
+  Play,
 } from "lucide-react";
 
 import { useGame } from "../../context/GameContext.jsx";
@@ -39,9 +35,36 @@ import WordIllustration from "../../components/illustrations/WordIllustration.js
 
 const TOTAL_QUESTIONS = 5;
 
-// Kurasi kosakata baku Bahasa Indonesia (4 s.d. 6 huruf) ramah anak usia dini (TK / PAUD)
+const LEVEL_CARDS = [
+  {
+    lvl: 1,
+    badge: "MUDAH",
+    title: "LEVEL 1",
+    cardClass:
+      "bg-gradient-to-b from-[#0369A1] to-[#1D4ED8] border-4 border-white border-b-[8px] border-b-[#1E3A8A] text-white",
+    badgeClass: "bg-white text-[#0369A1]",
+  },
+  {
+    lvl: 2,
+    badge: "SEDANG",
+    title: "LEVEL 2",
+    cardClass:
+      "bg-gradient-to-b from-[#FDE047] via-[#FBBF24] to-[#F59E0B] border-4 border-white border-b-[8px] border-b-[#B45309] text-[#0F172A]",
+    badgeClass: "bg-white text-[#92400E]",
+  },
+  {
+    lvl: 3,
+    badge: "TANTANGAN",
+    title: "LEVEL 3",
+    cardClass:
+      "bg-gradient-to-b from-[#E11D48] to-[#BE185D] border-4 border-white border-b-[8px] border-b-[#831843] text-white",
+    badgeClass: "bg-white text-[#9F1239]",
+  },
+];
+
+// Curated concrete Indonesian words (all backed by /assets/illustrations/*.png)
 const WORKSHOP_WORD_POOL = [
-  // 4 Huruf (Sempurna untuk Level 1 & Level 2)
+  // 4 Letters (Level 1 & Level 2)
   { word: "APEL", illustrationKey: "apel", color: "#EF4444" },
   { word: "AYAM", illustrationKey: "ayam", color: "#F59E0B" },
   { word: "AWAN", illustrationKey: "awan", color: "#38BDF8" },
@@ -66,11 +89,11 @@ const WORKSHOP_WORD_POOL = [
   { word: "TOPI", illustrationKey: "topi", color: "#F59E0B" },
   { word: "YOYO", illustrationKey: "yoyo", color: "#F59E0B" },
 
-  // 5 Huruf (Sempurna untuk Level 1, Level 2, dan Level 3)
+  // 5 Letters (Level 1, 2, & 3)
   { word: "BEBEK", illustrationKey: "bebek", color: "#10B981" },
   { word: "BULAN", illustrationKey: "bulan", color: "#8B5CF6" },
   { word: "BUNGA", illustrationKey: "bunga", color: "#EC4899" },
-  { word: "DONAT", illustrationKey: "donat", color: "#F59E0B" },
+  { word: "LAMPU", illustrationKey: "lampu", color: "#F59E0B" },
   { word: "EMBER", illustrationKey: "ember", color: "#3B82F6" },
   { word: "GAJAH", illustrationKey: "gajah", color: "#64748B" },
   { word: "GITAR", illustrationKey: "gitar", color: "#D97706" },
@@ -78,7 +101,7 @@ const WORKSHOP_WORD_POOL = [
   { word: "JERUK", illustrationKey: "jeruk", color: "#F97316" },
   { word: "KAPAL", illustrationKey: "kapal", color: "#06B6D4" },
   { word: "KURSI", illustrationKey: "kursi", color: "#10B981" },
-  { word: "LEMON", illustrationKey: "lemon", color: "#EAB308" },
+  { word: "MOBIL", illustrationKey: "mobil", color: "#EF4444" },
   { word: "NANAS", illustrationKey: "nanas", color: "#F59E0B" },
   { word: "POHON", illustrationKey: "pohon", color: "#10B981" },
   { word: "RUMAH", illustrationKey: "rumah", color: "#EF4444" },
@@ -86,7 +109,7 @@ const WORKSHOP_WORD_POOL = [
   { word: "WAJAN", illustrationKey: "wajan", color: "#F59E0B" },
   { word: "ZEBRA", illustrationKey: "zebra", color: "#334155" },
 
-  // 6 Huruf (Sempurna untuk Level 2 dan Level 3)
+  // 6 Letters (Level 1, 2, & 3)
   { word: "KERETA", illustrationKey: "kereta", color: "#3B82F6" },
   { word: "PISANG", illustrationKey: "pisang", color: "#EAB308" },
   { word: "PAYUNG", illustrationKey: "payung", color: "#EF4444" },
@@ -94,70 +117,63 @@ const WORKSHOP_WORD_POOL = [
   { word: "WAYANG", illustrationKey: "wayang", color: "#D97706" },
 ];
 
-// Palet warna cerah 4 balok pilihan huruf mainan 3D
+// Vibrant high-contrast toy choice palettes (all use #0F172A text)
 const TOY_CHOICE_PALETTES = [
   {
-    bg: "from-[#7DD3FC] via-[#38BDF8] to-[#0284C7]",
+    bg: "from-[#7DD3FC] via-[#38BDF8] to-[#0EA5E9]",
     border: "border-[#BAE6FD] border-b-[#0369A1]",
-    text: "#0F172A",
     shadow: "shadow-sky-400/35",
   },
   {
     bg: "from-[#FDE047] via-[#FBBF24] to-[#F59E0B]",
     border: "border-[#FEF08A] border-b-[#B45309]",
-    text: "#0F172A",
     shadow: "shadow-amber-400/35",
   },
   {
-    bg: "from-[#F472B6] via-[#EC4899] to-[#DB2777]",
+    bg: "from-[#F9A8D4] via-[#F472B6] to-[#EC4899]",
     border: "border-[#FBCFE8] border-b-[#9D174D]",
-    text: "#0F172A",
     shadow: "shadow-rose-400/35",
   },
   {
-    bg: "from-[#6EE7B7] via-[#34D399] to-[#059669]",
+    bg: "from-[#6EE7B7] via-[#34D399] to-[#10B981]",
     border: "border-[#A7F3D0] border-b-[#047857]",
-    text: "#0F172A",
     shadow: "shadow-emerald-400/35",
   },
 ];
 
-// Penghasil 3 huruf pengalih acak yang berbeda dari huruf target
-function generateDistractors(targetLetter) {
+function generateDistractors(targetLetter, count = 3) {
   const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const available = allLetters.filter((l) => l !== targetLetter.toUpperCase());
   const shuffled = [...available].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, 3);
+  return shuffled.slice(0, count);
 }
 
 export default function MelengkapiKataView() {
   const { addStars } = useGame();
   const { playSfx } = useAudio();
 
-  // State Level: 1 (1 huruf hilang), 2 (2 huruf hilang), 3 (3 huruf hilang)
-  const [level, setLevel] = useState(1);
+  // Initial level gate (null shows Level 1-3 selection cards first)
+  const [selectedLevel, setSelectedLevel] = useState(null);
+  const activeLevel = selectedLevel ?? 1;
 
-  // Filter pool kata berdasarkan kebutuhan level
+  // Level-appropriate word pool (Level 3 requires >=5 letters so >=2 clues stay visible)
   const filteredPool = useMemo(() => {
-    if (level === 3) {
+    if (activeLevel === 3) {
       return WORKSHOP_WORD_POOL.filter((w) => w.word.length >= 5);
     }
-    return WORKSHOP_WORD_POOL;
-  }, [level]);
+    return WORKSHOP_WORD_POOL.filter((w) => w.word.length >= 4);
+  }, [activeLevel]);
 
-  // Antrean acak non-repetitif
   const shuffleQueueRef = useRef(null);
   if (!shuffleQueueRef.current || shuffleQueueRef.current.length !== filteredPool.length) {
     shuffleQueueRef.current = new ShuffleQueue(filteredPool.length);
   }
 
-  // State Progres Sesi: 0 s.d. 4 (5 Soal per Sesi)
   const [questionIndex, setQuestionIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(() => {
     return shuffleQueueRef.current ? shuffleQueueRef.current.next() : 0;
   });
 
-  // State Permainan & Slot Hilang
   const [missingIndices, setMissingIndices] = useState([]);
   const [currentMissingStep, setCurrentMissingStep] = useState(0);
   const [solvedIndices, setSolvedIndices] = useState([]);
@@ -166,23 +182,20 @@ export default function MelengkapiKataView() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [wobbleLetter, setWobbleLetter] = useState(null);
   const [isMascotCheering, setIsMascotCheering] = useState(false);
-  const [speechBubbleText, setSpeechBubbleText] = useState("Tarik atau ketuk 1 huruf yang hilang ya!");
   const [isChampion, setIsChampion] = useState(false);
 
-  // Komponen interaktif ekstra
   const [isIllustrationBouncing, setIsIllustrationBouncing] = useState(false);
   const [spinPuzzleIdx, setSpinPuzzleIdx] = useState(null);
   const [tappedTileIdx, setTappedTileIdx] = useState(null);
 
-  // Ref untuk baki kayu & slot aktif agar drop detection sangat toleran
   const trayBoardRef = useRef(null);
   const activeSlotRef = useRef(null);
   const isDraggingRef = useRef(false);
   const [isDraggingAny, setIsDraggingAny] = useState(false);
-
+  const lastBlankPatternRef = useRef("");
   const autoAdvanceTimer = useRef(null);
+  const confettiRafRef = useRef(null);
 
-  // Kata aktif saat ini
   const currentItem = useMemo(() => {
     if (!filteredPool || filteredPool.length === 0) {
       return { word: "APEL", illustrationKey: "apel", color: "#EF4444" };
@@ -194,7 +207,6 @@ export default function MelengkapiKataView() {
     return currentItem.word.split("");
   }, [currentItem.word]);
 
-  // Huruf target untuk slot yang sedang aktif diisi
   const activeMissingIndex = useMemo(() => {
     return missingIndices[currentMissingStep] ?? -1;
   }, [missingIndices, currentMissingStep]);
@@ -206,14 +218,33 @@ export default function MelengkapiKataView() {
     return "";
   }, [currentWordChars, activeMissingIndex]);
 
-  // Siapkan ronde permainan baru
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+      if (confettiRafRef.current) {
+        cancelAnimationFrame(confettiRafRef.current);
+        confettiRafRef.current = null;
+      }
+    };
+  }, []);
+
+  // Dynamically pick randomized start/middle/end blank positions without repeating consecutively
   const setupRound = useCallback((item, currentLevel) => {
     const chars = item.word.split("");
     const targetCount = Math.min(currentLevel, Math.max(1, chars.length - 2));
-
     const allIndices = Array.from({ length: chars.length }, (_, i) => i);
-    const shuffled = [...allIndices].sort(() => 0.5 - Math.random());
-    const pickedMissing = shuffled.slice(0, targetCount).sort((a, b) => a - b);
+
+    let pickedMissing = [];
+    let attempts = 0;
+    do {
+      const shuffled = [...allIndices].sort(() => 0.5 - Math.random());
+      pickedMissing = shuffled.slice(0, targetCount).sort((a, b) => a - b);
+      attempts++;
+    } while (
+      pickedMissing.join(",") === lastBlankPatternRef.current &&
+      attempts < 10
+    );
+    lastBlankPatternRef.current = pickedMissing.join(",");
 
     setMissingIndices(pickedMissing);
     setCurrentMissingStep(0);
@@ -225,17 +256,8 @@ export default function MelengkapiKataView() {
     setTappedTileIdx(null);
 
     const firstTarget = chars[pickedMissing[0]] || "A";
-    const distractors = generateDistractors(firstTarget);
-    const combined = [firstTarget, ...distractors].sort(() => 0.5 - Math.random());
-    setOptions(combined);
-
-    if (currentLevel === 1) {
-      setSpeechBubbleText("Tarik atau ketuk 1 huruf yang hilang ya!");
-    } else if (currentLevel === 2) {
-      setSpeechBubbleText("Tarik atau ketuk huruf pertama yang hilang!");
-    } else {
-      setSpeechBubbleText("Tantangan Level 3! Tarik atau ketuk hurufnya!");
-    }
+    const distractors = generateDistractors(firstTarget, 3);
+    setOptions([firstTarget, ...distractors].sort(() => 0.5 - Math.random()));
 
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
@@ -243,26 +265,39 @@ export default function MelengkapiKataView() {
     }
   }, []);
 
-  // Perbarui saat kata atau level berubah
   useEffect(() => {
-    setupRound(currentItem, level);
-  }, [currentItem, level, setupRound]);
+    if (selectedLevel !== null) {
+      setupRound(currentItem, selectedLevel);
+    }
+  }, [currentItem, selectedLevel, setupRound]);
 
-  // Pergantian Level (Level 1, Level 2, Level 3)
-  const handleSelectLevel = (newLevel) => {
-    if (newLevel === level) return;
+  const handleChooseLevel = (lvl) => {
     playClickSound();
-    setLevel(newLevel);
+    setSelectedLevel(lvl);
     setQuestionIndex(0);
     setIsChampion(false);
-    if (shuffleQueueRef.current) {
-      shuffleQueueRef.current.refill();
-      setCurrentIndex(shuffleQueueRef.current.next());
-    }
+    const pool =
+      lvl === 3
+        ? WORKSHOP_WORD_POOL.filter((w) => w.word.length >= 5)
+        : WORKSHOP_WORD_POOL.filter((w) => w.word.length >= 4);
+    shuffleQueueRef.current = new ShuffleQueue(pool.length);
+    setCurrentIndex(shuffleQueueRef.current.next());
   };
 
-  // Letupan kembang api confetti
+  const handleBackToLevelGate = () => {
+    playHoverSound();
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current);
+      autoAdvanceTimer.current = null;
+    }
+    setSelectedLevel(null);
+    setIsChampion(false);
+  };
+
   const triggerConfettiRockets = () => {
+    if (confettiRafRef.current) {
+      cancelAnimationFrame(confettiRafRef.current);
+    }
     const end = Date.now() + 1600;
     const colors = ["#34D399", "#38BDF8", "#FDE047", "#F472B6", "#FFFFFF"];
 
@@ -282,18 +317,18 @@ export default function MelengkapiKataView() {
         colors,
       });
       if (Date.now() < end) {
-        requestAnimationFrame(frame);
+        confettiRafRef.current = requestAnimationFrame(frame);
+      } else {
+        confettiRafRef.current = null;
       }
     })();
   };
 
-  // Pilih balok huruf (melalui klik layar atau tombol keyboard fisik)
   const handleSelectOption = useCallback(
     (letter) => {
-      if (isAnswered || isChampion) return;
+      if (selectedLevel === null || isAnswered || isChampion) return;
 
       if (letter === expectedLetter) {
-        // Tombol yang dipilih benar!
         playXylophoneNote(currentMissingStep % 5);
 
         const newSolved = [...solvedIndices, activeMissingIndex];
@@ -302,36 +337,26 @@ export default function MelengkapiKataView() {
         const nextStep = currentMissingStep + 1;
 
         if (nextStep < missingIndices.length) {
-          // Masih ada huruf hilang berikutnya yang harus diisi pada kata ini
           setCurrentMissingStep(nextStep);
           const nextMissingIdx = missingIndices[nextStep];
           const nextTarget = currentWordChars[nextMissingIdx];
-          const distractors = generateDistractors(nextTarget);
+          const distractors = generateDistractors(nextTarget, 3);
           setOptions([nextTarget, ...distractors].sort(() => 0.5 - Math.random()));
 
           setIsMascotCheering(true);
           setTimeout(() => setIsMascotCheering(false), 450);
-
-          if (nextStep === missingIndices.length - 1) {
-            setSpeechBubbleText("Hebat! Lengkapi 1 huruf terakhir ya!");
-          } else {
-            setSpeechBubbleText("Pintar! Sekarang huruf berikutnya!");
-          }
         } else {
-          // Seluruh huruf yang hilang pada kata berhasil dilengkapi!
           setIsAnswered(true);
           setIsCorrect(true);
           setIsMascotCheering(true);
-          setSpeechBubbleText(`Mantap! Kata ${currentItem.word} lengkap!`);
 
           playSuccessSound();
           playFanfareSound();
           if (typeof addStars === "function") addStars(1);
 
           triggerConfettiRockets();
-          speakWord(currentItem.word);
+          speakWord({ letter: currentItem.word[0], word: currentItem.word });
 
-          // Tahan perayaan selama 2.2 detik sebelum lanjut ke soal berikutnya
           autoAdvanceTimer.current = setTimeout(() => {
             if (questionIndex < TOTAL_QUESTIONS - 1) {
               setQuestionIndex((q) => q + 1);
@@ -339,21 +364,19 @@ export default function MelengkapiKataView() {
                 setCurrentIndex(shuffleQueueRef.current.next());
               }
             } else {
-              // Menyelesaikan 5 soal pada level ini: Tampilkan Juara Lengkapi Kata!
               setIsChampion(true);
               triggerConfettiRockets();
             }
-          }, 2200);
+          }, 2000);
         }
       } else {
-        // Pilihan salah: getaran karet lentur tanpa hukuman
         playRubberBoingSound();
         setWobbleLetter(letter);
-        setSpeechBubbleText(`Bukan huruf ${letter}. Coba huruf yang lain ya!`);
         setTimeout(() => setWobbleLetter(null), 450);
       }
     },
     [
+      selectedLevel,
       isAnswered,
       isChampion,
       expectedLetter,
@@ -368,28 +391,23 @@ export default function MelengkapiKataView() {
     ]
   );
 
-  // Handle Drag-and-Drop dengan toleransi tinggi untuk anak-anak
   const handleDropOption = useCallback(
     (letter, info) => {
       if (isAnswered || isChampion) return;
 
       const dropX = info.point.x;
       const dropY = info.point.y;
-
       let isHit = false;
 
-      // 1. Cek jarak ke slot aktif (radius 220px dari pusat slot)
       if (activeSlotRef.current) {
         const sRect = activeSlotRef.current.getBoundingClientRect();
         const centerX = sRect.left + sRect.width / 2;
         const centerY = sRect.top + sRect.height / 2;
-        const distance = Math.hypot(dropX - centerX, dropY - centerY);
-        if (distance < 220) {
+        if (Math.hypot(dropX - centerX, dropY - centerY) < 220) {
           isHit = true;
         }
       }
 
-      // 2. Cek apakah dilepas di area baki kayu
       if (!isHit && trayBoardRef.current) {
         const tRect = trayBoardRef.current.getBoundingClientRect();
         if (
@@ -402,7 +420,6 @@ export default function MelengkapiKataView() {
         }
       }
 
-      // 3. Cek gesture drag ke atas menuju area panggung kata
       if (!isHit && dropY < window.innerHeight * 0.65) {
         isHit = true;
       }
@@ -414,8 +431,9 @@ export default function MelengkapiKataView() {
     [handleSelectOption, isAnswered, isChampion]
   );
 
-  // Input Keyboard Fisik (A-Z)
+  // Physical keyboard support (A-Z) during gameplay
   useEffect(() => {
+    if (selectedLevel === null) return;
     const handleKeyDown = (e) => {
       if (isAnswered || isChampion) return;
       if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -427,29 +445,25 @@ export default function MelengkapiKataView() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [options, isAnswered, isChampion, handleSelectOption]);
+  }, [selectedLevel, options, isAnswered, isChampion, handleSelectOption]);
 
-  // Pengucapan audio manual untuk kata target dengan animasi loncat pada ilustrasi
   const handleSpeakWord = useCallback(() => {
-    playClickSound();
+    if (typeof playSfx === "function") playSfx("click");
+    else playClickSound();
     setIsIllustrationBouncing(true);
-    speakWord(currentItem.word);
-    setSpeechBubbleText(`Dengarkan kata: ${currentItem.word}!`);
+    speakWord({ letter: currentItem.word[0], word: currentItem.word });
     setTimeout(() => setIsIllustrationBouncing(false), 600);
-  }, [currentItem.word]);
+  }, [currentItem.word, playSfx]);
 
-  // Atur ulang tebakan kata saat ini
   const handleResetCurrent = useCallback(() => {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = null;
     }
     playHoverSound();
-    setupRound(currentItem, level);
-    setSpeechBubbleText("Ayo coba lagi, tebak huruf yang pas!");
-  }, [currentItem, level, setupRound]);
+    setupRound(currentItem, activeLevel);
+  }, [currentItem, activeLevel, setupRound]);
 
-  // Ganti ke kata berikutnya secara acak
   const handleNextWord = useCallback(() => {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
@@ -461,21 +475,18 @@ export default function MelengkapiKataView() {
     }
   }, []);
 
-  // Interaksi Maskot Saka / Tika saat diketuk
   const handleMascotTap = () => {
     playHoverSound();
     setIsMascotCheering(true);
     setTimeout(() => setIsMascotCheering(false), 600);
   };
 
-  // Interaksi Kepingan Puzzle Melayang di Latar Belakang
   const handleTapPuzzlePiece = (pIdx) => {
     playXylophoneNote(pIdx % 5);
     setSpinPuzzleIdx(pIdx);
     setTimeout(() => setSpinPuzzleIdx(null), 700);
   };
 
-  // Interaksi Balok Huruf di Baki Kayu
   const handleTileClick = (index, char) => {
     setTappedTileIdx(index);
     playXylophoneNote(index % 5);
@@ -483,7 +494,6 @@ export default function MelengkapiKataView() {
     setTimeout(() => setTappedTileIdx(null), 400);
   };
 
-  // Mulai Ulang Permainan setelah Juara 5 Soal
   const handleRestartGame = () => {
     playHoverSound();
     setQuestionIndex(0);
@@ -495,8 +505,8 @@ export default function MelengkapiKataView() {
   };
 
   return (
-    <main className="relative w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between select-none p-3 sm:p-4 md:p-6">
-      {/* ── 1. Latar Belakang Bengkel Kayu Mint Sage yang Hidup ── */}
+    <main className="relative w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between select-none p-3 sm:p-4 md:p-5">
+      {/* ── 1. Emerald-Mint Workshop Backdrop ── */}
       <div
         className="fixed inset-0 w-full h-full pointer-events-none z-0"
         style={{
@@ -505,7 +515,6 @@ export default function MelengkapiKataView() {
         }}
       />
 
-      {/* Pendar Sorot Panggung Radial Hangat */}
       <motion.div
         className="fixed inset-0 w-full h-full pointer-events-none z-0"
         animate={{ opacity: [0.35, 0.55, 0.35] }}
@@ -516,9 +525,8 @@ export default function MelengkapiKataView() {
         }}
       />
 
-      {/* ── 2. Ornamen Kepingan Puzzle 3D Melayang Interaktif ── */}
+      {/* Ambient Floating Puzzle Pieces & Light Motes (Clear of HUD Corners) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Kepingan Puzzle Kiri Atas */}
         <motion.div
           onClick={() => handleTapPuzzlePiece(0)}
           animate={
@@ -532,13 +540,11 @@ export default function MelengkapiKataView() {
               ? { duration: 0.65, ease: "easeOut" }
               : { duration: 5.5, repeat: Infinity, ease: "easeInOut" }
           }
-          className="absolute top-16 left-6 w-16 h-16 sm:w-20 sm:h-20 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100"
-          title="Ketuk kepingan puzzle untuk memutarnya!"
+          className="hidden sm:block absolute top-22 left-6 w-16 h-16 md:w-20 md:h-20 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100"
         >
           <Puzzle size={72} className="w-full h-full stroke-[1.5]" />
         </motion.div>
 
-        {/* Kepingan Puzzle Kanan Atas */}
         <motion.div
           onClick={() => handleTapPuzzlePiece(1)}
           animate={
@@ -552,50 +558,35 @@ export default function MelengkapiKataView() {
               ? { duration: 0.65, ease: "easeOut" }
               : { duration: 6.0, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
           }
-          className="absolute top-16 right-6 w-16 h-16 sm:w-20 sm:h-20 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100 -scale-x-100"
-          title="Ketuk kepingan puzzle untuk memutarnya!"
+          className="hidden sm:block absolute top-22 right-6 w-16 h-16 md:w-20 md:h-20 opacity-30 hover:opacity-75 pointer-events-auto cursor-pointer drop-shadow-md text-emerald-100 -scale-x-100"
         >
           <Puzzle size={72} className="w-full h-full stroke-[1.5]" />
         </motion.div>
 
-        {/* Partikel Berkilau Melayang yang Dapat Diketuk */}
         {[
-          { top: "14%", left: "14%", size: 14, color: "#FEF08A" },
+          { top: "14%", left: "14%", size: 12, color: "#FEF08A" },
           { top: "20%", left: "86%", size: 12, color: "#FFFFFF" },
-          { top: "34%", left: "8%", size: 10, color: "#A7F3D0" },
-          { top: "38%", left: "92%", size: 12, color: "#FDE047" },
+          { top: "36%", left: "8%", size: 10, color: "#A7F3D0" },
+          { top: "38%", left: "92%", size: 11, color: "#FDE047" },
         ].map((sp, sIdx) => (
           <motion.div
             key={sIdx}
-            onClick={() => playSunChime()}
-            whileHover={{ scale: 1.4 }}
-            className="absolute pointer-events-auto cursor-pointer"
+            className="absolute rounded-full pointer-events-none"
             style={{
               top: sp.top,
               left: sp.left,
               width: sp.size,
               height: sp.size,
+              backgroundColor: sp.color,
+              boxShadow: `0 0 10px ${sp.color}`,
             }}
-            animate={{
-              opacity: [0.3, 0.9, 0.3],
-              scale: [0.85, 1.25, 0.85],
-            }}
-            transition={{
-              duration: 3 + sIdx * 0.4,
-              repeat: Infinity,
-              delay: sIdx * 0.5,
-              ease: "easeInOut",
-            }}
-            title="Kilau bengkel"
-          >
-            <svg viewBox="0 0 24 24" fill={sp.color} className="w-full h-full drop-shadow-xs">
-              <path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z" />
-            </svg>
-          </motion.div>
+            animate={{ opacity: [0.3, 0.85, 0.3], scale: [0.85, 1.25, 0.85] }}
+            transition={{ duration: 3 + sIdx * 0.4, repeat: Infinity, delay: sIdx * 0.5 }}
+          />
         ))}
       </div>
 
-      {/* ── 3. Bukit Padang Rumput Zamrud di Bagian Bawah ── */}
+      {/* Layered Emerald Meadow Hills along Bottom Edge */}
       <div className="fixed bottom-0 inset-x-0 pointer-events-none z-0 h-28 sm:h-36 overflow-hidden">
         <svg viewBox="0 0 1440 160" preserveAspectRatio="none" className="w-full h-full block">
           <path
@@ -611,426 +602,321 @@ export default function MelengkapiKataView() {
         </svg>
       </div>
 
-      {/* ── 4. Wadah Konten Utama Interaktif ── */}
-      <div className="relative z-10 flex-1 min-h-0 w-full max-w-5xl mx-auto flex flex-col justify-between pt-12 sm:pt-14 pb-14 sm:pb-16 overflow-hidden">
+      {/* Compact Top-Left "Ganti Level" Pill During Play (Sits Right Beside Menu Button) */}
+      {selectedLevel !== null && (
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95, y: 1 }}
+          transition={{ type: "spring", stiffness: 450, damping: 16 }}
+          onClick={handleBackToLevelGate}
+          aria-label="Ganti Level Bermain"
+          className="fixed top-3.5 sm:top-5 left-[132px] sm:left-[152px] z-40 px-4 py-2 sm:py-2.5 rounded-full bg-[#FFFDF9]/95 border-2 border-white border-b-4 border-b-emerald-200/80 shadow-[0_4px_12px_rgba(6,78,59,0.16)] font-display font-bold text-sm sm:text-base text-[#047857] flex items-center gap-1.5 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+        >
+          <Layers size={16} aria-hidden="true" className="stroke-[2.5]" />
+          <span>Ganti Level</span>
+        </motion.button>
+      )}
 
-        {/* ── TIER 1: Konsol Header Diperbesar dengan Pilihan Level 1, 2, 3 ── */}
-        <header className="w-full px-2 flex justify-center flex-shrink-0 z-30">
+      {/* ── 2. Stage Content: Level Selection Gate OR Two-Zone Puzzle Workshop ── */}
+      {selectedLevel === null ? (
+        <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center max-w-4xl w-full mx-auto px-4 overflow-hidden">
           <motion.div
             initial={{ y: -16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 420, damping: 20 }}
-            className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-[2rem] bg-[#FFFDF9] border-4 border-amber-300 shadow-[0_12px_0_rgba(6,78,59,0.28)] flex items-center justify-between gap-3 sm:gap-4"
+            className="mb-6 sm:mb-8 px-7 py-3 rounded-full bg-[#FFFDF9]/95 border-4 border-amber-300 border-b-6 border-b-amber-500 shadow-[0_12px_24px_rgba(6,78,59,0.28)]"
           >
-            {/* Sisi Kiri: Ilustrasi Objek Diperbesar & Tombol Suara Dengar Mandiri (Tanpa Badge Bertumpuk) */}
-            <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
+            <h1 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#0F172A] tracking-wide">
+              Pilih Level Bermain
+            </h1>
+          </motion.div>
+
+          <div className="grid grid-cols-3 gap-4 sm:gap-6 max-w-4xl w-full mx-auto px-2 sm:px-6">
+            {LEVEL_CARDS.map((card, idx) => (
               <motion.button
+                key={card.lvl}
                 type="button"
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
-                animate={
-                  isIllustrationBouncing
-                    ? { scale: [1, 1.2, 1], rotate: [-6, 6, 0] }
-                    : {}
-                }
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                onClick={handleSpeakWord}
-                aria-label={`Dengarkan pengucapan kata ${currentItem.word}`}
-                className="w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl bg-emerald-50/90 border-2 border-emerald-200 p-2 sm:p-2.5 shadow-inner cursor-pointer flex items-center justify-center shrink-0 group"
-                title="Ketuk gambar untuk mendengarkan pengucapan kata!"
+                initial={{ opacity: 0, y: 24, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 420,
+                  damping: 20,
+                  delay: idx * 0.08,
+                }}
+                whileHover={{ scale: 1.05, y: -6 }}
+                whileTap={{ scale: 0.96, y: 2 }}
+                onClick={() => handleChooseLevel(card.lvl)}
+                className={`rounded-[2rem] p-5 sm:p-6 shadow-[0_16px_32px_rgba(6,78,59,0.32)] flex flex-col items-center justify-between text-center cursor-pointer select-none min-h-[220px] sm:min-h-[250px] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${card.cardClass}`}
               >
-                <WordIllustration
-                  illustrationKey={currentItem.illustrationKey}
-                  wordKey={currentItem.illustrationKey}
-                  word={currentItem.word}
-                  color={currentItem.color}
-                  className="w-full h-full object-contain group-hover:scale-108 transition-transform drop-shadow-sm"
-                />
-              </motion.button>
-
-              {/* Tombol Audio Taktil Mandiri "Dengar" */}
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
-                onClick={handleSpeakWord}
-                aria-label={`Dengarkan pengucapan kata ${currentItem.word}`}
-                className="px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-b from-sky-400 to-sky-500 border-2 border-white border-b-4 border-sky-700 text-white font-display font-bold text-xs md:text-sm shadow-md flex items-center gap-1.5 cursor-pointer active:border-b-1 active:translate-y-0.5 select-none shrink-0"
-                title="Dengarkan pengucapan kata"
-              >
-                <Volume2 size={16} className="stroke-[2.5]" />
-                <span className="hidden sm:inline">Dengar</span>
-              </motion.button>
-            </div>
-
-            {/* Bagian Tengah: Judul Bersih & 3 Tab Pemilih Level */}
-            <div className="flex flex-col items-center justify-center flex-1 text-center min-w-0">
-              <h1 className="font-display font-black text-base sm:text-lg md:text-2xl text-slate-800 tracking-wide leading-tight drop-shadow-xs">
-                Lengkapi Huruf yang Hilang!
-              </h1>
-
-              {/* Pemilih Tab Level 1, Level 2, Level 3 */}
-              <div className="flex items-center gap-1.5 sm:gap-2.5 mt-1.5">
-                {[
-                  { lvl: 1, label: "Level 1", sub: "1 Huruf" },
-                  { lvl: 2, label: "Level 2", sub: "2 Huruf" },
-                  { lvl: 3, label: "Level 3", sub: "3 Huruf" },
-                ].map((tab) => {
-                  const isActive = level === tab.lvl;
-                  return (
-                    <motion.button
-                      key={tab.lvl}
-                      type="button"
-                      whileHover={{ scale: 1.06 }}
-                      whileTap={{ scale: 0.94 }}
-                      onClick={() => handleSelectLevel(tab.lvl)}
-                      className={`px-2.5 sm:px-3.5 py-1 rounded-xl font-display font-black text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
-                        isActive
-                          ? "bg-gradient-to-b from-[#FDE047] via-[#FBBF24] to-[#F59E0B] border-2 border-amber-200 border-b-3 border-b-amber-700 text-amber-950 shadow-md scale-105"
-                          : "bg-white/80 hover:bg-white text-emerald-900 border border-emerald-300/80 shadow-xs"
-                      }`}
-                      title={`Pilih ${tab.label}: ${tab.sub}`}
-                    >
-                      <span>{tab.label}</span>
-                      <span className="hidden sm:inline font-sans font-bold text-[10px] text-amber-900/80">
-                        ({tab.lvl} Huruf)
-                      </span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Sisi Kanan: Koin Progres ("Soal X/5") & Tombol Reset / Acak */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <div className="flex flex-col items-end">
-                <span className="font-display font-black text-[11px] sm:text-xs text-amber-900/85">
-                  Soal {questionIndex + 1} / {TOTAL_QUESTIONS}
+                <span
+                  className={`px-3.5 py-1 rounded-full font-display font-black text-xs tracking-wider shadow-xs ${card.badgeClass}`}
+                >
+                  {card.badge}
                 </span>
-                <div className="flex items-center gap-1 mt-0.5">
-                  {Array.from({ length: TOTAL_QUESTIONS }).map((_, pIdx) => {
-                    const isDone = pIdx < questionIndex || isCorrect;
-                    const isCurrent = pIdx === questionIndex && !isCorrect;
+
+                <span className="font-display font-black text-6xl sm:text-7xl leading-none my-2 drop-shadow-sm">
+                  {card.lvl}
+                </span>
+
+                <div className="font-display font-black text-xl sm:text-2xl leading-tight tracking-wide">
+                  {card.title}
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* TWO-ZONE GAMEPLAY WORKBENCH */
+        <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center max-w-4xl w-full mx-auto px-2 sm:px-4 pt-10 sm:pt-12 pb-8 overflow-hidden">
+          {/* ZONE 1: Upper Unified Wooden Question Board (Picture + Sound + Incomplete Word Blocks) */}
+          <motion.div
+            ref={trayBoardRef}
+            layout
+            initial={{ y: -14, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 420, damping: 22 }}
+            className={`relative max-w-4xl w-full mx-auto bg-gradient-to-b from-[#C87D32] via-[#B46924] to-[#924E14] border-4 border-[#FDE68A] border-b-[10px] border-b-[#6B3408] rounded-[2.25rem] p-4 md:p-5 shadow-[0_18px_36px_rgba(6,78,59,0.35)] transition-all ${
+              isDraggingAny ? "ring-4 ring-amber-300 shadow-[0_0_40px_rgba(251,191,36,0.65)]" : ""
+            }`}
+          >
+            <div className="absolute top-2 inset-x-10 h-1 bg-white/35 rounded-full pointer-events-none" />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6">
+              {/* Left Side: Question Picture + Manual "Dengar" Audio Trigger */}
+              <div className="flex items-center sm:flex-col gap-3 sm:gap-2.5 shrink-0">
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
+                  animate={
+                    isIllustrationBouncing
+                      ? { scale: [1, 1.18, 1], rotate: [-5, 5, 0] }
+                      : {}
+                  }
+                  transition={{ duration: 0.45, ease: "easeOut" }}
+                  onClick={handleSpeakWord}
+                  aria-label={`Dengarkan kata ${currentItem.word}`}
+                  className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#FFFDF9] border-3 border-amber-200 p-2.5 shadow-md cursor-pointer flex items-center justify-center shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+                >
+                  <WordIllustration
+                    illustrationKey={currentItem.illustrationKey}
+                    word={currentItem.word}
+                    color={currentItem.color}
+                    showBadge={false}
+                    className="w-full h-full object-contain drop-shadow-sm"
+                  />
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95, y: 1 }}
+                  onClick={handleSpeakWord}
+                  aria-label={`Dengar pengucapan kata ${currentItem.word}`}
+                  className="px-4 py-1.5 rounded-full bg-gradient-to-b from-[#0284C7] to-[#0369A1] border-2 border-white border-b-4 border-b-[#075985] text-white font-display font-bold text-xs md:text-sm shadow-md flex items-center gap-1.5 cursor-pointer active:border-b-1 active:translate-y-0.5 select-none shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+                >
+                  <Volume2 size={15} aria-hidden="true" className="stroke-[2.5]" />
+                  <span>Dengar</span>
+                </motion.button>
+              </div>
+
+              {/* Right Side: Clean Word Puzzle Channel + Compact Reset/Shuffle Actions */}
+              <div className="flex-1 min-w-0 flex flex-col gap-3 w-full">
+                <div className="flex items-center justify-end gap-1.5 px-1">
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08, rotate: 12 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={handleResetCurrent}
+                      aria-label="Ulangi tebakan kata"
+                      className="w-9 h-9 rounded-xl bg-amber-300 hover:bg-amber-200 border border-amber-100 border-b-3 border-b-amber-600 text-[#0F172A] shadow-sm cursor-pointer flex items-center justify-center"
+                    >
+                      <RotateCcw size={16} aria-hidden="true" className="stroke-[2.5]" />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={handleNextWord}
+                      aria-label="Acak kata baru"
+                      className="w-9 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-300 border-b-3 border-b-emerald-800 text-white shadow-sm cursor-pointer flex items-center justify-center"
+                    >
+                      <Shuffle size={16} aria-hidden="true" className="stroke-[2.5]" />
+                    </motion.button>
+                </div>
+
+                {/* Recessed Dark-Wood Puzzle Channel Holding Word Blocks */}
+                <div className="bg-[#6B3408]/45 border-2 border-[#4E2304]/55 rounded-2xl px-3.5 py-4 md:px-5 md:py-5 shadow-inner flex items-center justify-center gap-2 sm:gap-2.5 md:gap-3 flex-nowrap">
+                  {currentWordChars.map((char, index) => {
+                    const isMissing = missingIndices.includes(index);
+                    const isSolved = solvedIndices.includes(index);
+                    const isActiveSlot = index === activeMissingIndex;
+                    const isTapped = tappedTileIdx === index;
+
+                    if (isMissing) {
+                      return (
+                        <motion.div
+                          key={`missing-${index}`}
+                          ref={isActiveSlot ? activeSlotRef : null}
+                          animate={
+                            isSolved
+                              ? { scale: [0.55, 1.18, 0.96, 1], y: [6, -4, 0] }
+                              : isActiveSlot
+                              ? {
+                                  scale: isDraggingAny ? [1.06, 1.14, 1.06] : [1, 1.04, 1],
+                                  y: [0, -3, 0],
+                                }
+                              : {}
+                          }
+                          transition={
+                            isSolved
+                              ? { duration: 0.45, ease: "easeOut" }
+                              : isActiveSlot
+                              ? {
+                                  duration: isDraggingAny ? 0.8 : 1.8,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }
+                              : { duration: 0.25 }
+                          }
+                          className={`relative w-13 h-17 sm:w-14 sm:h-18 md:w-16 md:h-20 lg:w-18 lg:h-22 rounded-2xl flex flex-col items-center justify-center font-display font-black text-3xl md:text-4xl transition-all select-none ${
+                            isSolved
+                              ? "bg-gradient-to-b from-[#10B981] to-[#047857] border-2 border-emerald-200 border-b-[6px] border-b-[#065F46] text-white shadow-lg"
+                              : isActiveSlot
+                              ? isDraggingAny
+                                ? "bg-gradient-to-b from-[#FFFBEB] via-[#FEF08A] to-[#FDE047] border-3 border-dashed border-amber-500 shadow-[0_0_32px_rgba(253,224,71,1)] scale-105"
+                                : "bg-gradient-to-b from-[#FFFBEB] to-[#FEF08A] border-3 border-amber-400 border-b-[6px] border-b-amber-600 shadow-[0_0_24px_rgba(253,224,71,0.9)]"
+                              : "bg-[#78350F]/45 border-2 border-dashed border-[#FDE68A]/80"
+                          }`}
+                        >
+                          {isSolved ? (
+                            <>
+                              <span>{char}</span>
+                              <span
+                                aria-hidden="true"
+                                className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-amber-400 border border-white flex items-center justify-center text-[#0F172A] shadow-xs"
+                              >
+                                <Check size={10} strokeWidth={3.5} />
+                              </span>
+                            </>
+                          ) : isActiveSlot ? (
+                            <span className="font-display font-black text-3xl md:text-4xl text-[#B45309] animate-pulse">
+                              _
+                            </span>
+                          ) : (
+                            <span className="font-display font-black text-2xl md:text-3xl text-[#FDE68A]/75">
+                              _
+                            </span>
+                          )}
+                        </motion.div>
+                      );
+                    }
 
                     return (
-                      <div
-                        key={pIdx}
-                        className={`w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full transition-all flex items-center justify-center font-display font-black text-[9px] select-none ${
-                          isDone
-                            ? "bg-gradient-to-b from-[#FEF08A] via-[#FBBF24] to-[#D97706] border border-amber-300 border-b-2 border-b-amber-700 text-amber-950 shadow-xs"
-                            : isCurrent
-                            ? "bg-amber-300 border border-white ring-2 ring-amber-400 text-amber-950 animate-pulse"
-                            : "bg-amber-100/70 border border-dashed border-amber-400/70 text-amber-900/40"
-                        }`}
+                      <motion.button
+                        key={`known-${index}`}
+                        type="button"
+                        onClick={() => handleTileClick(index, char)}
+                        whileHover={{ scale: 1.05, y: -3 }}
+                        animate={
+                          isCorrect
+                            ? { y: [0, -10, 0], scale: [1, 1.06, 1] }
+                            : isTapped
+                            ? { y: [-8, 0], scale: [1, 1.1, 1] }
+                            : {}
+                        }
+                        transition={
+                          isCorrect
+                            ? { delay: index * 0.08, duration: 0.5, ease: "easeOut" }
+                            : isTapped
+                            ? { duration: 0.35, ease: "easeOut" }
+                            : {}
+                        }
+                        aria-label={`Huruf ${char}`}
+                        className="relative w-13 h-17 sm:w-14 sm:h-18 md:w-16 md:h-20 lg:w-18 lg:h-22 rounded-2xl bg-[#FFFDF9] border-2 border-amber-200 border-b-[6px] border-b-amber-300 text-[#0F172A] shadow-md flex items-center justify-center font-display font-black text-3xl md:text-4xl select-none cursor-pointer"
                       >
-                        {isDone && <Check size={10} strokeWidth={3.5} className="text-emerald-900" />}
-                      </div>
+                        {char}
+                      </motion.button>
                     );
                   })}
                 </div>
               </div>
-
-              {/* Tombol Reset Taktil */}
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.1, rotate: 12 }}
-                whileTap={{ scale: 0.9, y: 1 }}
-                onClick={handleResetCurrent}
-                aria-label="Ulangi Kata Saat Ini"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border border-amber-200 border-b-3 border-amber-700 text-amber-950 shadow-sm cursor-pointer flex items-center justify-center active:border-b-1 flex-shrink-0"
-                title="Ulangi tebakan kata ini"
-              >
-                <RotateCcw size={18} className="stroke-[2.5]" />
-              </motion.button>
-
-              {/* Tombol Acak Kata */}
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.1, rotate: -8 }}
-                whileTap={{ scale: 0.9, y: 1 }}
-                onClick={handleNextWord}
-                aria-label="Ganti Kata Berikutnya"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-emerald-400 to-teal-500 border border-emerald-200 border-b-3 border-teal-700 text-white shadow-sm cursor-pointer flex items-center justify-center active:border-b-1 flex-shrink-0"
-                title="Ganti ke kata acak berikutnya"
-              >
-                <Shuffle size={18} className="stroke-[2.5]" />
-              </motion.button>
-            </div>
-          </motion.div>
-        </header>
-
-        {/* ── TIER 2: Baki Kayu 3D Honey-Pine & Balok Huruf Opaque Solid ── */}
-        <section className="flex-1 min-h-0 flex flex-col items-center justify-center relative px-3 py-2">
-          
-          {/* Banner Apresiasi Melayang saat Jawaban Benar */}
-          <AnimatePresence>
-            {isCorrect && (
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0, y: 15 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.7, opacity: 0, y: -15 }}
-                transition={{ type: "spring", stiffness: 450, damping: 20 }}
-                className="absolute -top-6 sm:-top-8 inset-x-0 mx-auto w-fit z-30 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white px-5 sm:px-8 py-2 rounded-2xl shadow-2xl border-2 border-white flex items-center gap-2 pointer-events-none"
-              >
-                <CheckCircle2 size={22} className="text-yellow-300 stroke-[2.5]" />
-                <span className="font-display font-black text-base sm:text-lg md:text-xl tracking-wide uppercase">
-                  HEBAT! KATA {currentItem.word} LENGKAP!
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Baki Kayu 3D Honey-Pine Berbingkai Halus */}
-          <motion.div
-            ref={trayBoardRef}
-            layout
-            className={`relative bg-gradient-to-b from-[#C87D32] via-[#B46924] to-[#924E14] border-4 border-[#FDE68A] border-b-[10px] border-b-[#6B3408] rounded-[2rem] p-4 sm:p-5 md:p-6 shadow-[0_18px_36px_rgba(6,78,59,0.35)] max-w-3xl w-full mx-auto transition-all ${
-              isDraggingAny ? "ring-4 ring-amber-300 shadow-[0_0_40px_rgba(251,191,36,0.6)]" : ""
-            }`}
-          >
-            {/* Pantulan Cahaya Kilau Atas */}
-            <div className="absolute top-2 inset-x-10 h-1 bg-white/40 rounded-full pointer-events-none" />
-
-            {/* Baut Pasak Sudut Kayu */}
-            <div className="absolute top-3 left-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
-            <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
-            <div className="absolute bottom-3 left-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
-            <div className="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full bg-[#6B3408] opacity-75 shadow-inner" />
-
-            {/* Alas Cekung Baki Tempat Balok Bertengger */}
-            <div className="bg-[#6B3408]/40 border-2 border-[#4E2304]/50 rounded-2xl p-3 sm:p-4 md:p-5 shadow-inner flex items-center justify-center gap-2.5 sm:gap-3.5 md:gap-4 flex-wrap">
-              {currentWordChars.map((char, index) => {
-                const isMissing = missingIndices.includes(index);
-                const isSolved = solvedIndices.includes(index);
-                const isActiveSlot = index === activeMissingIndex;
-                const isTapped = tappedTileIdx === index;
-
-                if (isMissing) {
-                  return (
-                    <motion.div
-                      key={`missing-${index}`}
-                      ref={isActiveSlot ? activeSlotRef : null}
-                      animate={
-                        isSolved
-                          ? {
-                              scale: [0.5, 1.2, 0.95, 1],
-                              rotate: [0, 4, -4, 0],
-                              y: [8, -4, 0],
-                            }
-                          : isActiveSlot
-                          ? {
-                              scale: isDraggingAny ? [1.06, 1.14, 1.06] : [1, 1.04, 1],
-                              y: [0, -3, 0],
-                            }
-                          : {}
-                      }
-                      transition={
-                        isSolved
-                          ? { duration: 0.5, ease: "easeOut" }
-                          : isActiveSlot
-                          ? { duration: isDraggingAny ? 0.8 : 1.8, repeat: Infinity, ease: "easeInOut" }
-                          : { duration: 0.3 }
-                      }
-                      className={`relative w-15 h-20 sm:w-18 sm:h-24 md:w-20 md:h-26 lg:w-22 lg:h-28 rounded-2xl flex flex-col items-center justify-center font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl transition-all select-none ${
-                        isSolved
-                          ? "bg-gradient-to-b from-emerald-400 to-emerald-500 border-2 border-emerald-200 border-b-[7px] border-b-emerald-700 text-white shadow-lg cursor-pointer"
-                          : isActiveSlot
-                          ? isDraggingAny
-                            ? "bg-gradient-to-b from-[#FFFBEB] via-[#FEF08A] to-[#FDE047] border-3 border-dashed border-amber-500 shadow-[0_0_36px_rgba(253,224,71,1)] ring-6 ring-amber-400/80 cursor-default scale-105"
-                            : "bg-gradient-to-b from-[#FFFBEB] to-[#FEF08A] border-3 border-amber-400 border-b-[7px] border-b-amber-600 text-amber-600 shadow-[0_0_26px_rgba(253,224,71,0.9)] cursor-default"
-                          : "bg-[#FDE68A]/35 border-2 border-dashed border-[#FEF3C7] text-amber-100/80 cursor-default"
-                      }`}
-                      title={
-                        isSolved
-                          ? `Huruf ${char} (Selesai)`
-                          : isActiveSlot
-                          ? "Slot huruf yang sedang dicari! (Pilih hurufnya di bawah)"
-                          : "Slot huruf yang belum ditebak"
-                      }
-                    >
-                      {/* Tampilan Huruf yang Telah Dipecahkan */}
-                      {isSolved ? (
-                        <>
-                          <span className="relative z-10 drop-shadow-sm">{char}</span>
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border border-white flex items-center justify-center shadow-xs text-white"
-                          >
-                            <Check size={11} strokeWidth={3.5} />
-                          </motion.div>
-                        </>
-                      ) : isActiveSlot ? (
-                        /* Slot Aktif: Garis Emas Berdenyut + Hint Teks saat Drag */
-                        <div className="flex flex-col items-center gap-1 pointer-events-none">
-                          <div className="w-8 sm:w-10 h-2 bg-amber-500 rounded-full animate-pulse shadow-xs" />
-                          {isDraggingAny && (
-                            <span className="font-display font-black text-[9px] text-amber-900 tracking-wider uppercase animate-bounce drop-shadow-xs">
-                              LEPAS!
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        /* Slot Belum Aktif: Garis Samar */
-                        <div className="w-6 sm:w-8 h-1.5 bg-amber-200/60 rounded-full" />
-                      )}
-                    </motion.div>
-                  );
-                }
-
-                // Balok Huruf Kayu yang Sudah Diketahui (100% Solid Opaque Cream-Ivory)
-                return (
-                  <motion.div
-                    key={`known-${index}`}
-                    onClick={() => handleTileClick(index, char)}
-                    whileHover={{ scale: 1.05, y: -3 }}
-                    animate={
-                      isCorrect
-                        ? {
-                            y: [0, -10, 0],
-                            scale: [1, 1.06, 1],
-                          }
-                        : isTapped
-                        ? { y: [-8, 0], scale: [1, 1.1, 1] }
-                        : {}
-                    }
-                    transition={
-                      isCorrect
-                        ? {
-                            delay: index * 0.08,
-                            duration: 0.5,
-                            ease: "easeOut",
-                          }
-                        : isTapped
-                        ? { duration: 0.35, ease: "easeOut" }
-                        : {}
-                    }
-                    className="relative w-15 h-20 sm:w-18 sm:h-24 md:w-20 md:h-26 lg:w-22 lg:h-28 rounded-2xl bg-[#FFFDF9] border-2 border-amber-200 border-b-[7px] border-b-amber-300 text-[#0F172A] shadow-md flex items-center justify-center font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl select-none cursor-pointer"
-                    title={`Huruf ${char} (Ketuk untuk membunyikan suara)`}
-                  >
-                    <span className="relative z-10">{char}</span>
-                  </motion.div>
-                );
-              })}
             </div>
           </motion.div>
 
-        </section>
-
-        {/* ── TIER 3: 4 Balok Pilihan Huruf Mainan 3D Ekstra Taktil ── */}
-        <footer className="w-full max-w-xl sm:max-w-2xl mx-auto flex flex-col items-center justify-center pb-2 px-2 flex-shrink-0 z-20">
-          
-          {/* Label Panduan Murni Teks (Tanpa Ikon Sparkle) */}
-          <div className="mb-2 bg-white/95 px-5 py-1.5 rounded-full border border-emerald-300 shadow-xs flex items-center justify-center">
-            <span className="font-display font-black text-xs sm:text-sm text-[#065F46] tracking-wide uppercase">
-              Tarik atau Ketuk Huruf yang Tepat:
-            </span>
-          </div>
-
-          {/* 4 Balok Mainan 3D Pilihan Huruf */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 flex-wrap">
+          {/* ZONE 2: Lower Contrasting Recessed Ivory-Emerald Answer Choice Dock */}
+          <div className="mt-5 md:mt-6 bg-[#FFFDF9]/95 border-4 border-emerald-200 border-b-[8px] border-b-emerald-400 rounded-[2rem] px-6 py-3.5 shadow-[0_14px_28px_rgba(6,78,59,0.28)] flex items-center justify-center gap-3.5 md:gap-5 z-20 shrink-0">
             {options.map((letter, optIdx) => {
               const isMatchingTarget = isCorrect && letter === expectedLetter;
               const isWobble = wobbleLetter === letter;
               const palette = TOY_CHOICE_PALETTES[optIdx % TOY_CHOICE_PALETTES.length];
 
               return (
-                <motion.div
+                <div
                   key={`${letter}-${optIdx}`}
-                  drag={!isAnswered && !isChampion}
-                  dragSnapToOrigin={true}
-                  dragElastic={0.45}
-                  whileHover={!isAnswered ? { scale: 1.1, y: -3 } : {}}
-                  whileTap={!isAnswered ? { scale: 0.95 } : {}}
-                  whileDrag={{
-                    scale: 1.2,
-                    zIndex: 100,
-                    rotate: 3,
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
-                    cursor: "grabbing",
-                  }}
-                  onDragStart={() => {
-                    isDraggingRef.current = true;
-                    setIsDraggingAny(true);
-                  }}
-                  onDragEnd={(e, info) => {
-                    setTimeout(() => {
-                      isDraggingRef.current = false;
-                    }, 60);
-                    setIsDraggingAny(false);
-                    handleDropOption(letter, info);
-                  }}
-                  onClick={() => {
-                    if (!isDraggingRef.current) {
-                      handleSelectOption(letter);
-                    }
-                  }}
-                  animate={
-                    isWobble
-                      ? {
-                          x: [-7, 7, -4, 4, 0],
-                          rotate: [-3, 3, -2, 2, 0],
-                        }
-                      : isMatchingTarget
-                      ? {
-                          scale: [1, 1.18, 1],
-                          y: [0, -12, 0],
-                        }
-                      : {}
-                  }
-                  transition={{ duration: isWobble ? 0.45 : 0.3 }}
-                  className={`w-16 h-18 sm:w-18 sm:h-20 md:w-20 md:h-22 rounded-2xl font-display font-black text-3xl sm:text-4xl border-3 border-b-[6px] active:border-b-1 active:translate-y-1 transition-shadow flex items-center justify-center select-none cursor-grab active:cursor-grabbing shadow-lg relative aspect-square touch-none ${
-                    isMatchingTarget
-                      ? "bg-gradient-to-b from-[#34D399] to-[#059669] border-emerald-200 border-b-emerald-800 text-white shadow-emerald-400"
-                      : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.shadow}`
-                  }`}
-                  style={{ color: isMatchingTarget ? "#FFFFFF" : palette.text }}
-                  title={`Tarik atau ketuk huruf ${letter}`}
+                  className="p-1.5 rounded-2xl bg-emerald-50/90 border border-emerald-100 shadow-inner"
                 >
-                  <div className="absolute top-1 inset-x-3 h-1 bg-white/50 rounded-full pointer-events-none" />
-                  <span>{letter}</span>
-                  {isMatchingTarget && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border border-white flex items-center justify-center shadow-xs pointer-events-none"
-                    >
-                      <Check size={11} strokeWidth={3} className="text-white" />
-                    </motion.div>
-                  )}
-                </motion.div>
+                  <motion.div
+                    drag={!isAnswered && !isChampion}
+                    dragSnapToOrigin={true}
+                    dragElastic={0.45}
+                    whileHover={!isAnswered ? { scale: 1.08, y: -3 } : {}}
+                    whileTap={!isAnswered ? { scale: 0.95 } : {}}
+                    whileDrag={{
+                      scale: 1.18,
+                      zIndex: 100,
+                      rotate: 3,
+                      boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
+                      cursor: "grabbing",
+                    }}
+                    onDragStart={() => {
+                      isDraggingRef.current = true;
+                      setIsDraggingAny(true);
+                    }}
+                    onDragEnd={(e, info) => {
+                      setTimeout(() => {
+                        isDraggingRef.current = false;
+                      }, 60);
+                      setIsDraggingAny(false);
+                      handleDropOption(letter, info);
+                    }}
+                    onClick={() => {
+                      if (!isDraggingRef.current) {
+                        handleSelectOption(letter);
+                      }
+                    }}
+                    animate={
+                      isWobble
+                        ? { x: [-7, 7, -4, 4, 0], rotate: [-3, 3, -2, 2, 0] }
+                        : isMatchingTarget
+                        ? { scale: [1, 1.14, 1], y: [0, -10, 0] }
+                        : {}
+                    }
+                    transition={{ duration: isWobble ? 0.45 : 0.3 }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Pilih atau tarik huruf ${letter}`}
+                    className={`w-16 h-18 md:w-18 md:h-20 rounded-2xl font-display font-black text-3xl md:text-4xl border-3 border-b-[6px] active:border-b-1 active:translate-y-1 transition-shadow flex items-center justify-center select-none cursor-grab active:cursor-grabbing shadow-md relative touch-none ${
+                      isMatchingTarget
+                        ? "bg-gradient-to-b from-[#10B981] to-[#047857] border-emerald-200 border-b-[#065F46] text-white"
+                        : `bg-gradient-to-b ${palette.bg} ${palette.border} ${palette.shadow} text-[#0F172A]`
+                    }`}
+                  >
+                    <div className="absolute top-1 inset-x-3 h-1 bg-white/50 rounded-full pointer-events-none" />
+                    <span>{letter}</span>
+                  </motion.div>
+                </div>
               );
             })}
           </div>
+        </div>
+      )}
 
-        </footer>
-
-      </div>
-
-      {/* ── 5. Maskot Saka & Tika Berlabuh di Atas Bukit Rumput 3D ── */}
-      {/* Saka di Kiri Bawah dengan Indentasi Balon Ucapan Aman */}
-      <div className="fixed bottom-0 left-4 sm:left-8 z-20 select-none flex flex-col items-center pointer-events-none">
-        {/* Balon Percakapan Saka Terindentasi */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={speechBubbleText}
-            initial={{ opacity: 0, y: 8, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.9 }}
-            transition={{ duration: 0.25 }}
-            onClick={handleMascotTap}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="mb-1.5 ml-4 px-3.5 py-1.5 rounded-2xl bg-white/95 border-2 border-emerald-300 shadow-md flex items-center gap-1.5 max-w-[220px] text-center cursor-pointer pointer-events-auto"
-            title="Ketuk Saka untuk mendengar semangatnya!"
-          >
-            <span className="font-display font-bold text-[11px] sm:text-xs text-[#065F46] leading-tight">
-              {speechBubbleText}
-            </span>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Gambar Maskot Saka & Gundukan Rumput 3D */}
+      {/* ── 3. Grounded Bottom Mascots (Zero Speech Bubble) ── */}
+      <div className="fixed bottom-1 left-4 sm:left-8 z-20 select-none flex flex-col items-center pointer-events-none">
         <div className="relative flex flex-col items-center">
           <div className="absolute -bottom-2 w-32 sm:w-36 md:w-44 h-8 sm:h-10 bg-gradient-to-b from-[#22C55E] via-[#16A34A] to-[#15803D] rounded-t-full border-t-2 border-emerald-300 shadow-md z-0" />
           <motion.img
@@ -1051,18 +937,16 @@ export default function MelengkapiKataView() {
               ease: "easeInOut",
             }}
             className="h-28 sm:h-34 md:h-40 w-auto object-contain object-bottom pointer-events-auto cursor-pointer select-none drop-shadow-lg relative z-10"
-            title="Ketuk Saka untuk menyapanya!"
           />
           <div className="w-20 sm:w-24 h-3 bg-black/25 rounded-full blur-[2px] -mt-1 relative z-10 pointer-events-none" />
         </div>
       </div>
 
-      {/* Tika di Kanan Bawah */}
-      <div className="fixed bottom-0 right-4 sm:right-8 z-20 select-none flex flex-col items-center pointer-events-none">
+      <div className="fixed bottom-1 right-4 sm:right-8 z-20 select-none flex flex-col items-center pointer-events-none">
         <div className="relative flex flex-col items-center">
           <div className="absolute -bottom-2 w-32 sm:w-36 md:w-44 h-8 sm:h-10 bg-gradient-to-b from-[#22C55E] via-[#16A34A] to-[#15803D] rounded-t-full border-t-2 border-emerald-300 shadow-md z-0" />
           <motion.img
-            src="/assets/tika-maskot-1-cutout.png"
+            src="/assets/icon-tika-utama.png"
             alt="Maskot Tika"
             draggable="false"
             onClick={handleMascotTap}
@@ -1080,13 +964,12 @@ export default function MelengkapiKataView() {
               delay: 0.1,
             }}
             className="h-28 sm:h-34 md:h-40 w-auto object-contain object-bottom pointer-events-auto cursor-pointer select-none drop-shadow-lg relative z-10"
-            title="Ketuk Tika untuk menyapanya!"
           />
           <div className="w-20 sm:w-24 h-3 bg-black/25 rounded-full blur-[2px] -mt-1 relative z-10 pointer-events-none" />
         </div>
       </div>
 
-      {/* ── 6. Modal Perayaan Juara 5 Soal (Bebas Bintang, Bebas Emoji) ── */}
+      {/* ── 4. "HORE! KAMU HEBAT!" Celebration Modal (Zero Stars, Zero Emojis) ── */}
       <AnimatePresence>
         {isChampion && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto">
@@ -1104,7 +987,6 @@ export default function MelengkapiKataView() {
               transition={{ type: "spring", stiffness: 420, damping: 20 }}
               className="relative z-10 flex flex-col items-center justify-center text-center p-6 sm:p-8 max-w-lg w-full bg-gradient-to-b from-[#FFFDF8] via-[#FFF9EE] to-[#FEF3C7] rounded-[2.5rem] border-4 border-amber-300 border-b-8 border-b-amber-500 shadow-[0_20px_60px_rgba(0,0,0,0.5)] ring-8 ring-amber-400/50"
             >
-              {/* Pancaran Cahaya Matahari Berputar */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
@@ -1121,74 +1003,96 @@ export default function MelengkapiKataView() {
                 </svg>
               </motion.div>
 
-              {/* Vektor Piala Emas Juara 3D */}
-              <div className="w-24 h-24 sm:w-28 sm:h-28 mb-2 flex items-center justify-center">
-                <svg viewBox="0 0 100 100" fill="none" className="w-full h-full drop-shadow-md">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 mb-2 flex items-center justify-center">
+                <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
                   <defs>
-                    <linearGradient id="trophyGold" x1="0" y1="0" x2="1" y2="1">
+                    <linearGradient id="melengkapiCrackerRed" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#EF4444" />
+                      <stop offset="50%" stopColor="#DC2626" />
+                      <stop offset="100%" stopColor="#991B1B" />
+                    </linearGradient>
+                    <linearGradient id="melengkapiCrackerGold" x1="0" y1="0" x2="1" y2="1">
                       <stop offset="0%" stopColor="#FDE047" />
-                      <stop offset="50%" stopColor="#F59E0B" />
-                      <stop offset="100%" stopColor="#D97706" />
+                      <stop offset="100%" stopColor="#F59E0B" />
                     </linearGradient>
                   </defs>
-                  <path
-                    d="M 28 22 L 72 22 L 68 52 C 68 62 58 68 50 68 C 42 68 32 62 32 52 Z"
-                    fill="url(#trophyGold)"
-                    stroke="#B45309"
-                    strokeWidth="2.5"
-                  />
-                  <path
-                    d="M 28 30 C 18 30 18 48 28 50"
-                    stroke="url(#trophyGold)"
-                    strokeWidth="4"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 72 30 C 82 30 82 48 72 50"
-                    stroke="url(#trophyGold)"
-                    strokeWidth="4"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <rect x="46" y="68" width="8" height="14" fill="#D97706" />
-                  <rect x="30" y="82" width="40" height="10" rx="3" fill="#B45309" stroke="#78350F" strokeWidth="2" />
-                  <ellipse cx="50" cy="22" rx="22" ry="4" fill="#FEF08A" stroke="#B45309" strokeWidth="2" />
+                  <g stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="60" y1="12" x2="60" y2="4" strokeDasharray="3 3" />
+                    <line x1="95" y1="25" x2="102" y2="18" />
+                    <line x1="108" y1="60" x2="116" y2="60" strokeDasharray="3 3" />
+                    <line x1="95" y1="95" x2="102" y2="102" />
+                    <line x1="60" y1="108" x2="60" y2="116" strokeDasharray="3 3" />
+                    <line x1="25" y1="95" x2="18" y2="102" />
+                    <line x1="12" y1="60" x2="4" y2="60" strokeDasharray="3 3" />
+                    <line x1="25" y1="25" x2="18" y2="18" />
+                  </g>
+                  <circle cx="60" cy="8" r="3.5" fill="#38BDF8" />
+                  <circle cx="100" cy="20" r="4" fill="#F43F5E" />
+                  <circle cx="114" cy="60" r="3.5" fill="#34D399" />
+                  <circle cx="100" cy="100" r="4" fill="#FDE047" />
+                  <circle cx="20" cy="100" r="3.5" fill="#A78BFA" />
+                  <circle cx="6" cy="60" r="4" fill="#F43F5E" />
+                  <circle cx="20" cy="20" r="3.5" fill="#38BDF8" />
+                  <g transform="translate(60, 60) rotate(-25) translate(-60, -60)">
+                    <rect x="52" y="28" width="16" height="64" rx="4" fill="url(#melengkapiCrackerRed)" stroke="#7F1D1D" strokeWidth="1.5" />
+                    <rect x="52" y="34" width="16" height="8" fill="url(#melengkapiCrackerGold)" />
+                    <rect x="52" y="78" width="16" height="8" fill="url(#melengkapiCrackerGold)" />
+                    <path d="M 60 28 Q 60 18 68 14" stroke="#D97706" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <circle cx="68" cy="14" r="3" fill="#FEF08A" />
+                  </g>
+                  <g transform="translate(60, 60) rotate(25) translate(-60, -60)">
+                    <rect x="52" y="28" width="16" height="64" rx="4" fill="url(#melengkapiCrackerRed)" stroke="#7F1D1D" strokeWidth="1.5" />
+                    <rect x="52" y="34" width="16" height="8" fill="url(#melengkapiCrackerGold)" />
+                    <rect x="52" y="78" width="16" height="8" fill="url(#melengkapiCrackerGold)" />
+                    <path d="M 60 28 Q 60 18 52 14" stroke="#D97706" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <circle cx="52" cy="14" r="3" fill="#FEF08A" />
+                  </g>
+                  <circle cx="60" cy="60" r="10" fill="#FEF08A" />
+                  <circle cx="60" cy="60" r="5" fill="#FFFFFF" />
                 </svg>
               </div>
 
-              {/* Judul Juara */}
-              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#065F46] tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(251,191,36,0.5)]">
-                JUARA LENGKAPI KATA!
+              <h2 className="font-display font-black text-3xl sm:text-4xl text-[#065F46] tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(251,191,36,0.5)]">
+                HORE! KAMU HEBAT!
               </h2>
 
               <p className="font-sans font-black text-sm sm:text-base text-amber-950 mt-2 leading-relaxed">
-                Luar Biasa! Kamu Berhasil Menyelesaikan 5 Soal pada Level {level} dengan Sempurna!
+                Kamu Berhasil Menyelesaikan 5 Soal Level {activeLevel} dengan Benar!
               </p>
 
-              {/* Tombol Aksi */}
-              <div className="flex items-center gap-3 mt-5">
+              <div className="flex items-center gap-3 mt-5 flex-wrap justify-center">
                 <motion.button
                   type="button"
-                  whileHover={{ scale: 1.08 }}
+                  whileHover={{ scale: 1.06, y: -2 }}
                   whileTap={{ scale: 0.94 }}
                   onClick={handleRestartGame}
-                  className="px-5 py-2.5 rounded-2xl bg-white border-2 border-emerald-400 text-emerald-800 font-display font-black text-sm sm:text-base shadow-md flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-2xl bg-white border-2 border-emerald-400 border-b-4 border-b-emerald-600 text-emerald-900 font-display font-black text-sm sm:text-base shadow-md flex items-center gap-2 cursor-pointer"
                 >
-                  <RotateCcw size={16} className="stroke-[2.5]" />
+                  <RotateCcw size={16} aria-hidden="true" className="stroke-[2.5]" />
                   <span>Main Lagi</span>
                 </motion.button>
 
-                {level < 3 && (
+                {activeLevel < 3 ? (
                   <motion.button
                     type="button"
-                    whileHover={{ scale: 1.08 }}
+                    whileHover={{ scale: 1.06, y: -2 }}
                     whileTap={{ scale: 0.94 }}
-                    onClick={() => handleSelectLevel(level + 1)}
-                    className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white font-display font-black text-sm sm:text-base shadow-xl border-2 border-white flex items-center gap-2 cursor-pointer"
+                    onClick={() => handleChooseLevel(activeLevel + 1)}
+                    className="px-6 py-2.5 rounded-2xl bg-gradient-to-b from-[#059669] to-[#047857] border-2 border-white border-b-4 border-b-[#065F46] text-white font-display font-black text-sm sm:text-base shadow-xl flex items-center gap-2 cursor-pointer"
                   >
-                    <Layers size={16} className="stroke-[2.5]" />
-                    <span>Lanjut Level {level + 1}</span>
+                    <Play size={16} aria-hidden="true" className="fill-white" />
+                    <span>Lanjut Level {activeLevel + 1}</span>
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.06, y: -2 }}
+                    whileTap={{ scale: 0.94 }}
+                    onClick={handleBackToLevelGate}
+                    className="px-6 py-2.5 rounded-2xl bg-gradient-to-b from-[#B45309] to-[#9A3412] border-2 border-white border-b-4 border-b-[#7C2D12] text-white font-display font-black text-sm sm:text-base shadow-xl flex items-center gap-2 cursor-pointer"
+                  >
+                    <Layers size={16} aria-hidden="true" className="stroke-[2.5]" />
+                    <span>Pilih Level</span>
                   </motion.button>
                 )}
               </div>
@@ -1196,7 +1100,6 @@ export default function MelengkapiKataView() {
           </div>
         )}
       </AnimatePresence>
-
     </main>
   );
 }

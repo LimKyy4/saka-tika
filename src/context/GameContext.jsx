@@ -2,7 +2,7 @@
 // SAKA TIKA Centralized Game State & Carousel Active Module Memory
 // STRICT ZERO EMOJIS POLICY: Only custom vector graphics or lucide-react.
 
-import { createContext, useState, useEffect, useCallback, useContext } from "react";
+import { createContext, useState, useEffect, useCallback, useMemo, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const GameContext = createContext();
@@ -123,20 +123,33 @@ export function GameProvider({ children }) {
 
   const currentModule = location.pathname.split("/")[1] || "home";
 
-  const value = {
-    stars: 0,
-    addStars,
-    resetProgress,
-    navigateTo,
-    currentModule,
-    moduleProgress,
-    setModuleProgress,
-    discoveredLetters,
-    discoverLetter,
-    isLetterDiscovered,
-    activeCarouselIndex,
-    setActiveCarouselIndex,
-  };
+  const value = useMemo(
+    () => ({
+      stars: 0,
+      addStars,
+      resetProgress,
+      navigateTo,
+      currentModule,
+      moduleProgress,
+      setModuleProgress,
+      discoveredLetters,
+      discoverLetter,
+      isLetterDiscovered,
+      activeCarouselIndex,
+      setActiveCarouselIndex,
+    }),
+    [
+      addStars,
+      resetProgress,
+      navigateTo,
+      currentModule,
+      moduleProgress,
+      discoveredLetters,
+      discoverLetter,
+      isLetterDiscovered,
+      activeCarouselIndex,
+    ]
+  );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

@@ -32,7 +32,7 @@ export default function App() {
   return (
     <Router>
       <GameProvider>
-        <AudioProvider>
+        <AudioProvider isIntroActive={showSplash}>
           <div className="w-screen h-screen max-h-screen overflow-hidden flex flex-col justify-between select-none relative bg-[#FFFDF9]">
             {/* Fullscreen Video Splash Screen (Runs once per session) */}
             <AnimatePresence>
