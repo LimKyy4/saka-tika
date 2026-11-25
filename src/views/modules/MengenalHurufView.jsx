@@ -1,6 +1,6 @@
 // src/views/modules/MengenalHurufView.jsx
-// SAKA TIKA: "Mengenal Huruf A-Z" - Full 26-Letter Single-Screen Board (No Mascots, No Slides),
-// 100% Beat-Synced "Play Lagu" + Intro/Outro RGB & Default-ON Auto-Loop.
+// SAKA TIKA: "Mengenal Huruf A-Z" - Crisp Ivory-White 26-Letter Board (7+7+7+5 Symmetrical Grid),
+// Strict Sequential Unlocking (A -> Z), Beat-Synced "Play Lagu", Cute Intro Wave & Outro Happy-Hop.
 // STRICT ZERO SCROLLBAR APP LOCK: h-screen w-screen overflow-hidden select-none.
 // STRICT ZERO EMOJIS & ZERO STAR ICONS POLICY: Only lucide-react icons (no Star) and custom vectors.
 
@@ -9,14 +9,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
   Volume2,
+  Check,
   X,
   ChevronLeft,
   ChevronRight,
   Play,
+  Lock,
   Music,
+  Music2,
   Square,
   RotateCcw,
   Repeat,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 
 import { useGame } from "../../context/GameContext.jsx";
@@ -27,32 +32,72 @@ import {
   ABC_SONG_BEAT_SEC,
   resolveSongLetterIndex,
 } from "../../data/abcSongTimeline.js";
-import { speakLetter, speakWord } from "../../utils/speechEngine.js";
+import { speakLetter, speakWord, speakInstruction } from "../../utils/speechEngine.js";
 import BlueStorybookBackground from "../../components/background/BlueStorybookBackground.jsx";
 import WordIllustration from "../../components/illustrations/WordIllustration.jsx";
 
-// 4 balanced horizontal rows across all 26 letters: 7 + 7 + 6 + 6
+// Symmetrical 4-row arrangement: 7 + 7 + 7 + 5 (Row 4 centers cleanly under columns 1..5)
 const ALPHABET_ROWS = [
-  { offset: 0, items: ALPHABET_DATA.slice(0, 7) },   // Row 1: A - G
-  { offset: 7, items: ALPHABET_DATA.slice(7, 14) },  // Row 2: H - N
-  { offset: 14, items: ALPHABET_DATA.slice(14, 20) }, // Row 3: O - T
-  { offset: 20, items: ALPHABET_DATA.slice(20, 26) }, // Row 4: U - Z
+  { rowIdx: 0, offset: 0, colOffset: 0, items: ALPHABET_DATA.slice(0, 7) },
+  { rowIdx: 1, offset: 7, colOffset: 0, items: ALPHABET_DATA.slice(7, 14) },
+  { rowIdx: 2, offset: 14, colOffset: 0, items: ALPHABET_DATA.slice(14, 21) },
+  { rowIdx: 3, offset: 21, colOffset: 1, items: ALPHABET_DATA.slice(21, 26) },
 ];
+
+// Cards that display floating music notes during the Intro wave dance
+const INTRO_NOTE_CARD_INDICES = new Set([1, 5, 9, 17, 23]);
+
+// Darken pale bright colors slightly so all 26 letters stay crisp on #FFFDF9 / #FFFFFF
+const CRISP_LETTER_COLORS = {
+  "#F59E0B": "#D97706",
+  "#06B6D4": "#0284C7",
+  "#14B8A6": "#0F766E",
+  "#22C55E": "#15803D",
+  "#10B981": "#047857",
+};
+
+function getCrispLetterColor(rawColor) {
+  return CRISP_LETTER_COLORS[rawColor] || rawColor || "#1B4965";
+}
 
 export default function MengenalHurufView() {
   const { addStars, discoverLetter, isLetterDiscovered } = useGame();
   const { playSfx, isBgmEnabled, setIsBgmDucked } = useAudio();
 
-  const [selectedLetter, setSelectedLetter] = useState(null);
+  // Sequential unlocking persisted in localStorage (0 = only A unlocked initially)
+  const [maxUnlockedIndex, setMaxUnlockedIndex] = useState(() => {
+    try {
+      const saved = localStorage.getItem("saka_tika_mengenal_unlocked_idx");
+      if (saved !== null) {
+        const parsed = parseInt(saved, 10);
+        if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 25) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Fallback when storage is restricted
+    }
+    return 0;
+  });
 
-  // "Play Lagu" full-board state
+  const [selectedLetter, setSelectedLetter] = useState(null);
+  const [wobbleKey, setWobbleKey] = useState(null);
+  const [lockedReminder, setLockedReminder] = useState(null);
+
+  // "Play Lagu" full-board state (Loop defaults ON)
   const [isSongMode, setIsSongMode] = useState(false);
   const [activeSongLetterIndex, setActiveSongLetterIndex] = useState(-1);
   const [isLoopEnabled, setIsLoopEnabled] = useState(true);
-  const [outroBubbleIndices, setOutroBubbleIndices] = useState([]);
+  const [outroHopIndices, setOutroHopIndices] = useState([]);
+
   const isLoopEnabledRef = useRef(isLoopEnabled);
   const audioRef = useRef(null);
   const rafRef = useRef(null);
+  const reminderTimerRef = useRef(null);
+  const wobbleTimerRef = useRef(null);
+  const pendingAlphabetCelebrationRef = useRef(false);
+
+  const [celebrationState, setCelebrationState] = useState(null);
 
   useEffect(() => {
     isLoopEnabledRef.current = isLoopEnabled;
@@ -65,28 +110,26 @@ export default function MengenalHurufView() {
       ? "outro"
       : "singing";
 
-  // During Outro phase after Z, pop 3-5 random cards simultaneously across the 26-card board
+  // During Outro phase after Z, pop 4-6 random cards into a happy-hop dance every ~380ms
   useEffect(() => {
     if (!isSongMode || songPhase !== "outro") {
-      setOutroBubbleIndices([]);
+      setOutroHopIndices([]);
       return;
     }
 
-    const pickRandomBubbles = () => {
-      const bubbleCount = 3 + Math.floor(Math.random() * 3); // 3 to 5 simultaneous bubbles
+    const pickRandomHoppers = () => {
+      const hopCount = 4 + Math.floor(Math.random() * 3); // 4 to 6 simultaneous cards
       const picked = new Set();
-      while (picked.size < bubbleCount) {
+      while (picked.size < hopCount) {
         picked.add(Math.floor(Math.random() * 26));
       }
-      setOutroBubbleIndices(Array.from(picked));
+      setOutroHopIndices(Array.from(picked));
     };
 
-    pickRandomBubbles();
-    const intervalId = setInterval(pickRandomBubbles, 400);
+    pickRandomHoppers();
+    const intervalId = setInterval(pickRandomHoppers, 380);
     return () => clearInterval(intervalId);
   }, [isSongMode, songPhase]);
-
-  const [celebrationState, setCelebrationState] = useState(null);
 
   const launchGrandCelebration = useCallback(
     (type) => {
@@ -131,7 +174,7 @@ export default function MengenalHurufView() {
           audioRef.current.pause();
           audioRef.current.currentTime = 0;
         } catch {
-          // Ignore teardown errors on partially loaded media elements
+          // Ignore media teardown errors
         }
         audioRef.current.onended = null;
         audioRef.current.onerror = null;
@@ -139,7 +182,7 @@ export default function MengenalHurufView() {
       }
       setIsBgmDucked(false);
       setActiveSongLetterIndex(-1);
-      setOutroBubbleIndices([]);
+      setOutroHopIndices([]);
       if (exitSongMode) {
         setIsSongMode(false);
       }
@@ -153,12 +196,15 @@ export default function MengenalHurufView() {
     }
   }, [isBgmEnabled]);
 
+  // Clean up timers, rAF, and audio on unmount
   useEffect(() => {
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
+      if (reminderTimerRef.current) clearTimeout(reminderTimerRef.current);
+      if (wobbleTimerRef.current) clearTimeout(wobbleTimerRef.current);
       if (audioRef.current) {
         try {
           audioRef.current.pause();
@@ -173,11 +219,12 @@ export default function MengenalHurufView() {
     };
   }, [setIsBgmDucked]);
 
-  // Start /audio/lagu-abc.mp3 on the full 26-card board with 60 FPS cue sync
+  // Start /audio/lagu-abc.mp3 on the 26-card board with 60 FPS beat sync
   const startAbcSong = useCallback(() => {
     stopAbcSong(false);
     setSelectedLetter(null);
     setCelebrationState(null);
+    setLockedReminder(null);
     setIsSongMode(true);
     setActiveSongLetterIndex(-1);
     setIsBgmDucked(true);
@@ -218,7 +265,7 @@ export default function MengenalHurufView() {
       if (isLoopEnabledRef.current) {
         audio.currentTime = 0;
         setActiveSongLetterIndex(-1);
-        setOutroBubbleIndices([]);
+        setOutroHopIndices([]);
         audio
           .play()
           .then(() => {
@@ -242,7 +289,7 @@ export default function MengenalHurufView() {
         rafRef.current = requestAnimationFrame(tick);
       })
       .catch(() => {
-        // Fallback muted so visual choreography still runs if audio autoplay is blocked
+        // Fallback muted so visual choreography still plays if browser blocks autoplay
         audio.muted = true;
         audio
           .play()
@@ -264,25 +311,76 @@ export default function MengenalHurufView() {
     }
   }, [isSongMode, playSfx, stopAbcSong, startAbcSong]);
 
-  // All 26 letter cards are unlocked and freely clickable at any time
+  // Strict sequential unlock handler (A -> B -> C ... -> Z)
   const handleCardClick = useCallback(
-    (letterObj) => {
+    (letterObj, globalIndex) => {
       if (isSongMode) {
         stopAbcSong(true);
       }
+
+      if (globalIndex > maxUnlockedIndex) {
+        playSfx("error");
+        setWobbleKey(letterObj.letter);
+        if (wobbleTimerRef.current) clearTimeout(wobbleTimerRef.current);
+        wobbleTimerRef.current = setTimeout(() => setWobbleKey(null), 500);
+
+        const targetLetter = ALPHABET_DATA[maxUnlockedIndex].letter;
+        const msg = `Buka huruf ${targetLetter} dulu ya!`;
+        setLockedReminder(msg);
+        if (reminderTimerRef.current) clearTimeout(reminderTimerRef.current);
+        reminderTimerRef.current = setTimeout(() => setLockedReminder(null), 2400);
+
+        speakInstruction(msg);
+        return;
+      }
+
+      setLockedReminder(null);
       playSfx("click");
       setSelectedLetter(letterObj);
       speakLetter(letterObj);
+
+      if (globalIndex === maxUnlockedIndex && maxUnlockedIndex < 25) {
+        const nextIdx = maxUnlockedIndex + 1;
+        setMaxUnlockedIndex(nextIdx);
+        try {
+          localStorage.setItem("saka_tika_mengenal_unlocked_idx", String(nextIdx));
+        } catch {
+          // Ignore storage restrictions
+        }
+
+        playSfx("success");
+        confetti({
+          particleCount: 65,
+          spread: 75,
+          origin: { y: 0.55 },
+          colors: ["#F59E0B", "#10B981", "#3B82F6", "#EC4899", "#8B5CF6"],
+        });
+
+        const nextLetter = ALPHABET_DATA[nextIdx].letter;
+        speakInstruction(`Hebat! Huruf ${nextLetter} sekarang terbuka!`);
+      }
+
+      if (globalIndex === 25) {
+        pendingAlphabetCelebrationRef.current = true;
+      }
 
       if (!isLetterDiscovered(letterObj.letter)) {
         discoverLetter(letterObj.letter);
         addStars(1);
       }
     },
-    [isSongMode, stopAbcSong, playSfx, isLetterDiscovered, discoverLetter, addStars]
+    [
+      isSongMode,
+      stopAbcSong,
+      maxUnlockedIndex,
+      playSfx,
+      isLetterDiscovered,
+      discoverLetter,
+      addStars,
+    ]
   );
 
-  // Navigate freely across all 26 letters inside the detail modal
+  // Sequential navigation inside LetterDetailModal (unlocks forward step by step)
   const handleNavigateModalLetter = useCallback(
     (direction) => {
       if (!selectedLetter) return;
@@ -293,6 +391,28 @@ export default function MengenalHurufView() {
       const newIndex = currentIndex + direction;
       if (newIndex < 0 || newIndex >= ALPHABET_DATA.length) return;
 
+      if (newIndex > maxUnlockedIndex && newIndex <= 25) {
+        setMaxUnlockedIndex(newIndex);
+        try {
+          localStorage.setItem("saka_tika_mengenal_unlocked_idx", String(newIndex));
+        } catch {
+          // Ignore storage restrictions
+        }
+        playSfx("success");
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.55 },
+          colors: ["#F59E0B", "#10B981", "#3B82F6", "#EC4899"],
+        });
+        const nextLetter = ALPHABET_DATA[newIndex].letter;
+        speakInstruction(`Hebat! Huruf ${nextLetter} sekarang terbuka!`);
+      }
+
+      if (newIndex === 25) {
+        pendingAlphabetCelebrationRef.current = true;
+      }
+
       const nextLetterObj = ALPHABET_DATA[newIndex];
       setSelectedLetter(nextLetterObj);
       speakLetter(nextLetterObj);
@@ -302,45 +422,47 @@ export default function MengenalHurufView() {
         addStars(1);
       }
     },
-    [selectedLetter, playSfx, isLetterDiscovered, discoverLetter, addStars]
+    [selectedLetter, maxUnlockedIndex, playSfx, isLetterDiscovered, discoverLetter, addStars]
   );
 
   const handleCloseDetailModal = useCallback(() => {
     playSfx("click");
     setSelectedLetter(null);
-  }, [playSfx]);
+    if (pendingAlphabetCelebrationRef.current) {
+      pendingAlphabetCelebrationRef.current = false;
+      launchGrandCelebration("alphabet");
+      speakInstruction("Hore! Semua 26 huruf A sampai Z berhasil kamu pelajari!");
+    }
+  }, [playSfx, launchGrandCelebration]);
 
   return (
     <main className="relative z-10 flex flex-col h-full w-full max-h-screen overflow-hidden justify-between select-none p-2 sm:p-3">
       {/* Base Layer: Dedicated Royal & Sky Blue Storybook Background */}
       <BlueStorybookBackground />
 
-      {/* Subtle Depth Tint Layer */}
-      <div className="fixed inset-0 bg-[#0A3464]/10 backdrop-blur-[0.5px] pointer-events-none z-0" />
-
-      {/* Full-Width Centered 26-Letter Adventure Board (Zero Characters, Zero Slides) */}
-      <section className="relative z-10 max-w-6xl w-full flex-1 min-h-0 mx-auto my-auto bg-white/92 backdrop-blur-md border-4 border-sky-200 shadow-[0_14px_0_rgba(15,65,140,0.28)] rounded-[2rem] px-5 py-3.5 md:px-7 md:py-4 flex flex-col justify-between overflow-hidden">
+      {/* Crisp Solid Ivory-White 3D Game Board (Full 26-Letter Symmetrical 7+7+7+5 Stage) */}
+      <section className="relative z-10 max-w-6xl w-full flex-1 min-h-0 mx-auto my-auto bg-[#FFFDF9] border-4 border-sky-200 border-b-[10px] border-b-sky-300/90 shadow-[0_18px_40px_rgba(12,52,115,0.34)] rounded-[2.25rem] px-5 py-3.5 md:px-7 md:py-4 flex flex-col justify-between overflow-hidden">
         <style>{`
           @keyframes abcPastelRgbAura {
             0% {
               border-color: #FDA4AF;
-              box-shadow: 0 0 14px rgba(253, 164, 175, 0.55), 0 4px 0 #F43F5E44;
+              box-shadow: 0 0 15px rgba(253, 164, 175, 0.58), 0 4px 0 #F43F5E44;
             }
             25% {
               border-color: #FCD34D;
-              box-shadow: 0 0 14px rgba(252, 211, 77, 0.55), 0 4px 0 #F59E0B44;
+              box-shadow: 0 0 15px rgba(252, 211, 77, 0.58), 0 4px 0 #F59E0B44;
             }
             50% {
               border-color: #6EE7B7;
-              box-shadow: 0 0 14px rgba(110, 231, 183, 0.55), 0 4px 0 #10B98144;
+              box-shadow: 0 0 15px rgba(110, 231, 183, 0.58), 0 4px 0 #10B98144;
             }
             75% {
               border-color: #7DD3FC;
-              box-shadow: 0 0 14px rgba(125, 211, 252, 0.55), 0 4px 0 #0EA5E944;
+              box-shadow: 0 0 15px rgba(125, 211, 252, 0.58), 0 4px 0 #0EA5E944;
             }
             100% {
               border-color: #C4B5FD;
-              box-shadow: 0 0 14px rgba(196, 181, 253, 0.55), 0 4px 0 #8B5CF644;
+              box-shadow: 0 0 15px rgba(196, 181, 253, 0.58), 0 4px 0 #8B5CF644;
             }
           }
           .abc-pastel-rgb-aura {
@@ -349,83 +471,118 @@ export default function MengenalHurufView() {
           }
         `}</style>
 
-        {/* Board Top Header Row: "Play Lagu" / "Stop Lagu" + Default-ON "Loop: ON" Pills */}
-        <div className="shrink-0 flex items-center justify-end gap-3 mb-2.5 w-full">
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.94, y: 1 }}
-            transition={{ type: "spring", stiffness: 450, damping: 16 }}
-            onClick={handleToggleSongMode}
-            aria-label={isSongMode ? "Hentikan Lagu ABC" : "Putar Lagu ABC"}
-            className={`px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full border-2 border-white border-b-4 font-display font-extrabold text-xs sm:text-sm text-white shadow-md flex items-center gap-1.5 cursor-pointer select-none transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
-              isSongMode
-                ? "bg-gradient-to-b from-rose-600 to-red-700 border-b-red-900"
-                : "bg-gradient-to-b from-[#B45309] to-[#9A3412] border-b-[#7C2D12]"
-            }`}
-          >
-            {isSongMode ? (
-              <>
-                <Square size={13} aria-hidden="true" className="fill-current" />
-                <span>Stop Lagu</span>
-              </>
-            ) : (
-              <>
-                <Music size={15} aria-hidden="true" className="stroke-[2.5]" />
-                <span>Play Lagu</span>
-              </>
-            )}
-          </motion.button>
+        {/* Board Header Bar: Progress + Reminder Pill (Left) | Play Lagu + Loop: ON (Right) */}
+        <header className="shrink-0 flex items-center justify-between gap-4 mb-2.5 w-full">
+          {/* Left Header Group */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="px-4 py-1.5 rounded-full bg-sky-50 border-2 border-sky-200 text-sky-900 font-display font-extrabold text-xs md:text-sm flex items-center gap-2 shrink-0 shadow-2xs">
+              <BookOpen size={15} aria-hidden="true" className="text-sky-600 stroke-[2.5]" />
+              <span>Terbuka: {maxUnlockedIndex + 1} / 26 Huruf</span>
+            </div>
 
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.94, y: 1 }}
-            transition={{ type: "spring", stiffness: 450, damping: 16 }}
-            onClick={() => {
-              playSfx("click");
-              setIsLoopEnabled((prev) => !prev);
-            }}
-            aria-pressed={isLoopEnabled}
-            aria-label={
-              isLoopEnabled
-                ? "Matikan ulang otomatis Lagu ABC"
-                : "Nyalakan ulang otomatis Lagu ABC"
-            }
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border-2 border-b-4 font-display text-xs sm:text-sm shadow-md flex items-center gap-1.5 cursor-pointer select-none transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
-              isLoopEnabled
-                ? "bg-gradient-to-b from-[#0369A1] to-[#1D4ED8] border-white border-b-[#1E3A8A] text-white font-extrabold"
-                : "bg-white border-slate-200 border-b-slate-300 text-slate-700 font-bold"
-            }`}
-          >
-            <Repeat size={13} aria-hidden="true" className="stroke-[2.6]" />
-            <span>{isLoopEnabled ? "Loop: ON" : "Loop: OFF"}</span>
-          </motion.button>
-        </div>
+            <AnimatePresence mode="wait">
+              {lockedReminder && (
+                <motion.div
+                  key={lockedReminder}
+                  initial={{ opacity: 0, scale: 0.88, x: -8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, x: -6 }}
+                  transition={{ type: "spring", stiffness: 460, damping: 20 }}
+                  role="status"
+                  className="px-4 py-1.5 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-900 font-display font-extrabold text-xs md:text-sm shadow-sm flex items-center gap-1.5 shrink-0"
+                >
+                  <Lock size={13} aria-hidden="true" className="text-amber-700 stroke-[2.6]" />
+                  <span>{lockedReminder}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-        {/* 4 Balanced Rows Displaying All 26 Letters (Aa - Zz) Simultaneously */}
+          {/* Right Header Group */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.94, y: 1 }}
+              transition={{ type: "spring", stiffness: 450, damping: 16 }}
+              onClick={handleToggleSongMode}
+              aria-label={isSongMode ? "Hentikan Lagu ABC" : "Putar Lagu ABC"}
+              className={`px-4 py-1.5 sm:py-2 rounded-full border-2 border-white border-b-4 font-display font-extrabold text-xs md:text-sm text-white shadow-md flex items-center gap-1.5 cursor-pointer select-none transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
+                isSongMode
+                  ? "bg-gradient-to-b from-rose-500 to-red-600 border-b-red-800"
+                  : "bg-gradient-to-b from-amber-400 to-orange-500 border-b-orange-700"
+              }`}
+            >
+              {isSongMode ? (
+                <>
+                  <Square size={13} aria-hidden="true" className="fill-current" />
+                  <span className="drop-shadow-xs">Stop Lagu</span>
+                </>
+              ) : (
+                <>
+                  <Music size={15} aria-hidden="true" className="stroke-[2.5]" />
+                  <span className="drop-shadow-xs">Play Lagu</span>
+                </>
+              )}
+            </motion.button>
+
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.94, y: 1 }}
+              transition={{ type: "spring", stiffness: 450, damping: 16 }}
+              onClick={() => {
+                playSfx("click");
+                setIsLoopEnabled((prev) => !prev);
+              }}
+              aria-pressed={isLoopEnabled}
+              aria-label={
+                isLoopEnabled
+                  ? "Matikan ulang otomatis Lagu ABC"
+                  : "Nyalakan ulang otomatis Lagu ABC"
+              }
+              className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border-2 border-b-4 font-display text-xs md:text-sm shadow-md flex items-center gap-1.5 cursor-pointer select-none transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
+                isLoopEnabled
+                  ? "bg-gradient-to-b from-sky-400 to-blue-500 border-white border-b-blue-700 text-white font-extrabold"
+                  : "bg-slate-100 border-slate-200 border-b-slate-300 text-slate-600 font-bold"
+              }`}
+            >
+              <Repeat size={13} aria-hidden="true" className="stroke-[2.6]" />
+              <span className={isLoopEnabled ? "drop-shadow-xs" : ""}>
+                {isLoopEnabled ? "Loop: ON" : "Loop: OFF"}
+              </span>
+            </motion.button>
+          </div>
+        </header>
+
+        {/* Symmetrical 4-Row x 26-Card Grid (7 + 7 + 7 + 5) */}
         <div className="flex-1 min-h-0 flex flex-col justify-between gap-2.5 md:gap-3 overflow-visible py-1">
           {ALPHABET_ROWS.map((row) => (
             <div
-              key={row.offset}
+              key={row.rowIdx}
               className="flex items-center justify-center gap-2.5 md:gap-3.5 flex-1 min-h-0"
             >
               {row.items.map((letterObj, slotIdx) => {
                 const globalIndex = row.offset + slotIdx;
+                const visualCol = row.colOffset + slotIdx;
+
                 return (
                   <ToyLetterCard
                     key={letterObj.letter}
                     item={letterObj}
                     globalIndex={globalIndex}
+                    visualCol={visualCol}
+                    maxUnlockedIndex={maxUnlockedIndex}
+                    isWobbling={wobbleKey === letterObj.letter}
                     isSongMode={isSongMode}
                     songPhase={songPhase}
                     activeSongLetterIndex={activeSongLetterIndex}
-                    isOutroBubble={
+                    isOutroHop={
                       isSongMode &&
                       songPhase === "outro" &&
-                      outroBubbleIndices.includes(globalIndex)
+                      outroHopIndices.includes(globalIndex)
                     }
-                    onClick={() => handleCardClick(letterObj)}
+                    onClick={() => handleCardClick(letterObj, globalIndex)}
                     onHover={() => playSfx("hover")}
                   />
                 );
@@ -447,10 +604,11 @@ export default function MengenalHurufView() {
         )}
       </AnimatePresence>
 
-      {/* Grand Celebration Finale Modal (Shown on Play Lagu Completion when Loop is OFF) */}
+      {/* Grand Celebration Finale Modal */}
       <AnimatePresence>
         {celebrationState && (
           <GrandCelebrationModal
+            type={celebrationState.type}
             onReplaySong={() => {
               playSfx("click");
               startAbcSong();
@@ -469,23 +627,81 @@ export default function MengenalHurufView() {
   );
 }
 
-// 3D Illustrated Toy Letter Card Component (All Unlocked + Play Lagu Choreography, Zero Star Icons)
+// 3D Toy Letter Card Component (3 High-Contrast States + Cute Intro Wave & Outro Happy-Hop)
 function ToyLetterCard({
   item,
   globalIndex,
+  visualCol,
+  maxUnlockedIndex,
+  isWobbling,
   isSongMode,
   songPhase,
   activeSongLetterIndex,
-  isOutroBubble,
+  isOutroHop,
   onClick,
   onHover,
 }) {
+  const isTarget = !isSongMode && globalIndex === maxUnlockedIndex;
+  const isLocked = !isSongMode && globalIndex > maxUnlockedIndex;
+  const isAlreadyOpened = !isSongMode && globalIndex < maxUnlockedIndex;
+
   const isSongIntro = isSongMode && songPhase === "intro";
   const isSongOutro = isSongMode && songPhase === "outro";
   const isSongActive =
     isSongMode && songPhase === "singing" && globalIndex === activeSongLetterIndex;
   const isSongSung =
     isSongMode && songPhase === "singing" && globalIndex < activeSongLetterIndex;
+
+  const crispColor = getCrispLetterColor(item.color);
+
+  // Locked Card State (Twilight Royal Blue Mystery Card with High-Contrast White Letters + Gold Lock)
+  if (isLocked) {
+    return (
+      <motion.button
+        type="button"
+        animate={isWobbling ? { x: [-5, 5, -4, 4, 0] } : { x: 0 }}
+        transition={{ duration: 0.45, ease: "easeInOut" }}
+        whileHover={{ scale: 1.03, y: -2 }}
+        whileTap={{ scale: 0.95 }}
+        onMouseEnter={onHover}
+        onClick={onClick}
+        aria-label={`Huruf ${item.letter} masih terkunci`}
+        className="relative overflow-hidden group w-[13.2%] max-w-[146px] shrink-0 h-full rounded-2xl px-2 py-1.5 md:px-2.5 md:py-2 flex flex-col items-center justify-between cursor-pointer select-none bg-gradient-to-br from-[#3B69B0] via-[#2C5292] to-[#1E3D73] border-2 border-[#6090DC]/60 border-b-[5px] border-b-[#152C54] shadow-[inset_0_2px_0_rgba(255,255,255,0.22)] hover:border-[#7EA8E8]"
+      >
+        <div className="absolute top-1 inset-x-2 h-[1px] bg-white/25 rounded-full pointer-events-none" />
+        <div className="absolute inset-1.5 rounded-xl border border-dashed border-sky-200/25 pointer-events-none" />
+
+        {/* High-Contrast Frosted-White Letters + 3 Mystery Dots */}
+        <div className="flex flex-col items-center z-10 pt-0.5">
+          <div className="flex items-baseline leading-none">
+            <span className="font-display font-black text-2xl md:text-[1.75rem] leading-none text-white drop-shadow-sm">
+              {item.letter}
+            </span>
+            <span className="font-display font-bold text-lg md:text-xl leading-none text-sky-100/90 ml-0.5">
+              {item.lowercase}
+            </span>
+          </div>
+          <div className="mt-1 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-200/80" />
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-200/80" />
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-200/80" />
+          </div>
+        </div>
+
+        {/* Golden Padlock Medallion */}
+        <motion.div
+          animate={isWobbling ? { rotate: [-14, 14, -10, 10, 0] } : { rotate: 0 }}
+          transition={{ duration: 0.45, ease: "easeInOut" }}
+          className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#19325C] border border-amber-300/50 flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.35)] group-hover:scale-105 transition-transform z-10 mb-0.5"
+        >
+          <Lock size={16} aria-hidden="true" className="text-amber-300 stroke-[2.5]" />
+        </motion.div>
+      </motion.button>
+    );
+  }
+
+  // Unlocked / Active Target / Play Lagu Bright Card State
+  const showIntroNote = isSongIntro && INTRO_NOTE_CARD_INDICES.has(globalIndex);
 
   return (
     <motion.button
@@ -494,11 +710,19 @@ function ToyLetterCard({
       whileTap={{ scale: 0.95, y: 1 }}
       animate={
         isSongIntro
-          ? { rotate: [-3.5, 3.5, -3.5], y: [0, -3, 0], scale: 1 }
+          ? {
+              y: [0, -7, 0],
+              rotate: [-3.5, 3.5, -3.5],
+              scale: [1, 1.04, 1],
+            }
           : isSongActive
           ? { scale: 1.05, y: -4, rotate: 0 }
-          : isSongOutro && isOutroBubble
-          ? { scale: 1.1, y: -5, rotate: 0 }
+          : isSongOutro && isOutroHop
+          ? {
+              y: [0, -10, 0],
+              rotate: [-5, 5, -3, 0],
+              scale: [1, 1.13, 1.02],
+            }
           : { scale: 1, y: 0, rotate: 0 }
       }
       transition={
@@ -507,43 +731,68 @@ function ToyLetterCard({
               duration: ABC_SONG_BEAT_SEC * 2,
               repeat: Infinity,
               ease: "easeInOut",
+              delay: visualCol * 0.08,
             }
-          : isSongOutro && isOutroBubble
-          ? { type: "spring", stiffness: 360, damping: 12 }
+          : isSongOutro && isOutroHop
+          ? { duration: 0.36, ease: "easeInOut" }
           : isSongMode
-          ? { type: "spring", stiffness: 540, damping: 24 }
+          ? { type: "spring", stiffness: 520, damping: 24 }
           : { type: "spring", stiffness: 450, damping: 18 }
       }
       onMouseEnter={onHover}
       onClick={onClick}
       aria-label={`Huruf ${item.letter} untuk ${item.word}`}
-      className={`relative group w-[13%] max-w-[146px] h-full rounded-2xl px-2 py-1.5 md:px-2.5 md:py-2 flex flex-col items-center justify-between cursor-pointer select-none transition-colors ${
+      className={`relative group w-[13.2%] max-w-[146px] shrink-0 h-full rounded-2xl px-2 py-1.5 md:px-2.5 md:py-2 flex flex-col items-center justify-between cursor-pointer select-none transition-colors ${
         isSongActive
-          ? "border-[3px] border-amber-400 border-b-4 border-b-amber-500 ring-4 ring-yellow-300/95 bg-gradient-to-b from-amber-50 via-yellow-100 to-amber-100 shadow-[0_0_26px_rgba(251,191,36,0.95)] z-20"
-          : isSongOutro && isOutroBubble
+          ? "border-[3px] border-amber-400 border-b-[5px] border-b-amber-500 ring-4 ring-yellow-300/95 bg-gradient-to-b from-amber-50 via-yellow-100 to-amber-100 shadow-[0_0_28px_rgba(251,191,36,0.95)] z-20"
+          : isSongOutro && isOutroHop
           ? "abc-pastel-rgb-aura ring-4 ring-cyan-300/90 bg-gradient-to-b from-cyan-50 via-white to-amber-50 shadow-[0_0_22px_rgba(56,189,248,0.65)] z-20"
           : isSongIntro || isSongOutro
-          ? "abc-pastel-rgb-aura bg-white/95"
+          ? "abc-pastel-rgb-aura bg-white"
           : isSongSung
-          ? "bg-sky-50/90 border-2 border-sky-300 border-b-4 border-b-sky-400 shadow-xs"
+          ? "bg-sky-50 border-2 border-sky-300 border-b-[5px] border-b-sky-400 shadow-xs"
           : isSongMode
-          ? "bg-white/95 border-2 border-slate-200 border-b-4 border-b-slate-300 shadow-xs"
-          : "border-2 border-b-4 shadow-xs hover:shadow-md"
+          ? "bg-white border-2 border-slate-200 border-b-[5px] border-b-slate-300 shadow-xs"
+          : isTarget
+          ? "bg-gradient-to-b from-white to-amber-50/70 border-[3px] border-amber-400 border-b-[6px] border-b-amber-500 ring-4 ring-amber-300/80 shadow-[0_8px_20px_rgba(245,158,11,0.28)] z-10"
+          : "bg-white border-2 border-slate-200 border-b-[5px] shadow-sm hover:shadow-md"
       }`}
       style={
-        !isSongMode
+        isAlreadyOpened
           ? {
-              backgroundColor: `${item.color}16`,
-              borderColor: item.color,
-              borderTop: "1.5px solid rgba(255,255,255,0.85)",
-              borderLeft: "1.5px solid rgba(255,255,255,0.85)",
-              borderRight: "1.5px solid rgba(255,255,255,0.85)",
+              borderBottomColor: crispColor,
             }
           : undefined
       }
     >
-      <div className="absolute top-1 inset-x-2 h-[1px] bg-white/80 rounded-full pointer-events-none" />
+      <div className="absolute top-1 inset-x-2 h-[1px] bg-white/90 rounded-full pointer-events-none" />
 
+      {/* Top-Right Emerald Checkmark Badge on Previously Opened Cards */}
+      {isAlreadyOpened && (
+        <div className="absolute top-1.5 right-1.5 z-20">
+          <div className="w-4 h-4 rounded-full bg-emerald-100 border border-emerald-500 flex items-center justify-center shadow-2xs">
+            <Check size={10} aria-hidden="true" className="text-emerald-700 stroke-[3]" />
+          </div>
+        </div>
+      )}
+
+      {/* Floating Musical Note Badge During Intro Wave Dance */}
+      {showIntroNote && (
+        <motion.span
+          aria-hidden="true"
+          animate={{ y: [-2, -8, -2], rotate: [-8, 8, -8] }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: visualCol * 0.08 }}
+          className="absolute -top-2.5 -right-2 w-6 h-6 rounded-full bg-gradient-to-b from-pink-400 to-rose-500 border-2 border-white text-white flex items-center justify-center shadow-md z-30"
+        >
+          {globalIndex % 2 === 0 ? (
+            <Music size={11} className="stroke-[2.8]" />
+          ) : (
+            <Music2 size={11} className="stroke-[2.8]" />
+          )}
+        </motion.span>
+      )}
+
+      {/* Active Singing Musical Note Badge */}
       {isSongActive && (
         <span
           aria-hidden="true"
@@ -553,41 +802,54 @@ function ToyLetterCard({
         </span>
       )}
 
-      {/* Bold Colored Uppercase + Lowercase Title (Aa) */}
+      {/* Floating Happy-Hop Sparkle Badge During Outro */}
+      {isSongOutro && isOutroHop && (
+        <motion.span
+          aria-hidden="true"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1, y: -3 }}
+          transition={{ duration: 0.25 }}
+          className="absolute -top-2.5 -right-2 w-6 h-6 rounded-full bg-gradient-to-b from-sky-400 to-cyan-500 border-2 border-white text-white flex items-center justify-center shadow-md z-30"
+        >
+          <Sparkles size={11} className="stroke-[2.6]" />
+        </motion.span>
+      )}
+
+      {/* Bold High-Contrast Uppercase + Lowercase Title (Aa) */}
       <div className="flex items-baseline justify-center z-10 leading-none pt-0.5">
         <span
-          className="font-display font-black text-2xl md:text-3xl leading-none drop-shadow-xs"
-          style={{ color: item.color }}
+          className="font-display font-black text-2xl md:text-[1.75rem] leading-none"
+          style={{ color: crispColor }}
         >
           {item.letter}
         </span>
         <span
-          className="font-display font-bold text-lg md:text-xl opacity-85 ml-0.5 leading-none"
-          style={{ color: item.color }}
+          className="font-display font-bold text-lg md:text-xl opacity-90 ml-0.5 leading-none"
+          style={{ color: crispColor }}
         >
           {item.lowercase}
         </span>
       </div>
 
-      {/* 2D Cartoon Bitmap Vocabulary Illustration */}
+      {/* 2D Cartoon Bitmap Vocabulary Illustration in Soft Pastel Circular Badge */}
       <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 flex items-center justify-center group-hover:scale-110 transition-transform drop-shadow-xs z-10 my-auto">
         <WordIllustration
           illustrationKey={item.illustrationKey}
           word={item.word}
-          color={item.color}
+          color={crispColor}
           className="w-full h-full object-contain"
         />
       </div>
 
-      {/* Crisp Indonesian Vocabulary Label */}
-      <span className="font-sans font-bold text-xs md:text-sm text-slate-700 leading-tight max-w-full truncate z-10 pb-0.5">
+      {/* Clear Dark-Slate Vocabulary Label */}
+      <span className="font-sans font-extrabold text-[11px] md:text-xs text-slate-700 leading-tight max-w-full truncate z-10 pb-0.5">
         {item.word}
       </span>
     </motion.button>
   );
 }
 
-// Floating Detail Card Modal (Clean Header: Zero Cluttered Small Descriptive Texts)
+// Floating Detail Card Modal
 function LetterDetailModal({ letterObj, onClose, onNavigate, playSfx }) {
   const [activeHighlightIndex, setActiveHighlightIndex] = useState(null);
   const [isSpeakingSequence, setIsSpeakingSequence] = useState(false);
@@ -696,14 +958,13 @@ function LetterDetailModal({ letterObj, onClose, onNavigate, playSfx }) {
       >
         <div className="absolute top-1 inset-x-4 h-[1.5px] bg-white/80 rounded-full pointer-events-none" />
 
-        {/* Clean Modal Header: Large 3D Letter Tile (Left) & Tika + Audio + Close (Right) */}
+        {/* Modal Header */}
         <div
           className="flex items-center justify-between p-2.5 sm:p-3.5 rounded-2xl border-2 border-white/80 shadow-xs flex-shrink-0 relative overflow-visible"
           style={{
             background: `linear-gradient(135deg, ${letterObj.color}20 0%, ${letterObj.color}08 100%)`,
           }}
         >
-          {/* Left: Prominent Glossy 3D Letter Tile (Aa) */}
           <div
             className="px-4 py-2 rounded-2xl flex items-baseline gap-1 shadow-sm border-2 border-white"
             style={{
@@ -725,7 +986,6 @@ function LetterDetailModal({ letterObj, onClose, onNavigate, playSfx }) {
             </span>
           </div>
 
-          {/* Right: Cheerful Tika Mascot, Speaker Button & Close Button */}
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.img
               src="/assets/icon-tika-utama.png"
@@ -765,7 +1025,7 @@ function LetterDetailModal({ letterObj, onClose, onNavigate, playSfx }) {
           </div>
         </div>
 
-        {/* 3-Column Maximized Example Word Cards with 2D Cartoon Bitmap Illustrations */}
+        {/* 3-Column Example Word Cards */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4 my-auto py-3 sm:py-4 flex-1 min-h-0 items-stretch">
           {examples.map((ex, idx) => {
             const isHighlighted = activeHighlightIndex === idx;
@@ -829,7 +1089,7 @@ function LetterDetailModal({ letterObj, onClose, onNavigate, playSfx }) {
           })}
         </div>
 
-        {/* Modal Footer: Prev / Dengarkan Semua / Next Controls */}
+        {/* Modal Footer */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-shrink-0 gap-2">
           <motion.button
             type="button"
@@ -887,7 +1147,9 @@ function LetterDetailModal({ letterObj, onClose, onNavigate, playSfx }) {
 }
 
 // Grand Celebration Finale Overlay (Zero Star Icons, Zero Emojis)
-function GrandCelebrationModal({ onReplaySong, onContinue }) {
+function GrandCelebrationModal({ type, onReplaySong, onContinue }) {
+  const isSongMilestone = type === "song";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto select-none">
       <motion.div
@@ -981,30 +1243,47 @@ function GrandCelebrationModal({ onReplaySong, onContinue }) {
         </h2>
 
         <p className="font-sans font-bold text-sm sm:text-base text-slate-700 mt-2 leading-relaxed">
-          Kamu Sudah Bernyanyi Huruf A Sampai Z!
+          {isSongMilestone
+            ? "Kamu Sudah Bernyanyi Huruf A Sampai Z!"
+            : "Semua 26 Huruf A-Z Berhasil Kamu Pelajari!"}
         </p>
 
         <div className="mt-5 flex items-center justify-center gap-3 w-full flex-wrap">
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95, y: 1 }}
-            onClick={onReplaySong}
-            className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl bg-gradient-to-b from-[#B45309] to-[#9A3412] border-2 border-white border-b-4 border-b-[#7C2D12] text-white font-display font-black text-sm sm:text-base shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <RotateCcw size={17} aria-hidden="true" className="stroke-[2.6]" />
-            <span>NYANYI LAGI</span>
-          </motion.button>
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95, y: 1 }}
-            onClick={onContinue}
-            className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 border-2 border-white border-b-4 border-b-blue-900 text-white font-display font-black text-sm sm:text-base shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Play size={16} aria-hidden="true" className="fill-white" />
-            <span>LANJUT BELAJAR</span>
-          </motion.button>
+          {isSongMilestone ? (
+            <>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95, y: 1 }}
+                onClick={onReplaySong}
+                className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl bg-gradient-to-b from-[#B45309] to-[#9A3412] border-2 border-white border-b-4 border-b-[#7C2D12] text-white font-display font-black text-sm sm:text-base shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <RotateCcw size={17} aria-hidden="true" className="stroke-[2.6]" />
+                <span>NYANYI LAGI</span>
+              </motion.button>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95, y: 1 }}
+                onClick={onContinue}
+                className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl bg-gradient-to-b from-blue-600 to-blue-700 border-2 border-white border-b-4 border-b-blue-900 text-white font-display font-black text-sm sm:text-base shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Play size={16} aria-hidden="true" className="fill-white" />
+                <span>LANJUT BELAJAR</span>
+              </motion.button>
+            </>
+          ) : (
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.06, y: -2 }}
+              whileTap={{ scale: 0.95, y: 1 }}
+              onClick={onContinue}
+              className="px-7 py-3 rounded-2xl bg-gradient-to-b from-[#B45309] to-[#9A3412] border-2 border-white border-b-6 border-b-[#7C2D12] text-white font-display font-black text-base sm:text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Play size={18} aria-hidden="true" className="fill-white" />
+              <span>LANJUT BERMAIN</span>
+            </motion.button>
+          )}
         </div>
       </motion.div>
     </div>
